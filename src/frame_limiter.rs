@@ -13,7 +13,7 @@ impl Plugin for FrameLimiterPlugin {
     fn build(&self, app: &mut AppBuilder) {
         app
             .add_resource(FrameLimiterResource {last_time: None, fps: self.fps})
-            .add_stage_after("update", "frame_limiter")
+            .add_stage_before("update", "frame_limiter")
             .add_system_to_stage("frame_limiter", frame_limiter_system.system())
             ;
     }
