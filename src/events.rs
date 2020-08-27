@@ -1,11 +1,12 @@
 use crate::components::Position;
 use bevy::prelude::*;
 
-pub struct DamageEvent {
-    pub position: Position
+pub enum Event {
+    Damage(Position),
+    Remove(Position),
 }
 
 #[derive(Default)]
 pub struct DamageState {
-    pub damage_reader: EventReader<DamageEvent>,
+    pub damage_reader: EventReader<Event>,
 }

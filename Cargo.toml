@@ -8,3 +8,4 @@ edition = "2018"
 
 [dependencies]
 bevy = {path="../bevy/"}
+anyhow = "1.0"
