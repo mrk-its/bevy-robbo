@@ -1,5 +1,3 @@
-use std::ops;
-use bevy::prelude::*;
 pub struct Robbo;
 pub struct Moveable;
 pub struct Destroyable;
@@ -62,6 +60,18 @@ impl Int2Ops for Position {
         self.0
     }
 }
+#[derive(Debug, Eq, Hash, PartialEq, Clone, Copy)]
+pub struct StartPosition(pub IntVec2);
+
+impl Int2Ops for StartPosition {
+    type Output = StartPosition;
+    fn new(x: Int, y: Int) -> Self {
+        StartPosition(IntVec2(x, y))
+    }
+    fn get(&self) -> IntVec2 {
+        self.0
+    }
+}
 
 #[derive(Debug, Eq, PartialEq, Hash, Clone, Copy)]
 pub struct MovingDir(pub IntVec2);
@@ -75,7 +85,6 @@ impl Int2Ops for MovingDir {
         self.0
     }
 }
-
 
 #[derive(Debug, Eq, PartialEq, Hash, Clone, Copy)]
 pub struct ShootingDir(pub IntVec2);
