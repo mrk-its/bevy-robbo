@@ -21,7 +21,6 @@ const FPS: f32 = 30.0;
 const BOX_SIZE: f32 = 32.0 * SCALE;
 
 use bevy::asset::{AddAsset, AssetLoader};
-use bevy::ecs::DynamicBundle;
 
 #[derive(Debug)]
 pub struct Level(String);
@@ -85,16 +84,7 @@ fn setup(
     asset_server.watch_for_changes().unwrap();
 
     let texture_handle = asset_server.load("assets/icons32.png").unwrap();
-    let mut texture_atlas =
-        TextureAtlas::new_empty(texture_handle, Vec2::new(12.0 * 34.0, 8.0 * 34.0));
-    for y in 0..8 {
-        for x in 0..12 {
-            texture_atlas.add_texture(Rect {
-                min: Vec2::new((2 + x * 34) as f32, (2 + y * 34) as f32),
-                max: Vec2::new((2 + x * 34 + 31) as f32, (2 + y * 34 + 31) as f32),
-            });
-        }
-    }
+    let mut texture_atlas = TextureAtlas::from_grid(texture_handle, Vec2::new(384.0, 256.0), 12, 8);
     texture_atlas_handle.0 = Some(texture_atlases.add(texture_atlas));
 
     let _level_handle: Handle<Level> = asset_server.load("assets/level.txt").unwrap();
@@ -123,13 +113,6 @@ fn setup(
         },
         ..Default::default()
     });
-
-    // WTF - without creating these entities here (setup system?)
-    // additionally these entities must be created exactly the same way
-    // Query<Without<Robbo, Entity>> in move_robbo system doesn't work
-    prepare(&mut commands.spawn(entities::wall()));
-    prepare(&mut commands.spawn(entities::push_box()));
-    prepare(&mut commands.spawn(entities::static_box()));
 }
 
 pub fn prepare_render(
@@ -186,6 +169,7 @@ pub fn create_level(
                 'R' => commands.spawn(entities::robbo()),
                 '#' => commands.spawn(entities::static_box()),
                 '~' => commands.spawn(entities::push_box()),
+                '^' => commands.spawn(entities::bird()),
                 '@' => commands.spawn(entities::lbear(-1, 0)),
                 '*' => commands.spawn(entities::rbear(1, 0)),
                 _ => {

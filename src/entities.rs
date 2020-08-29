@@ -11,10 +11,10 @@ pub fn robbo() -> impl DynamicBundle + Send + Sync + 'static {
     )
 }
 
-pub fn bird(kx: i32, ky: i32) -> impl DynamicBundle + Send + Sync + 'static {
+pub fn bird() -> impl DynamicBundle + Send + Sync + 'static {
     (
         Kind::Bird,
-        MovingDir::new(kx, ky),
+        MovingDir::new(0, 1),
         Destroyable,
         Tiles::new(&[15, 16]),
     )
