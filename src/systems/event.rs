@@ -37,7 +37,6 @@ pub fn event_system(
                     }
                 }
             }
-            _ => (),
         }
     }
 }

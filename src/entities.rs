@@ -1,4 +1,4 @@
-use crate::components::{Destroyable, Int2Ops, Kind, Moveable, MovingDir, Position, Robbo, Tiles};
+use crate::components::{Destroyable, Int2Ops, Kind, Moveable, MovingDir, Robbo, Tiles};
 use bevy::ecs::DynamicBundle;
 
 pub fn robbo() -> impl DynamicBundle + Send + Sync + 'static {
@@ -58,7 +58,7 @@ pub fn wall() -> impl DynamicBundle + Send + Sync + 'static {
     )
 }
 
-pub fn bullet(kx: i32, ky: i32) -> impl DynamicBundle + Send + Sync + 'static {
+pub fn _bullet(kx: i32, ky: i32) -> impl DynamicBundle + Send + Sync + 'static {
     (
         Kind::Bullet,
         Moveable,

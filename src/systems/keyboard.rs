@@ -2,12 +2,9 @@ use crate::components::{MovingDir, Robbo, Tiles, Int2Ops};
 use bevy::prelude::*;
 
 pub fn keyboard_system(
-    commands: Commands,
     keyboard_input: Res<Input<KeyCode>>,
     mut query: Query<(&Robbo, &mut MovingDir, &mut Tiles)>,
 ) {
-    // println!("keyboard_system");
-
     let is_shift =
         keyboard_input.pressed(KeyCode::LShift) || keyboard_input.pressed(KeyCode::RShift);
 

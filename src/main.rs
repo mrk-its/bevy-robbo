@@ -7,7 +7,8 @@ mod systems;
 
 use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, PrintDiagnosticsPlugin};
 use bevy::prelude::*;
-use bevy::sprite::{Rect, TextureAtlas};
+use bevy::sprite::TextureAtlas;
+use bevy::render::camera::{OrthographicProjection, WindowOrigin};
 use bevy::window;
 use components::{Int2Ops, Kind, Position, StartPosition, Tiles};
 use frame_cnt::{FrameCnt, FrameCntPlugin};
@@ -84,22 +85,10 @@ fn setup(
     asset_server.watch_for_changes().unwrap();
 
     let texture_handle = asset_server.load("assets/icons32.png").unwrap();
-    let mut texture_atlas = TextureAtlas::from_grid(texture_handle, Vec2::new(384.0, 256.0), 12, 8);
+    let texture_atlas = TextureAtlas::from_grid(texture_handle, Vec2::new(384.0, 256.0), 12, 8);
     texture_atlas_handle.0 = Some(texture_atlases.add(texture_atlas));
 
     let _level_handle: Handle<Level> = asset_server.load("assets/level.txt").unwrap();
-
-    let prepare = |commands: &mut Commands| {
-        commands
-            .with(Position::new(-100, -100))
-            .with(StartPosition::new(-100, -100))
-            .with_bundle(SpriteSheetComponents {
-                texture_atlas: texture_atlas_handle.0.unwrap(),
-                scale: Scale(SCALE),
-                ..Default::default()
-            });
-    };
-    use bevy::render::camera::{OrthographicProjection, WindowOrigin};
 
     commands.spawn(Camera2dComponents {
         translation: Translation::new(-BOX_SIZE / 2.0, BOX_SIZE / 2.0, 0.0),
@@ -173,7 +162,7 @@ pub fn create_level(
                 '@' => commands.spawn(entities::lbear(-1, 0)),
                 '*' => commands.spawn(entities::rbear(1, 0)),
                 _ => {
-                    for (entity, kind, pos) in &mut items.iter() {
+                    for (entity, _, pos) in &mut items.iter() {
                         if pos.as_tuple() == (x, y) {
                             commands.despawn(entity);
                         }
@@ -184,7 +173,7 @@ pub fn create_level(
             let entity = items
                 .iter()
                 .into_iter()
-                .find(|(_, kind, pos)| pos.as_tuple() == (x, y))
+                .find(|(_, _, pos)| pos.as_tuple() == (x, y))
                 .map(|t| t)
                 .is_some();
 
