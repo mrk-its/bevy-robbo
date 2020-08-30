@@ -1,16 +1,21 @@
-use crate::components::{Int2Ops, Kind, Moveable, MovingDir, Position, Robbo};
+use crate::components::{Int2Ops, Kind, Moveable, Collectable, MovingDir, Position, Robbo};
 use crate::events::Event;
 use crate::frame_cnt::FrameCnt;
+use crate::inventory::Inventory;
+
 use bevy::prelude::*;
 use std::collections::{HashMap, HashSet};
 
 pub fn move_robbo(
+    mut commands: Commands,
     frame_cnt: Res<FrameCnt>,
+    mut inventory: ResMut<Inventory>,
     mut robbo: Query<(&Robbo, &mut Position, &MovingDir)>,
     mut items: Query<Without<Robbo, Entity>>,
     moveables: Query<&Moveable>,
     positions: Query<&mut Position>,
     moving_dirs: Query<&mut MovingDir>,
+    collectables: Query<&Collectable>,
 ) {
     // println!("move_robbo");
     if !frame_cnt.do_it() {
@@ -36,7 +41,12 @@ pub fn move_robbo(
             *position = new_pos;
         } else {
             if let Some(entity) = entities.get(&new_pos) {
-                if moveables.get::<Moveable>(*entity).is_ok() && !occupied.contains(&new_pos2) {
+                if let Ok(collectable) = collectables.get::<Collectable>(*entity) {
+                    inventory.collect(*collectable);
+                    commands.despawn(*entity);
+                    *position = new_pos;
+                }
+                else if moveables.get::<Moveable>(*entity).is_ok() && !occupied.contains(&new_pos2) {
                     if let Ok(mut pos) = positions.get_mut::<Position>(*entity) {
                         *pos = new_pos2;
                         *position = new_pos;
@@ -108,6 +118,7 @@ fn move_bird(
 fn move_box(
     damage_events: &mut ResMut<Events<Event>>,
     occupied: &mut HashSet<Position>,
+    processed: &mut HashSet<Position>,
     mut position: Mut<Position>,
     mut dir: Mut<MovingDir>,
 ) {
@@ -115,6 +126,7 @@ fn move_box(
     if occupied.contains(&new_pos) {
         *dir = MovingDir::zero();
         damage_events.send(Event::Damage(new_pos));
+        processed.insert(new_pos);
     } else {
         occupied.remove(&position);
         *position = new_pos;
@@ -144,8 +156,8 @@ pub fn move_system(
     mut moving_items: Query<Without<Robbo, (&Kind, &mut Position, &mut MovingDir)>>,
     mut others: Query<&Position>,
 ) {
+    let mut processed = HashSet::new();
     // println!("move_system");
-
     if !frame_cnt.do_it() {
         return;
     }
@@ -157,13 +169,13 @@ pub fn move_system(
         occupied.insert(*pos);
     }
     for (kind, position, dir) in &mut moving_items.iter() {
-        if *dir == MovingDir::zero() {
+        if *dir == MovingDir::zero() || processed.contains(&*position) {
             continue;
         }
         match kind {
             Kind::Bird => move_bird(&mut occupied, position, dir),
             Kind::LBear | Kind::RBear => move_bear(&mut occupied, kind, position, dir),
-            Kind::MovingBox => move_box(&mut damage_events, &mut occupied, position, dir),
+            Kind::MovingBox => move_box(&mut damage_events, &mut occupied, &mut processed, position, dir),
             Kind::Bullet => move_bullet(&mut damage_events, &mut occupied, position, dir),
             _ => continue,
         }

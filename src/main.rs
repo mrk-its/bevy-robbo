@@ -3,6 +3,7 @@ mod entities;
 mod events;
 mod frame_cnt;
 mod frame_limiter;
+mod inventory;
 mod systems;
 
 use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, PrintDiagnosticsPlugin};
@@ -10,10 +11,11 @@ use bevy::prelude::*;
 use bevy::sprite::TextureAtlas;
 use bevy::render::camera::{OrthographicProjection, WindowOrigin};
 use bevy::window;
-use components::{Int2Ops, Kind, Position, StartPosition, Tiles};
+use components::{Int2Ops, Kind, Position, StartPosition, Tiles, MovingDir};
 use frame_cnt::{FrameCnt, FrameCntPlugin};
 use frame_limiter::FrameLimiterPlugin;
 use systems::{event_system, keyboard_system, move_robbo, move_system};
+use inventory::Inventory;
 
 const WIDTH: i32 = 32;
 const HEIGHT: i32 = 16;
@@ -57,6 +59,7 @@ fn main() {
             ..Default::default()
         })
         .add_resource(TextureAtlasHandle(None))
+        .add_resource(Inventory::default())
         .add_default_plugins()
         .add_asset::<Level>()
         .add_asset_loader::<Level, LevelLoader>()
@@ -154,13 +157,28 @@ pub fn create_level(
         for (x, c) in line.chars().enumerate() {
             let (x, y) = (x as i32, y as i32);
             match c {
-                'Q' => commands.spawn(entities::wall()),
-                'R' => commands.spawn(entities::robbo()),
-                '#' => commands.spawn(entities::static_box()),
-                '~' => commands.spawn(entities::push_box()),
-                '^' => commands.spawn(entities::bird()),
-                '@' => commands.spawn(entities::lbear(-1, 0)),
-                '*' => commands.spawn(entities::rbear(1, 0)),
+                'O' => entities::wall(commands, 0),
+                'o' => entities::wall(commands, 1),
+                '-' => entities::wall(commands, 2),
+                'Q' => entities::wall(commands, 3),
+                'q' => entities::wall(commands, 4),
+                'p' => entities::wall(commands, 5),
+                'P' => entities::wall(commands, 6),
+                's' => entities::wall(commands, 7),
+                'S' => entities::wall(commands, 8),
+                'H' => entities::ground(commands),
+                'R' => entities::robbo(commands),
+                '#' => entities::static_box(commands),
+                '~' => entities::push_box(commands),
+                '^' => entities::bird(commands),
+                '@' => entities::lbear(commands).with(MovingDir::new(-1, 0)),
+                '*' => entities::rbear(commands).with(MovingDir::new(1, 0)),
+                '\'' => entities::ammo(commands),
+                'T' => entities::screw(commands),
+                '%' => entities::key(commands),
+                '!' => entities::capsule(commands),
+                'b' => entities::bomb(commands),
+                '?' => entities::questionmark(commands),
                 _ => {
                     for (entity, _, pos) in &mut items.iter() {
                         if pos.as_tuple() == (x, y) {

@@ -2,6 +2,13 @@ pub struct Robbo;
 pub struct Moveable;
 pub struct Destroyable;
 
+#[derive(Debug, Clone, Copy)]
+pub enum Collectable {
+    Key,
+    Screw,
+    Ammo,
+}
+
 #[derive(Debug, Eq, PartialEq, Hash, Clone, Copy)]
 pub struct Tile(pub u32);
 #[derive(Debug, Eq, PartialEq, Clone, Copy)]
@@ -14,6 +21,19 @@ pub enum Kind {
     Box,
     MovingBox,
     Bullet,
+    Screw,
+    Ammo,
+    Key,
+    Capsule,
+    Bomb,
+    Questionmark,
+    Ground,
+    Door,
+    Magnet,
+    ForceField,
+    Eyes,
+    Teleport,
+    Gun,
 }
 
 type Int = i32;
