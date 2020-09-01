@@ -16,4 +16,3 @@ impl Inventory {
         println!("inventory: {:?}", self);
     }
 }
-

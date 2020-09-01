@@ -1,6 +1,11 @@
 pub struct Robbo;
+pub struct Bomb;
+pub struct Wall;
+
 pub struct Moveable;
 pub struct Destroyable;
+pub struct Usable;
+pub struct LaserTail;
 
 #[derive(Debug, Clone, Copy)]
 pub enum Collectable {
@@ -15,12 +20,13 @@ pub struct Tile(pub u32);
 pub enum Kind {
     Wall,
     Bird,
-    LBear,
-    RBear,
+    Bear(bool),
     Robbo,
     Box,
     MovingBox,
     Bullet,
+    LaserHead {moving_back: bool},
+    LaserTail,
     Screw,
     Ammo,
     Key,
@@ -47,9 +53,19 @@ pub trait Int2Ops {
     fn as_tuple(&self) -> (Int, Int) {
         (self.x(), self.y())
     }
-    fn x(&self) -> Int {self.get().0}
-    fn y(&self) -> Int {self.get().1}
+    fn x(&self) -> Int {
+        self.get().0
+    }
+    fn y(&self) -> Int {
+        self.get().1
+    }
     fn new(kx: Int, ky: Int) -> Self::Output;
+    fn by_index(index: usize) -> Self::Output {
+      //static ALL_DIRS: &[(i32, i32)] = &[(1, 0), (0, 1), (-1, 0), (0, -1)];
+        static ALL_DIRS: &[(i32, i32)] = &[(0, 1), (1, 0), (0, -1), (-1, 0)];
+        let (kx, ky) = ALL_DIRS[index];
+        Self::new(kx, ky)
+    }
     fn neg(&self) -> Self::Output {
         Self::new(-self.x(), -self.y())
     }
@@ -62,11 +78,13 @@ pub trait Int2Ops {
     fn zero() -> Self::Output {
         Self::new(0, 0)
     }
-    fn add<T>(&self, other: &T) -> Self::Output where T: Int2Ops {
+    fn add<T>(&self, other: &T) -> Self::Output
+    where
+        T: Int2Ops,
+    {
         Self::new(self.x() + other.x(), self.y() + other.y())
     }
 }
-
 
 #[derive(Debug, Eq, Hash, PartialEq, Clone, Copy)]
 pub struct Position(pub IntVec2);
@@ -105,17 +123,45 @@ impl Int2Ops for MovingDir {
         self.0
     }
 }
+#[derive(Debug, PartialEq, Clone, Copy)]
+pub enum GunType {
+    Solid,
+    Blaster,
+    Burst,
+}
+#[derive(Debug, PartialEq, Clone, Copy)]
+pub struct ShootingDir {
+    pub dir: IntVec2,
+    pub propability: f32,
+    pub gun_type: GunType,
+}
 
-#[derive(Debug, Eq, PartialEq, Hash, Clone, Copy)]
-pub struct ShootingDir(pub IntVec2);
+impl ShootingDir {
+    pub fn with_propability(&self, propability: f32) -> ShootingDir {
+        ShootingDir {
+            propability,
+            ..*self
+        }
+    }
+    pub fn with_gun_type(&self, gun_type: GunType) -> ShootingDir {
+        ShootingDir {
+            gun_type,
+            ..*self
+        }
+    }
+}
 
 impl Int2Ops for ShootingDir {
     type Output = ShootingDir;
     fn new(x: Int, y: Int) -> Self {
-        ShootingDir(IntVec2(x, y))
+        ShootingDir {
+            dir: IntVec2(x, y),
+            propability: 1.0,
+            gun_type: GunType::Burst,
+        }
     }
     fn get(&self) -> IntVec2 {
-        self.0
+        self.dir
     }
 }
 
@@ -126,5 +172,7 @@ pub struct Tiles {
 }
 
 impl Tiles {
-    pub fn new(tiles: &'static [u32]) -> Self { Self { tiles, current: 0 } }
+    pub fn new(tiles: &'static [u32]) -> Self {
+        Self { tiles, current: 0 }
+    }
 }

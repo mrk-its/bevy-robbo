@@ -8,4 +8,6 @@ edition = "2018"
 
 [dependencies]
 bevy = {path="../bevy/"}
+rand = "0.7"
 anyhow = "1.0"
+uuid = "0.8"

@@ -1,16 +1,16 @@
-QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ
-Q                              Q
-Q                              Q
-Q                              Q
-Q                              Q
-Q                              Q
-Q R     T  %  '''''''' @       Q
-Q     Oo-QqpPsSHOo-QqpPsS      Q
-Q                              Q
-Q                              Q
-Q                              Q
-Q        b   b    ?            Q
-Q         b b                  Q
-Q          b                   Q
-Q                              Q
-QQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQQ
+OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
+O                              O
+O                              O
+O                 ^            O
+O     %       !                O
+O                              O
+O     R D    TTT        @      O
+O     OOOOOOOOOOOOOOOOOOO      O
+O                              O
+O                              O
+O                              O
+O        b   b#   ?            O
+O         b b#                 O
+O          b#                  O
+O                              O
+OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
