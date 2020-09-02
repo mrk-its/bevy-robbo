@@ -1,6 +1,6 @@
 use crate::components::{
-    Bomb, Collectable, Destroyable, GunType, Int2Ops, Kind, LaserTail, Moveable, MovingDir, Robbo,
-    ShootingDir, Tiles, Usable, Wall, Teleport, Capsule,
+    Bomb, Capsule, Collectable, Destroyable, GunType, Int2Ops, Kind, LaserTail, Moveable,
+    MovingDir, Robbo, ShootingDir, Teleport, Tiles, Usable, Wall,
 };
 use bevy::ecs::*;
 
@@ -105,7 +105,12 @@ pub fn create_door<'a>(commands: &'a mut Commands) -> &'a mut Commands {
 }
 
 pub fn create_teleport<'a>(commands: &'a mut Commands, params: &[usize]) -> &'a mut Commands {
-    commands.spawn((Kind::Teleport, Teleport(params[0], params[1]), Usable, Tiles::new(&[48, 49])))
+    commands.spawn((
+        Kind::Teleport,
+        Teleport(params[0], params[1]),
+        Usable,
+        Tiles::new(&[48, 49]),
+    ))
 }
 
 pub fn create_eyes<'a>(commands: &'a mut Commands) -> &'a mut Commands {
@@ -117,8 +122,8 @@ const GUN_TILES: &[u32] = &[56, 53, 54, 55];
 pub fn create_gun<'a>(commands: &'a mut Commands, params: &[usize]) -> &'a mut Commands {
     let index = params[0];
     let is_moveable = params[3] > 0;
-    let is_rotateable = *params.get(4).unwrap_or(&0) > 0;
-    let is_random_rotatable = *params.get(5).unwrap_or(&0) > 0;
+    let _is_rotateable = *params.get(4).unwrap_or(&0) > 0;
+    let _is_random_rotatable = *params.get(5).unwrap_or(&0) > 0;
     let gun_type = match params[2] {
         1 => GunType::Solid,
         2 => GunType::Blaster,
@@ -137,10 +142,16 @@ pub fn create_gun<'a>(commands: &'a mut Commands, params: &[usize]) -> &'a mut C
     commands
 }
 
-pub fn create_horizontal_laser<'a>(commands: &'a mut Commands, params: &[usize]) -> &'a mut Commands {
+pub fn _create_horizontal_laser<'a>(
+    commands: &'a mut Commands,
+    _params: &[usize],
+) -> &'a mut Commands {
     commands.spawn((Kind::Gun, Tiles::new(&[53, 55])))
 }
-pub fn create_vertical_laser<'a>(commands: &'a mut Commands, params: &[usize]) -> &'a mut Commands {
+pub fn _create_vertical_laser<'a>(
+    commands: &'a mut Commands,
+    _params: &[usize],
+) -> &'a mut Commands {
     commands.spawn((Kind::Gun, Tiles::new(&[54, 56])))
 }
 

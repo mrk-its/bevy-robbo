@@ -150,12 +150,15 @@ pub fn create_level(
                 '^' => create_bird(commands).with(ShootingDir::new(1, 0).with_propability(0.05)),
                 '@' => create_lbear(commands).with(MovingDir::new(-1, 0)),
                 '*' => create_rbear(commands).with(MovingDir::new(1, 0)),
+                'V' => create_eyes(commands),
                 '\'' => create_ammo(commands),
                 'T' => create_screw(commands),
                 '%' => create_key(commands),
                 '!' => create_capsule(commands),
                 'b' => create_bomb(commands),
                 '?' => create_questionmark(commands),
+                '=' => create_forcefield(commands), // TODO - direction
+                'M' => create_magnet(commands),     // TODO - direction
                 _ => continue,
             };
             commands.with(Position::new(x, y));

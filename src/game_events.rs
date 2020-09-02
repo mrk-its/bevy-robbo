@@ -1,6 +1,6 @@
-use crate::components::{Position, MovingDir};
-use std::mem::take;
+use crate::components::{MovingDir, Position};
 use bevy::ecs::Entity;
+use std::mem::take;
 
 pub enum GameEvent {
     Damage(Position, bool),
@@ -10,7 +10,7 @@ pub enum GameEvent {
 
 #[derive(Default)]
 pub struct GameEvents {
-    events: Vec<GameEvent>
+    events: Vec<GameEvent>,
 }
 
 impl GameEvents {

@@ -1,5 +1,5 @@
 use crate::components::{
-    Capsule, Collectable, Int2Ops, Kind, LaserTail, Moveable, MovingDir, Position, Robbo, Usable,
+    Collectable, Int2Ops, Kind, LaserTail, Moveable, MovingDir, Position, Robbo, Usable,
 };
 use crate::entities::create_laser_tail;
 use crate::frame_cnt::FrameCnt;

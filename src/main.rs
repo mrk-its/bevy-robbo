@@ -33,10 +33,13 @@ use consts::*;
 
 use bevy::asset::AddAsset;
 
-fn level_setup(asset_server: Res<AssetServer>) {
+fn level_setup(
+    asset_server: Res<AssetServer>,
+    mut current_level_handle: ResMut<Option<Handle<Level>>>,
+) {
     asset_server.watch_for_changes().unwrap();
-    let _level_handle: Handle<Level> = asset_server.load("assets/01.txt").unwrap();
-    println!("handle: {:?}", _level_handle);
+    let level_handle: Handle<Level> = asset_server.load("assets/01.txt").unwrap();
+    current_level_handle.replace(level_handle);
 }
 
 pub struct TextureAtlasHandle(pub Option<Handle<TextureAtlas>>);
@@ -55,6 +58,7 @@ fn main() {
         .add_resource(TextureAtlasHandle(None))
         .add_resource(Inventory::default())
         .add_resource(GameEvents::default())
+        .add_resource(None as Option<Handle<Level>>)
         .add_default_plugins()
         .add_asset::<Level>()
         .add_asset_loader::<Level, LevelLoader>()
@@ -110,12 +114,18 @@ pub fn asset_events(
 pub fn activate_capsule_system(
     mut commands: Commands,
     inventory: Res<Inventory>,
+    levels: Res<Assets<Level>>,
+    current_level_handle: Res<Option<Handle<Level>>>,
     mut query: Query<With<Capsule, Without<Usable, Entity>>>,
 ) {
     for capsule in &mut query.iter() {
-        if inventory.screws > 0 {
-            println!("activating capsule");
-            entities::repair_capsule(&mut commands, capsule);
+        if let Some(handle) = *current_level_handle {
+            if let Some(level) = levels.get(&handle) {
+                if inventory.screws >= level.screw_count {
+                    println!("activating capsule");
+                    entities::repair_capsule(&mut commands, capsule);
+                }
+            }
         }
     }
 }

@@ -3,6 +3,7 @@ mod keyboard;
 mod moves;
 mod shots;
 mod render;
+mod utils;
 
 pub use game_events::game_event_system;
 pub use keyboard::{keyboard_system, KeyboardPlugin};

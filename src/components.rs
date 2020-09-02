@@ -27,7 +27,7 @@ pub enum Kind {
     Box,
     MovingBox,
     Bullet,
-    LaserHead {moving_back: bool},
+    LaserHead { moving_back: bool },
     LaserTail,
     Screw,
     Ammo,
@@ -66,7 +66,7 @@ pub trait Int2Ops {
     }
     fn new(kx: Int, ky: Int) -> Self::Output;
     fn by_index(index: usize) -> Self::Output {
-      //static ALL_DIRS: &[(i32, i32)] = &[(1, 0), (0, 1), (-1, 0), (0, -1)];
+        //static ALL_DIRS: &[(i32, i32)] = &[(1, 0), (0, 1), (-1, 0), (0, -1)];
         static ALL_DIRS: &[(i32, i32)] = &[(0, 1), (1, 0), (0, -1), (-1, 0)];
         let (kx, ky) = ALL_DIRS[index];
         Self::new(kx, ky)
@@ -149,10 +149,7 @@ impl ShootingDir {
         }
     }
     pub fn with_gun_type(&self, gun_type: GunType) -> ShootingDir {
-        ShootingDir {
-            gun_type,
-            ..*self
-        }
+        ShootingDir { gun_type, ..*self }
     }
 }
 
