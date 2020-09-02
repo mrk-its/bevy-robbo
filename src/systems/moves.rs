@@ -1,7 +1,7 @@
 use crate::components::{
-    Collectable, Int2Ops, Kind, LaserTail, Moveable, MovingDir, Position, Robbo, Usable,
+    Capsule, Collectable, Int2Ops, Kind, LaserTail, Moveable, MovingDir, Position, Robbo, Usable,
 };
-use crate::entities;
+use crate::entities::create_laser_tail;
 use crate::frame_cnt::FrameCnt;
 use crate::game_events::{GameEvent, GameEvents};
 use crate::inventory::Inventory;
@@ -53,7 +53,7 @@ pub fn move_robbo(
                         }
                     }
                 } else if positions.get::<Usable>(entity).is_ok() {
-                    events.send(GameEvent::Use(new_pos))
+                    events.send(GameEvent::Use(entity, *dir))
                 }
             }
         }
@@ -101,7 +101,7 @@ fn move_bear(
 }
 
 fn move_entity(
-    mut position: &mut Mut<Position>,
+    position: &mut Mut<Position>,
     new_position: &Position,
     occupied: &mut HashMap<Position, Entity>,
 ) {
@@ -149,7 +149,8 @@ fn move_bullet(
     let new_pos = position.add(&*dir);
     if occupied.contains_key(&new_pos) {
         *dir = MovingDir::zero();
-        events.send(GameEvent::Remove(*position));
+        let entity = occupied.get(&position).unwrap();
+        events.send(GameEvent::RemoveEntity(*entity));
         events.send(GameEvent::Damage(new_pos, false));
     } else {
         move_entity(&mut position, &new_pos, occupied);
@@ -177,7 +178,7 @@ fn move_laser_head(
     if !occupied.contains_key(&new_pos) {
         let (tx, ty) = position.as_tuple();
         move_entity(&mut position, &new_pos, occupied);
-        entities::laser_tail(commands, dir.x(), dir.y()).with(Position::new(tx, ty));
+        create_laser_tail(commands, dir.x(), dir.y()).with(Position::new(tx, ty));
         occupied.insert(*position, commands.current_entity().unwrap());
     } else if is_moving_back && is_laser_tail_in_front {
         let entity = occupied.remove(&new_pos).unwrap();
@@ -190,8 +191,8 @@ fn move_laser_head(
         events.send(GameEvent::Damage(new_pos, false));
     } else {
         *dir = MovingDir::zero();
-        events.send(GameEvent::Remove(*position));
-        // events.send(GameEvent::Damage(new_pos, false));
+        let entity = occupied.remove(&position).unwrap();
+        events.send(GameEvent::RemoveEntity(entity));
     }
 }
 
@@ -206,14 +207,18 @@ pub fn move_system(
         return;
     }
     let mut processed = HashSet::new();
-    let mut occupied = HashMap::new();
-    for (pos, entity) in &mut others.iter() {
-        occupied.insert(*pos, entity);
-    }
-    for (entity, kind, pos, _) in &mut moving_items.iter() {
-        occupied.insert(*pos, entity);
-    }
-    for (entity, kind, position, dir) in &mut moving_items.iter() {
+    let mut occupied: HashMap<Position, Entity> = others
+        .iter()
+        .iter()
+        .map(|(pos, entity)| (*pos, entity))
+        .collect();
+    occupied.extend(
+        moving_items
+            .iter()
+            .iter()
+            .map(|(entity, _, pos, _)| (*pos, entity)),
+    );
+    for (_, kind, position, dir) in &mut moving_items.iter() {
         if *dir == MovingDir::zero() || processed.contains(&*position) {
             continue;
         }
@@ -222,7 +227,7 @@ pub fn move_system(
             Kind::Bear(_) => move_bear(&mut occupied, &kind, position, dir),
             Kind::MovingBox => move_box(&mut events, &mut occupied, &mut processed, position, dir),
             Kind::Bullet => move_bullet(&mut events, &mut occupied, position, dir),
-            Kind::LaserHead { moving_back } => move_laser_head(
+            Kind::LaserHead { .. } => move_laser_head(
                 &mut commands,
                 &mut events,
                 &mut occupied,

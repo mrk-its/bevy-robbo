@@ -6,7 +6,9 @@ pub struct Moveable;
 pub struct Destroyable;
 pub struct Usable;
 pub struct LaserTail;
-
+pub struct Capsule;
+#[derive(Debug, Clone, Copy)]
+pub struct Teleport(pub usize, pub usize);
 #[derive(Debug, Clone, Copy)]
 pub enum Collectable {
     Key,
@@ -44,7 +46,7 @@ pub enum Kind {
 
 type Int = i32;
 
-#[derive(Debug, Eq, Hash, PartialEq, Clone, Copy)]
+#[derive(Debug, Default, Eq, Hash, PartialEq, Clone, Copy)]
 pub struct IntVec2(pub Int, pub Int);
 
 pub trait Int2Ops {
@@ -58,6 +60,9 @@ pub trait Int2Ops {
     }
     fn y(&self) -> Int {
         self.get().1
+    }
+    fn is_empty(&self) -> bool {
+        self.x() == 0 && self.y() == 0
     }
     fn new(kx: Int, ky: Int) -> Self::Output;
     fn by_index(index: usize) -> Self::Output {
@@ -111,7 +116,7 @@ impl Int2Ops for StartPosition {
     }
 }
 
-#[derive(Debug, Eq, PartialEq, Hash, Clone, Copy)]
+#[derive(Debug, Default, Eq, PartialEq, Hash, Clone, Copy)]
 pub struct MovingDir(pub IntVec2);
 
 impl Int2Ops for MovingDir {

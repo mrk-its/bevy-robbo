@@ -1,14 +1,13 @@
 use crate::components::{
     Int2Ops,Position, Robbo, ShootingDir, GunType,
 };
-use crate::entities;
+use crate::entities::*;
 use crate::game_events::{GameEvents, GameEvent};
 use crate::frame_cnt::FrameCnt;
-use crate::inventory::Inventory;
 
 use bevy::prelude::*;
 use rand::random;
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 
 pub fn shot_system(
     mut commands: Commands,
@@ -33,10 +32,10 @@ pub fn shot_system(
         if !occupied.contains(&bullet_pos) {
             match dir.gun_type {
                 GunType::Solid => {
-                    entities::laser_head(&mut commands, dir.x(), dir.y()).with(bullet_pos);
+                    create_laser_head(&mut commands, dir.x(), dir.y()).with(bullet_pos);
                 }
                 GunType::Burst | _ => {
-                    entities::bullet(&mut commands, dir.x(), dir.y()).with(bullet_pos);
+                    create_bullet(&mut commands, dir.x(), dir.y()).with(bullet_pos);
                 }
             }
         } else {

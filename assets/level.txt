@@ -1,16 +1,43 @@
-OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
-O                              O
-O                              O
-O                 ^            O
-O     %       !                O
-O                              O
-O     R D    TTT        @      O
-O     OOOOOOOOOOOOOOOOOOO      O
-O                              O
-O                              O
-O                              O
-O        b   b#   ?            O
-O         b b#                 O
-O          b#                  O
-O                              O
-OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
+[level]
+1
+[colour]
+996600
+[size]
+16.31
+[author]
+mrk
+[level_notes]
+level_notes relating to this level can go here.
+[data]
+OOOOOOOOOOOOOOOO
+O              O
+O              O
+O              O
+O              O
+O              O
+O              O
+O              O
+O              O
+O              O
+O              O
+O              O
+O              O
+O              O
+O     R        O
+O              O
+O              O
+O              O
+O              O
+O              O
+O      #       O
+O              O
+O              O
+O         #    O
+O         #    O
+O         #    O
+O         #    O
+O              O
+O              O
+O              O
+OOOOOOOOOOOOOOOO
+[end]

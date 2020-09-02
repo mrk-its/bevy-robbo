@@ -1,5 +1,5 @@
-use crate::components::{Int2Ops, Kind, MovingDir, Position, ShootingDir, StartPosition};
-use crate::entities;
+use crate::components::{Int2Ops, MovingDir, Position, ShootingDir};
+use crate::entities::*;
 use bevy::asset::AssetLoader;
 use bevy::prelude::*;
 use std::collections::HashMap;
@@ -10,13 +10,14 @@ pub struct Level {
     pub height: i32,
     pub color: String,
     pub tiles: Vec<String>,
+    pub screw_count: usize,
     pub additional: AdditionalMap,
 }
-type AdditionalMap = HashMap<(i32, i32), Vec<u16>>;
+type AdditionalMap = HashMap<(i32, i32), Vec<usize>>;
 
 impl Level {
     pub fn parse(data: &str) -> Level {
-        let mut level_set_name: Option<&str> = None;
+        let mut _level_set_name: Option<&str> = None;
         let mut default_level_color: Option<String> = None;
         let mut collecting_data: bool = false;
         let mut lines = data.split('\n');
@@ -26,7 +27,7 @@ impl Level {
         let mut color: Option<String> = None;
         let mut additional: AdditionalMap = AdditionalMap::new();
         let mut tiles: Vec<String> = vec![];
-
+        let mut screw_count = 0;
         loop {
             let line = lines.next().unwrap();
             if line.starts_with('[') {
@@ -35,7 +36,7 @@ impl Level {
             match line {
                 "[level]" => number = lines.next().unwrap().parse().ok(),
                 "[name]" => {
-                    level_set_name = lines.next();
+                    _level_set_name = lines.next();
                 }
                 "[colour]" => {
                     color = Some(String::from(lines.next().unwrap()));
@@ -66,8 +67,8 @@ impl Level {
                         assert!(c == tiles[y].chars().nth(x).unwrap());
                         let params = parts[3..]
                             .iter()
-                            .map(|v| v.parse::<u16>().unwrap())
-                            .collect::<Vec<u16>>();
+                            .map(|v| v.parse::<usize>().unwrap())
+                            .collect::<Vec<_>>();
                         additional.insert((x as i32, y as i32), params);
                     }
                 }
@@ -82,10 +83,12 @@ impl Level {
                         color: color.unwrap(),
                         tiles,
                         additional,
+                        screw_count,
                     };
                 }
                 _ => {
                     if collecting_data {
+                        screw_count += line.chars().filter(|t| *t == 'T').count();
                         tiles.push(String::from(line));
                     }
                 }
@@ -113,65 +116,49 @@ impl AssetLoader<Level> for LevelLoader {
 
 pub fn create_level(
     commands: &mut Commands,
-    items: &mut Query<(Entity, &Kind, &StartPosition)>,
+    items: &mut Query<With<Position, Entity>>,
     level: &Level,
 ) {
+    for entity in &mut items.iter() {
+        commands.despawn(entity);
+    }
+
     for (x, column) in level.tiles.iter().enumerate() {
         for (y, c) in column.chars().enumerate() {
             let (x, y) = (x as i32, y as i32);
+
             let additional = level.additional.get(&(y, x)).map(|v| &v[..]);
             match c {
-                'O' => entities::wall(commands, 0),
-                'o' => entities::wall(commands, 1),
-                '-' => entities::wall(commands, 2),
-                'Q' => entities::wall(commands, 3),
-                'q' => entities::wall(commands, 4),
-                'p' => entities::wall(commands, 5),
-                'P' => entities::wall(commands, 6),
-                's' => entities::wall(commands, 7),
-                'S' => entities::wall(commands, 8),
-                'H' => entities::ground(commands),
-                'R' => entities::robbo(commands),
-                'D' => entities::door(commands),
-                '#' => entities::static_box(commands),
-                '~' => entities::push_box(commands),
-                '}' => entities::gun(commands, additional.unwrap_or(&[0, 0, 0, 0, 0, 0])),
-                //'L' => entities::horizontal_laser(commands),
-                //'l' => entities::vertical_laser(commands),
-                '&' => entities::teleport(commands),
-                '^' => entities::bird(commands).with(ShootingDir::new(1, 0).with_propability(0.05)),
-                '@' => entities::lbear(commands).with(MovingDir::new(-1, 0)),
-                '*' => entities::rbear(commands).with(MovingDir::new(1, 0)),
-                '\'' => entities::ammo(commands),
-                'T' => entities::screw(commands),
-                '%' => entities::key(commands),
-                '!' => entities::capsule(commands),
-                'b' => entities::bomb(commands),
-                '?' => entities::questionmark(commands),
-                _ => {
-                    for (entity, _, pos) in &mut items.iter() {
-                        if pos.as_tuple() == (x, y) {
-                            commands.despawn(entity);
-                        }
-                    }
-                    continue;
-                }
+                'O' => create_wall(commands, 0),
+                'o' => create_wall(commands, 1),
+                '-' => create_wall(commands, 2),
+                'Q' => create_wall(commands, 3),
+                'q' => create_wall(commands, 4),
+                'p' => create_wall(commands, 5),
+                'P' => create_wall(commands, 6),
+                's' => create_wall(commands, 7),
+                'S' => create_wall(commands, 8),
+                'H' => create_ground(commands),
+                'R' => create_robbo(commands),
+                'D' => create_door(commands),
+                '#' => create_static_box(commands),
+                '~' => create_push_box(commands),
+                '}' => create_gun(commands, additional.unwrap_or(&[0, 0, 0, 0, 0, 0])),
+                //'L' => create_horizontal_laser(commands),
+                //'l' => create_vertical_laser(commands),
+                '&' => create_teleport(commands, additional.unwrap_or(&[0, 0])),
+                '^' => create_bird(commands).with(ShootingDir::new(1, 0).with_propability(0.05)),
+                '@' => create_lbear(commands).with(MovingDir::new(-1, 0)),
+                '*' => create_rbear(commands).with(MovingDir::new(1, 0)),
+                '\'' => create_ammo(commands),
+                'T' => create_screw(commands),
+                '%' => create_key(commands),
+                '!' => create_capsule(commands),
+                'b' => create_bomb(commands),
+                '?' => create_questionmark(commands),
+                _ => continue,
             };
-            let entity = items
-                .iter()
-                .into_iter()
-                .find(|(_, _, pos)| pos.as_tuple() == (x, y))
-                .map(|t| t)
-                .is_some();
-
-            if entity {
-                commands.despawn(commands.current_entity().unwrap());
-                continue;
-            }
-
-            commands
-                .with(Position::new(x, y))
-                .with(StartPosition::new(x, y));
+            commands.with(Position::new(x, y));
         }
     }
 }

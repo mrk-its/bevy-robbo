@@ -1,12 +1,11 @@
-use crate::components::Position;
+use crate::components::{Position, MovingDir};
 use std::mem::take;
 use bevy::ecs::Entity;
 
 pub enum GameEvent {
     Damage(Position, bool),
-    Remove(Position),
     RemoveEntity(Entity),
-    Use(Position),
+    Use(Entity, MovingDir),
 }
 
 #[derive(Default)]
@@ -20,5 +19,8 @@ impl GameEvents {
     }
     pub fn take(&mut self) -> Vec<GameEvent> {
         take(&mut self.events)
+    }
+    pub fn flush(&mut self) {
+        self.take();
     }
 }
