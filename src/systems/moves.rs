@@ -14,18 +14,14 @@ pub fn move_robbo(
     mut commands: Commands,
     (mut inventory, mut events, frame_cnt): (ResMut<Inventory>, ResMut<GameEvents>, Res<FrameCnt>),
     mut robbo: Query<(&Robbo, &mut Position, &MovingDir)>,
-    mut items: Query<Without<Robbo, (Entity, &Position)>>,
-    positions: Query<&mut Position>,
-    moving_dirs: Query<&mut MovingDir>,
-    collectables: Query<&Collectable>,
-    moveables: Query<&Moveable>,
+    mut all: Query<(&mut Position, Entity)>,
 ) {
     if !frame_cnt.do_it() {
         return;
     }
     let mut occupied = HashSet::new();
     let mut entities = HashMap::new();
-    for (entity, pos) in &mut items.iter() {
+    for (pos, entity) in &mut all.iter() {
         occupied.insert(*pos);
         entities.insert(*pos, entity);
     }
@@ -39,22 +35,25 @@ pub fn move_robbo(
             *position = new_pos;
         } else {
             if let Some(&entity) = entities.get(&new_pos) {
-                if let Ok(collectable) = collectables.get::<Collectable>(entity) {
+                if let Ok(collectable) = all.get::<Collectable>(entity) {
                     inventory.collect(*collectable);
                     commands.despawn(entity);
                     *position = new_pos;
-                } else if moveables.get::<Moveable>(entity).is_ok() && !occupied.contains(&new_pos2)
+                } else if all.get::<Moveable>(entity).is_ok() && !occupied.contains(&new_pos2)
                 {
-                    if let Ok(mut pos) = positions.get_mut::<Position>(entity) {
+                    // investigate why I cannot do all.get_mut<MovingDir>
+                    // when &mut Position is replaced with &Position in query
+                    let x = all.get_mut::<Position>(entity);
+                    if let Ok(mut pos) = x {
                         *pos = new_pos2;
                         *position = new_pos;
-                        if let Ok(mut mdir) = moving_dirs.get_mut::<MovingDir>(entity) {
-                            if let Ok(_) = items.get::<PushBox>(entity) {
+                        if let Ok(mut mdir) = all.get_mut::<MovingDir>(entity) {
+                            if let Ok(_) = all.get::<PushBox>(entity) {
                                 *mdir = *dir
                             }
                         }
                     }
-                } else if positions.get::<Usable>(entity).is_ok() {
+                } else if all.get::<Usable>(entity).is_ok() {
                     events.send(GameEvent::Use(entity, *dir))
                 }
             }
@@ -188,7 +187,7 @@ fn move_laser_head(
     mut position: &mut Mut<Position>,
     dir: &mut Mut<MovingDir>,
     laser_head: &mut LaserHead,
-    others: &Query<(&Position, Entity)>,
+    others: &Query<(&mut Position, Entity)>,
 ) {
     let new_pos = position.add(&**dir);
     let is_laser_tail_in_front = occupied
@@ -221,7 +220,7 @@ pub fn move_system(
     mut events: ResMut<GameEvents>,
     frame_cnt: Res<FrameCnt>,
     mut moving_items: Query<Without<Robbo, (Entity, &mut Position, &mut MovingDir)>>,
-    mut all: Query<(&Position, Entity)>,
+    mut all: Query<(&mut Position, Entity)>,
     destroyable: Query<&Destroyable>,
 ) {
     if !frame_cnt.do_it() {

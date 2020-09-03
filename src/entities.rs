@@ -1,7 +1,7 @@
 use crate::components::{
     Bear, Bird, Bomb, Capsule, Collectable, Destroyable, GunType, Int2Ops, LaserHead,
     LaserTail, Moveable, MovingDir, PushBox, Robbo, ShootingDir, Teleport, Tiles, Undestroyable,
-    Usable, Wall, Bullet, BlasterHead,
+    Usable, Wall, Bullet, BlasterHead, ForceField, Magnet,
 };
 use bevy::ecs::*;
 
@@ -170,9 +170,9 @@ pub fn _create_vertical_laser<'a>(
 const MAGNET_TILES: &[u32] = &[73, 0, 72, 1];
 
 pub fn create_magnet<'a>(commands: &'a mut Commands, index: usize) -> &'a mut Commands {
-    commands.spawn((Tiles::new(&MAGNET_TILES[index..index + 1]), ))
+    commands.spawn((Magnet::by_index(index), Tiles::new(&MAGNET_TILES[index..index + 1]), ))
 }
 
 pub fn create_forcefield<'a>(commands: &'a mut Commands, _index: usize) -> &'a mut Commands {
-    commands.spawn((Destroyable, Tiles::new(&[45, 57])))
+    commands.spawn((Destroyable, ForceField, Tiles::new(&[45, 57])))
 }

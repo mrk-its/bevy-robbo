@@ -6,6 +6,8 @@ pub struct Bullet;
 pub struct Wall;
 pub struct PushBox;
 
+pub struct ForceField;
+
 pub struct Moveable;
 pub struct Destroyable;
 pub enum Usable {
@@ -167,5 +169,23 @@ pub struct Tiles {
 impl Tiles {
     pub fn new(tiles: &'static [u32]) -> Self {
         Self { tiles, current: 0 }
+    }
+}
+
+
+#[derive(Debug, PartialEq, Clone, Copy)]
+pub struct Magnet {
+    pub dir: IntVec2,
+}
+
+impl Int2Ops for Magnet {
+    type Output = Magnet;
+    fn new(x: Int, y: Int) -> Self {
+        Magnet {
+            dir: IntVec2(x, y),
+        }
+    }
+    fn get(&self) -> IntVec2 {
+        self.dir
     }
 }

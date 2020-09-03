@@ -42,6 +42,7 @@ pub fn create_sprites(
             SpriteSheetComponents {
                 texture_atlas: TEXTURE_ATLAS_HANDLE,
                 scale: Scale(SCALE),
+                translation: Translation(Vec3::new(-1000.0, -1000.0, 0.0)),
                 ..Default::default()
             },
         );

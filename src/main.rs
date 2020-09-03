@@ -11,7 +11,7 @@ use bevy::prelude::*;
 use bevy::sprite::TextureAtlas;
 use bevy::window;
 // use bevy::render::pass::ClearColor;
-use components::{Capsule, Usable};
+use components::{Capsule, Usable, Robbo,};
 use frame_cnt::FrameCntPlugin;
 use frame_limiter::FrameLimiterPlugin;
 use game_events::{GameEvent, GameEvents};
@@ -19,7 +19,7 @@ use inventory::Inventory;
 use levels::{Level, LevelLoader};
 use systems::{
     create_sprites, game_event_system, move_robbo, move_system, prepare_render, render_setup,
-    shot_system, KeyboardPlugin,
+    shot_system, KeyboardPlugin, magnetic_field_system
 };
 
 mod consts {
@@ -76,6 +76,8 @@ fn main() {
         .add_stage_after(stage::PRE_UPDATE, "pre_update1")
         .add_stage_after("pre_update1", "pre_update2")
         .add_stage_after(stage::POST_UPDATE, "post_update2")
+        .add_stage_after("keyboard", "magnetic_field")
+        .add_system_to_stage("magnetic_field", magnetic_field_system.system())
         .add_system_to_stage(stage::EVENT_UPDATE, asset_events.system())
         .add_system_to_stage("pre_update1", game_event_system.system())
         .add_system_to_stage("pre_update2", shot_system.system())
