@@ -1,5 +1,5 @@
 use crate::components::prelude::*;
-use crate::entities::create_laser_tail;
+use crate::entities::{create_laser_tail, create_explosion};
 use crate::frame_cnt::FrameCnt;
 use crate::game_events::{GameEvent, GameEvents};
 use crate::inventory::Inventory;
@@ -139,6 +139,7 @@ fn move_box(
 }
 
 fn move_bullet(
+    commands: &mut Commands,
     events: &mut ResMut<GameEvents>,
     occupied: &mut HashMap<Position, Entity>,
     mut position: Mut<Position>,
@@ -148,6 +149,7 @@ fn move_bullet(
     if occupied.contains_key(&new_pos) {
         *dir = MovingDir::zero();
         let entity = occupied.get(&position).unwrap();
+        create_explosion(commands).with(*position);
         events.send(GameEvent::RemoveEntity(*entity));
         events.send(GameEvent::Damage(new_pos, false));
     } else {
@@ -209,6 +211,7 @@ fn move_laser_head(
         **dir = MovingDir::zero();
         let entity = occupied.remove(&position).unwrap();
         events.send(GameEvent::RemoveEntity(entity));
+        create_explosion(commands).with(**position);
     }
 }
 
@@ -244,7 +247,7 @@ pub fn move_system(
         } else if let Ok(bear) = all.get::<Bear>(entity) {
             move_bear(&mut occupied, bear.0, position, dir);
         } else if let Ok(_) = all.get::<Bullet>(entity) {
-            move_bullet(&mut events, &mut occupied, position, dir);
+            move_bullet(&mut commands, &mut events, &mut occupied, position, dir);
         } else if let Ok(_) = all.get::<PushBox>(entity) {
             move_box(&mut events, &mut occupied, &mut processed, position, dir);
         } else if let Ok(mut laser_head) = all.get_mut::<LaserHead>(entity) {
