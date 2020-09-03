@@ -11,8 +11,8 @@ use bevy::prelude::*;
 use bevy::sprite::TextureAtlas;
 use bevy::window;
 // use bevy::render::pass::ClearColor;
-use components::{Capsule, Usable, Robbo,};
-use frame_cnt::FrameCntPlugin;
+use components::{Capsule, Usable, Tiles, Position, Animation};
+use frame_cnt::{FrameCnt, FrameCntPlugin};
 use frame_limiter::FrameLimiterPlugin;
 use game_events::{GameEvent, GameEvents};
 use inventory::Inventory;
@@ -86,6 +86,7 @@ fn main() {
         .add_system_to_stage(stage::POST_UPDATE, create_sprites.system())
         .add_system_to_stage("post_update2", prepare_render.system())
         .add_system_to_stage("events", activate_capsule_system.system())
+        .add_system_to_stage("frame_cnt", tick_system.system())
         .run();
 }
 
@@ -123,6 +124,28 @@ pub fn activate_capsule_system(
                     println!("activating capsule");
                     entities::repair_capsule(&mut commands, capsule);
                 }
+            }
+        }
+    }
+}
+
+pub fn tick_system(
+    mut commands: Commands,
+    frame_cnt: Res<FrameCnt>,
+    mut items: Query<(
+        Entity,
+        &Position,
+        &mut Tiles,
+    )>,
+    all: Query<(
+        Entity,
+        &Position,
+    )>) {
+    for (entity, position, mut tiles) in &mut items.iter() {
+        if frame_cnt.do_it() {
+            tiles.current = (tiles.current + 1) % tiles.tiles.len();
+            if tiles.current == 0 && tiles.tiles.len() > 0 && all.get::<Animation>(entity).is_ok() {
+                commands.despawn(entity);
             }
         }
     }

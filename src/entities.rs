@@ -1,8 +1,4 @@
-use crate::components::{
-    Bear, Bird, Bomb, Capsule, Collectable, Destroyable, GunType, Int2Ops, LaserHead,
-    LaserTail, Moveable, MovingDir, PushBox, Robbo, ShootingDir, Teleport, Tiles, Undestroyable,
-    Usable, Wall, Bullet, BlasterHead, ForceField, Magnet,
-};
+use crate::components::prelude::*;
 use bevy::ecs::*;
 
 pub fn create_robbo<'a>(commands: &'a mut Commands) -> &'a mut Commands {
@@ -44,31 +40,35 @@ pub fn create_wall<'a>(commands: &'a mut Commands, k: usize) -> &'a mut Commands
     commands.spawn((Undestroyable, Wall, Tiles::new(tiles[k])))
 }
 
+static BULLET_H_TILES: &[u32] = &[36, 36, 36, 36, 37, 37, 37, 37];
+static BULLET_V_TILES: &[u32] = &[38, 38, 38, 38, 39, 39, 39, 39];
+
 pub fn create_bullet<'a>(commands: &'a mut Commands, kx: i32, ky: i32) -> &'a mut Commands {
     commands.spawn((
         Bullet,
         Undestroyable,
         MovingDir::new(kx, ky),
-        Tiles::new(if ky == 0 { &[36, 37] } else { &[38, 39] }),
+        Tiles::new(if ky == 0 { BULLET_H_TILES } else { BULLET_V_TILES }),
     ))
 }
 
 pub fn create_laser_head<'a>(commands: &'a mut Commands, kx: i32, ky: i32) -> &'a mut Commands {
     commands.spawn((
         LaserHead::default(),
+        RoughUpdate,
         Undestroyable,
         MovingDir::new(kx, ky),
-        Tiles::new(if ky == 0 { &[36, 37] } else { &[38, 39] }),
+        Tiles::new(if ky == 0 { BULLET_H_TILES } else { BULLET_V_TILES }),
     ))
 }
 
 pub fn create_blaster_head<'a>(commands: &'a mut Commands, kx: i32, ky: i32) -> &'a mut Commands {
     commands.spawn((
         BlasterHead,
-        LaserHead::default(),
         Undestroyable,
+        RoughUpdate,
         MovingDir::new(kx, ky),
-        Tiles::new(if ky == 0 { &[36, 37] } else { &[38, 39] }),
+        Tiles::new(if ky == 0 { BULLET_H_TILES } else { BULLET_V_TILES }),
     ))
 }
 
@@ -76,7 +76,7 @@ pub fn create_laser_tail<'a>(commands: &'a mut Commands, _kx: i32, ky: i32) -> &
     commands.spawn((
         LaserTail,
         Undestroyable,
-        Tiles::new(if ky == 0 { &[36, 37] } else { &[38, 39] }),
+        Tiles::new(if ky == 0 { BULLET_H_TILES } else { BULLET_V_TILES }),
     ))
 }
 
@@ -109,6 +109,10 @@ pub fn create_bomb<'a>(commands: &'a mut Commands) -> &'a mut Commands {
     commands.spawn((Bomb, Moveable, Destroyable, Tiles::new(&[8])))
 }
 
+pub fn create_explosion<'a>(commands: &'a mut Commands) -> &'a mut Commands {
+    commands.spawn((Animation, Undestroyable, Tiles::new(&[52, 51, 50])))
+}
+
 pub fn create_questionmark<'a>(commands: &'a mut Commands) -> &'a mut Commands {
     commands.spawn((Destroyable, Moveable, Tiles::new(&[12])))
 }
@@ -124,12 +128,11 @@ pub fn create_teleport<'a>(commands: &'a mut Commands, params: &[usize]) -> &'a 
         Tiles::new(&[48, 49]),
     ))
 }
-
 pub fn create_eyes<'a>(commands: &'a mut Commands) -> &'a mut Commands {
     commands.spawn((Destroyable, Tiles::new(&[32, 33])))
 }
 
-const GUN_TILES: &[u32] = &[56, 53, 54, 55];
+static GUN_TILES: &[u32] = &[56, 53, 54, 55];
 
 pub fn create_gun<'a>(commands: &'a mut Commands, params: &[usize]) -> &'a mut Commands {
     let index = params[0];

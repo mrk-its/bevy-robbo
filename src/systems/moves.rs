@@ -1,7 +1,4 @@
-use crate::components::{
-    Collectable, Destroyable, Int2Ops, LaserHead, LaserTail, Moveable, MovingDir, Position,
-    Robbo, Usable, PushBox, Bird, Bear, Bullet, BlasterHead,
-};
+use crate::components::prelude::*;
 use crate::entities::create_laser_tail;
 use crate::frame_cnt::FrameCnt;
 use crate::game_events::{GameEvent, GameEvents};

@@ -5,7 +5,7 @@ pub struct Bear(pub bool);
 pub struct Bullet;
 pub struct Wall;
 pub struct PushBox;
-
+pub struct Animation;
 pub struct ForceField;
 
 pub struct Moveable;
@@ -16,6 +16,7 @@ pub enum Usable {
     Capsule,
 }
 pub struct LaserTail;
+pub struct RoughUpdate;
 pub struct Capsule;
 pub struct Undestroyable;
 
@@ -188,4 +189,8 @@ impl Int2Ops for Magnet {
     fn get(&self) -> IntVec2 {
         self.dir
     }
+}
+
+pub mod prelude {
+    pub use crate::components::*;
 }
