@@ -1,11 +1,14 @@
 use crate::components::{MovingDir, Position};
+use crate::levels::Level;
 use bevy::ecs::Entity;
+use bevy::asset::Handle;
 use std::mem::take;
 
 pub enum GameEvent {
     Damage(Position, bool),
     RemoveEntity(Entity),
     Use(Entity, MovingDir),
+    ReloadLevel(Handle<Level>),
 }
 
 #[derive(Default)]

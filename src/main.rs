@@ -10,12 +10,13 @@ mod systems;
 use bevy::prelude::*;
 use bevy::sprite::TextureAtlas;
 use bevy::window;
-use components::{Capsule, Position, Usable};
+// use bevy::render::pass::ClearColor;
+use components::{Capsule, Usable};
 use frame_cnt::FrameCntPlugin;
 use frame_limiter::FrameLimiterPlugin;
-use game_events::GameEvents;
+use game_events::{GameEvent, GameEvents};
 use inventory::Inventory;
-use levels::{create_level, Level, LevelLoader};
+use levels::{Level, LevelLoader};
 use systems::{
     create_sprites, game_event_system, move_robbo, move_system, prepare_render, render_setup,
     shot_system, KeyboardPlugin,
@@ -38,7 +39,7 @@ fn level_setup(
     mut current_level_handle: ResMut<Option<Handle<Level>>>,
 ) {
     asset_server.watch_for_changes().unwrap();
-    let level_handle: Handle<Level> = asset_server.load("assets/01.txt").unwrap();
+    let level_handle: Handle<Level> = asset_server.load("assets/level.txt").unwrap();
     current_level_handle.replace(level_handle);
 }
 
@@ -55,6 +56,7 @@ fn main() {
             mode: window::WindowMode::Windowed,
             ..Default::default()
         })
+        .add_resource(bevy::render::pass::ClearColor(Color::rgb(0.1, 0.1, 0.1)))
         .add_resource(TextureAtlasHandle(None))
         .add_resource(Inventory::default())
         .add_resource(GameEvents::default())
@@ -91,12 +93,9 @@ pub struct AssetEventsState {
 }
 
 pub fn asset_events(
-    mut commands: Commands,
     mut game_events: ResMut<GameEvents>,
     mut state: Local<AssetEventsState>,
-    levels: ResMut<Assets<Level>>,
     events: Res<Events<AssetEvent<Level>>>,
-    mut items: Query<With<Position, Entity>>,
 ) {
     for event in state.reader.iter(&events) {
         let handle = match event {
@@ -104,10 +103,7 @@ pub fn asset_events(
             AssetEvent::Modified { handle } => handle,
             _ => continue,
         };
-        if let Some(level) = levels.get(handle) {
-            game_events.flush();
-            create_level(&mut commands, &mut items, level);
-        }
+        game_events.send(GameEvent::ReloadLevel(*handle));
     }
 }
 

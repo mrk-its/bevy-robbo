@@ -1,12 +1,28 @@
 pub struct Robbo;
 pub struct Bomb;
+pub struct Bird;
+pub struct Bear(pub bool);
+pub struct Bullet;
 pub struct Wall;
+pub struct PushBox;
 
 pub struct Moveable;
 pub struct Destroyable;
-pub struct Usable;
+pub enum Usable {
+    Door,
+    Teleport,
+    Capsule,
+}
 pub struct LaserTail;
 pub struct Capsule;
+pub struct Undestroyable;
+
+#[derive(Default)]
+pub struct LaserHead {
+    pub is_moving_back: bool
+}
+pub struct BlasterHead;
+
 #[derive(Debug, Clone, Copy)]
 pub struct Teleport(pub usize, pub usize);
 #[derive(Debug, Clone, Copy)]
@@ -18,31 +34,6 @@ pub enum Collectable {
 
 #[derive(Debug, Eq, PartialEq, Hash, Clone, Copy)]
 pub struct Tile(pub u32);
-#[derive(Debug, Eq, PartialEq, Clone, Copy)]
-pub enum Kind {
-    Wall,
-    Bird,
-    Bear(bool),
-    Robbo,
-    Box,
-    MovingBox,
-    Bullet,
-    LaserHead { moving_back: bool },
-    LaserTail,
-    Screw,
-    Ammo,
-    Key,
-    Capsule,
-    Bomb,
-    Questionmark,
-    Ground,
-    Door,
-    Magnet,
-    ForceField,
-    Eyes,
-    Teleport,
-    Gun,
-}
 
 type Int = i32;
 

@@ -1,5 +1,6 @@
 use crate::components::{
-    Collectable, Int2Ops, Kind, LaserTail, Moveable, MovingDir, Position, Robbo, Usable,
+    Collectable, Destroyable, Int2Ops, LaserHead, LaserTail, Moveable, MovingDir, Position,
+    Robbo, Usable, PushBox, Bird, Bear, Bullet, BlasterHead,
 };
 use crate::entities::create_laser_tail;
 use crate::frame_cnt::FrameCnt;
@@ -48,8 +49,9 @@ pub fn move_robbo(
                         *pos = new_pos2;
                         *position = new_pos;
                         if let Ok(mut mdir) = moving_dirs.get_mut::<MovingDir>(entity) {
-                            // moving box
-                            *mdir = *dir
+                            if let Ok(_) = items.get::<PushBox>(entity) {
+                                *mdir = *dir
+                            }
                         }
                     }
                 } else if positions.get::<Usable>(entity).is_ok() {
@@ -62,22 +64,22 @@ pub fn move_robbo(
 
 fn move_bear(
     occupied: &mut HashMap<Position, Entity>,
-    kind: &Kind,
+    is_black: bool,
     mut position: Mut<Position>,
     mut dir: Mut<MovingDir>,
 ) {
     let r1 = |dir: MovingDir| {
-        if let Kind::Bear(true) = *kind {
-            dir.rotate_counter_clockwise()
-        } else {
+        if !is_black {
             dir.rotate_clockwise()
+        } else {
+            dir.rotate_counter_clockwise()
         }
     };
     let r2 = |dir: MovingDir| {
-        if let Kind::Bear(true) = *kind {
-            dir.rotate_clockwise()
-        } else {
+        if !is_black {
             dir.rotate_counter_clockwise()
+        } else {
+            dir.rotate_clockwise()
         }
     };
 
@@ -157,20 +159,38 @@ fn move_bullet(
     }
 }
 
+fn move_blaster_head(
+    commands: &mut Commands,
+    occupied: &mut HashMap<Position, Entity>,
+    mut position: Mut<Position>,
+    dir: Mut<MovingDir>,
+    destroyable: &Query<&Destroyable>,
+) {
+    let new_pos = position.add(&*dir);
+    if let Some(&entity) = occupied.get(&new_pos) {
+        let is_destroyable = destroyable.get::<Destroyable>(entity).is_ok();
+        if is_destroyable {
+            commands.despawn(entity);
+            occupied.remove(&new_pos);
+            move_entity(&mut position, &new_pos, occupied);
+        } else {
+            let entity = occupied.get(&position).unwrap();
+            commands.despawn(*entity);
+        }
+    } else {
+        move_entity(&mut position, &new_pos, occupied);
+    }
+}
 fn move_laser_head(
     commands: &mut Commands,
     events: &mut ResMut<GameEvents>,
     occupied: &mut HashMap<Position, Entity>,
-    mut position: Mut<Position>,
-    mut dir: Mut<MovingDir>,
-    mut kind: Mut<Kind>,
+    mut position: &mut Mut<Position>,
+    dir: &mut Mut<MovingDir>,
+    laser_head: &mut LaserHead,
     others: &Query<(&Position, Entity)>,
 ) {
-    let new_pos = position.add(&*dir);
-    let is_moving_back = match *kind {
-        Kind::LaserHead { moving_back } => moving_back,
-        _ => false,
-    };
+    let new_pos = position.add(&**dir);
     let is_laser_tail_in_front = occupied
         .get(&new_pos)
         .map(|entity| others.get::<LaserTail>(*entity).is_ok())
@@ -179,18 +199,18 @@ fn move_laser_head(
         let (tx, ty) = position.as_tuple();
         move_entity(&mut position, &new_pos, occupied);
         create_laser_tail(commands, dir.x(), dir.y()).with(Position::new(tx, ty));
-        occupied.insert(*position, commands.current_entity().unwrap());
-    } else if is_moving_back && is_laser_tail_in_front {
+        occupied.insert(**position, commands.current_entity().unwrap());
+    } else if laser_head.is_moving_back && is_laser_tail_in_front {
         let entity = occupied.remove(&new_pos).unwrap();
-        events.send(GameEvent::RemoveEntity(entity));
-        // commands.despawn(entity);
+        //events.send(GameEvent::RemoveEntity(entity));
+        commands.despawn(entity);
         move_entity(&mut position, &new_pos, occupied);
-    } else if !is_moving_back {
-        *kind = Kind::LaserHead { moving_back: true };
-        *dir = dir.neg();
+    } else if !laser_head.is_moving_back {
+        laser_head.is_moving_back = true;
+        **dir = dir.neg();
         events.send(GameEvent::Damage(new_pos, false));
     } else {
-        *dir = MovingDir::zero();
+        **dir = MovingDir::zero();
         let entity = occupied.remove(&position).unwrap();
         events.send(GameEvent::RemoveEntity(entity));
     }
@@ -200,14 +220,15 @@ pub fn move_system(
     mut commands: Commands,
     mut events: ResMut<GameEvents>,
     frame_cnt: Res<FrameCnt>,
-    mut moving_items: Query<Without<Robbo, (Entity, &mut Kind, &mut Position, &mut MovingDir)>>,
-    mut others: Query<(&Position, Entity)>,
+    mut moving_items: Query<Without<Robbo, (Entity, &mut Position, &mut MovingDir)>>,
+    mut all: Query<(&Position, Entity)>,
+    destroyable: Query<&Destroyable>,
 ) {
     if !frame_cnt.do_it() {
         return;
     }
-    let mut processed = HashSet::new();
-    let mut occupied: HashMap<Position, Entity> = others
+    let mut processed: HashSet<Position> = HashSet::new();
+    let mut occupied: HashMap<Position, Entity> = all
         .iter()
         .iter()
         .map(|(pos, entity)| (*pos, entity))
@@ -216,27 +237,32 @@ pub fn move_system(
         moving_items
             .iter()
             .iter()
-            .map(|(entity, _, pos, _)| (*pos, entity)),
+            .map(|(entity, pos, _)| (*pos, entity)),
     );
-    for (_, kind, position, dir) in &mut moving_items.iter() {
+    for (entity, mut position, mut dir) in &mut moving_items.iter() {
         if *dir == MovingDir::zero() || processed.contains(&*position) {
             continue;
         }
-        match *kind {
-            Kind::Bird => move_bird(&mut occupied, position, dir),
-            Kind::Bear(_) => move_bear(&mut occupied, &kind, position, dir),
-            Kind::MovingBox => move_box(&mut events, &mut occupied, &mut processed, position, dir),
-            Kind::Bullet => move_bullet(&mut events, &mut occupied, position, dir),
-            Kind::LaserHead { .. } => move_laser_head(
+        if let Ok(_) = all.get::<Bird>(entity) {
+            move_bird(&mut occupied, position, dir);
+        } else if let Ok(bear) = all.get::<Bear>(entity) {
+            move_bear(&mut occupied, bear.0, position, dir);
+        } else if let Ok(_) = all.get::<Bullet>(entity) {
+            move_bullet(&mut events, &mut occupied, position, dir);
+        } else if let Ok(_) = all.get::<PushBox>(entity) {
+            move_box(&mut events, &mut occupied, &mut processed, position, dir);
+        } else if let Ok(mut laser_head) = all.get_mut::<LaserHead>(entity) {
+            move_laser_head(
                 &mut commands,
                 &mut events,
                 &mut occupied,
-                position,
-                dir,
-                kind,
-                &others,
-            ),
-            _ => continue,
+                &mut position,
+                &mut dir,
+                &mut *laser_head,
+                &all,
+            );
+        } else if let Ok(_) = all.get::<BlasterHead>(entity) {
+            move_blaster_head(&mut commands, &mut occupied, position, dir, &destroyable);
         }
     }
 }

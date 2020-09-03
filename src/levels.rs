@@ -18,7 +18,7 @@ type AdditionalMap = HashMap<(i32, i32), Vec<usize>>;
 impl Level {
     pub fn parse(data: &str) -> Level {
         let mut _level_set_name: Option<&str> = None;
-        let mut default_level_color: Option<String> = None;
+        let mut default_level_color: Option<String> = Some(String::from("608050"));
         let mut collecting_data: bool = false;
         let mut lines = data.split('\n');
         let mut number: Option<usize> = None;
@@ -95,6 +95,15 @@ impl Level {
             }
         }
     }
+    pub fn get_color(&self) -> Color {
+        let rgb: Vec<f32> = (0..3)
+            .map(|i| i * 2)
+            .map(|i| &self.color[i..i + 2])
+            .map(|h| i32::from_str_radix(h, 16).unwrap() as f32 / 255.0)
+            .collect();
+        assert!(rgb.len() == 3);
+        Color::rgb(rgb[0], rgb[1], rgb[2])
+    }
 }
 
 #[derive(Default)]
@@ -116,10 +125,10 @@ impl AssetLoader<Level> for LevelLoader {
 
 pub fn create_level(
     commands: &mut Commands,
-    items: &mut Query<With<Position, Entity>>,
+    items: &mut Query<(Entity, &Position)>,
     level: &Level,
 ) {
-    for entity in &mut items.iter() {
+    for (entity, _) in &mut items.iter() {
         commands.despawn(entity);
     }
 
@@ -148,8 +157,11 @@ pub fn create_level(
                 //'l' => create_vertical_laser(commands),
                 '&' => create_teleport(commands, additional.unwrap_or(&[0, 0])),
                 '^' => create_bird(commands).with(ShootingDir::new(1, 0).with_propability(0.05)),
-                '@' => create_lbear(commands).with(MovingDir::new(-1, 0)),
-                '*' => create_rbear(commands).with(MovingDir::new(1, 0)),
+                '@' => {
+                    create_bear(commands).with(MovingDir::by_index(additional.unwrap_or(&[0])[0]))
+                }
+                '*' => create_black_bear(commands)
+                    .with(MovingDir::by_index(additional.unwrap_or(&[0])[0])),
                 'V' => create_eyes(commands),
                 '\'' => create_ammo(commands),
                 'T' => create_screw(commands),
@@ -157,8 +169,8 @@ pub fn create_level(
                 '!' => create_capsule(commands),
                 'b' => create_bomb(commands),
                 '?' => create_questionmark(commands),
-                '=' => create_forcefield(commands), // TODO - direction
-                'M' => create_magnet(commands),     // TODO - direction
+                '=' => create_forcefield(commands, additional.unwrap_or(&[0])[0]), // TODO - direction
+                'M' => create_magnet(commands, additional.unwrap_or(&[0])[0]), // TODO - direction
                 _ => continue,
             };
             commands.with(Position::new(x, y));

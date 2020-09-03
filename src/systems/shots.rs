@@ -34,7 +34,10 @@ pub fn shot_system(
                 GunType::Solid => {
                     create_laser_head(&mut commands, dir.x(), dir.y()).with(bullet_pos);
                 }
-                GunType::Burst | _ => {
+                GunType::Blaster => {
+                    create_blaster_head(&mut commands, dir.x(), dir.y()).with(bullet_pos);
+                }
+                GunType::Burst  => {
                     create_bullet(&mut commands, dir.x(), dir.y()).with(bullet_pos);
                 }
             }
