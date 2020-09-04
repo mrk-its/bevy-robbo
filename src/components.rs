@@ -35,6 +35,8 @@ pub enum Collectable {
     Ammo,
 }
 
+pub struct ShootingProp(pub f32);
+
 #[derive(Debug, Eq, PartialEq, Hash, Clone, Copy)]
 pub struct Tile(pub u32);
 
@@ -43,7 +45,7 @@ type Int = i32;
 #[derive(Debug, Default, Eq, Hash, PartialEq, Clone, Copy)]
 pub struct IntVec2(pub Int, pub Int);
 
-pub trait Int2Ops {
+pub trait Int2Ops where Self::Output: Copy {
     type Output;
     fn get(&self) -> IntVec2;
     fn as_tuple(&self) -> (Int, Int) {
@@ -64,6 +66,15 @@ pub trait Int2Ops {
         static ALL_DIRS: &[(i32, i32)] = &[(0, 1), (1, 0), (0, -1), (-1, 0)];
         let (kx, ky) = ALL_DIRS[index];
         Self::new(kx, ky)
+    }
+    fn to_index(&self) -> usize {
+        match (self.x(), self.y()) {
+            (0, 1) => 0,
+            (1, 0) => 1,
+            (0, -1) => 2,
+            (-1, 0) => 3,
+            _ => 0,
+        }
     }
     fn neg(&self) -> Self::Output {
         Self::new(-self.x(), -self.y())
@@ -122,6 +133,12 @@ impl Int2Ops for MovingDir {
         self.0
     }
 }
+
+pub enum Rotatable {
+    Regular,
+    Random,
+}
+
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub enum GunType {
     Solid,
@@ -131,20 +148,6 @@ pub enum GunType {
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub struct ShootingDir {
     pub dir: IntVec2,
-    pub propability: f32,
-    pub gun_type: GunType,
-}
-
-impl ShootingDir {
-    pub fn with_propability(&self, propability: f32) -> ShootingDir {
-        ShootingDir {
-            propability,
-            ..*self
-        }
-    }
-    pub fn with_gun_type(&self, gun_type: GunType) -> ShootingDir {
-        ShootingDir { gun_type, ..*self }
-    }
 }
 
 impl Int2Ops for ShootingDir {
@@ -152,8 +155,6 @@ impl Int2Ops for ShootingDir {
     fn new(x: Int, y: Int) -> Self {
         ShootingDir {
             dir: IntVec2(x, y),
-            propability: 1.0,
-            gun_type: GunType::Burst,
         }
     }
     fn get(&self) -> IntVec2 {

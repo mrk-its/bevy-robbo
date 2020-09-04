@@ -156,7 +156,7 @@ pub fn create_level(
                 //'L' => create_horizontal_laser(commands),
                 //'l' => create_vertical_laser(commands),
                 '&' => create_teleport(commands, additional.unwrap_or(&[0, 0])),
-                '^' => create_bird(commands).with(ShootingDir::new(1, 0).with_propability(0.05)),
+                '^' => create_bird(commands, additional.unwrap_or(&[0, 0, 0, 0])),
                 '@' => {
                     create_bear(commands).with(MovingDir::by_index(additional.unwrap_or(&[0])[0]))
                 }

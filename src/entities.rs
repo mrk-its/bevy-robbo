@@ -2,16 +2,26 @@ use crate::components::prelude::*;
 use bevy::ecs::*;
 
 pub fn create_robbo<'a>(commands: &'a mut Commands) -> &'a mut Commands {
-    commands.spawn((Robbo, MovingDir::zero(), Tiles::new(&[60])))
+    commands
+        .spawn((Robbo, MovingDir::zero(), Tiles::new(&[60])))
+        .with(GunType::Burst)
+        .with(ShootingProp(1.0))
 }
 
-pub fn create_bird<'a>(commands: &'a mut Commands) -> &'a mut Commands {
+pub fn create_bird<'a>(commands: &'a mut Commands, params: &[usize]) -> &'a mut Commands {
     commands.spawn((
         Bird,
-        MovingDir::new(0, 1),
         Destroyable,
+        MovingDir::by_index(params[1]),
         Tiles::new(&[15, 16]),
-    ))
+    ));
+    if params[2] > 0 {
+        commands
+            .with(ShootingDir::by_index(params[1]))
+            .with(ShootingProp(0.05))
+            .with(GunType::Burst);
+    }
+    commands
 }
 
 pub fn create_bear<'a>(commands: &'a mut Commands) -> &'a mut Commands {
@@ -23,12 +33,7 @@ pub fn create_black_bear<'a>(commands: &'a mut Commands) -> &'a mut Commands {
 }
 
 pub fn create_push_box<'a>(commands: &'a mut Commands) -> &'a mut Commands {
-    commands.spawn((
-        PushBox,
-        Moveable,
-        MovingDir::zero(),
-        Tiles::new(&[6]),
-    ))
+    commands.spawn((PushBox, Moveable, MovingDir::zero(), Tiles::new(&[6])))
 }
 
 pub fn create_static_box<'a>(commands: &'a mut Commands) -> &'a mut Commands {
@@ -48,7 +53,11 @@ pub fn create_bullet<'a>(commands: &'a mut Commands, kx: i32, ky: i32) -> &'a mu
         Bullet,
         Undestroyable,
         MovingDir::new(kx, ky),
-        Tiles::new(if ky == 0 { BULLET_H_TILES } else { BULLET_V_TILES }),
+        Tiles::new(if ky == 0 {
+            BULLET_H_TILES
+        } else {
+            BULLET_V_TILES
+        }),
     ))
 }
 
@@ -58,7 +67,11 @@ pub fn create_laser_head<'a>(commands: &'a mut Commands, kx: i32, ky: i32) -> &'
         RoughUpdate,
         Undestroyable,
         MovingDir::new(kx, ky),
-        Tiles::new(if ky == 0 { BULLET_H_TILES } else { BULLET_V_TILES }),
+        Tiles::new(if ky == 0 {
+            BULLET_H_TILES
+        } else {
+            BULLET_V_TILES
+        }),
     ))
 }
 
@@ -68,7 +81,11 @@ pub fn create_blaster_head<'a>(commands: &'a mut Commands, kx: i32, ky: i32) -> 
         Undestroyable,
         RoughUpdate,
         MovingDir::new(kx, ky),
-        Tiles::new(if ky == 0 { BULLET_H_TILES } else { BULLET_V_TILES }),
+        Tiles::new(if ky == 0 {
+            BULLET_H_TILES
+        } else {
+            BULLET_V_TILES
+        }),
     ))
 }
 
@@ -76,7 +93,11 @@ pub fn create_laser_tail<'a>(commands: &'a mut Commands, _kx: i32, ky: i32) -> &
     commands.spawn((
         LaserTail,
         Undestroyable,
-        Tiles::new(if ky == 0 { BULLET_H_TILES } else { BULLET_V_TILES }),
+        Tiles::new(if ky == 0 {
+            BULLET_H_TILES
+        } else {
+            BULLET_V_TILES
+        }),
     ))
 }
 
@@ -137,43 +158,62 @@ static GUN_TILES: &[u32] = &[56, 53, 54, 55];
 pub fn create_gun<'a>(commands: &'a mut Commands, params: &[usize]) -> &'a mut Commands {
     let index = params[0];
     let is_moveable = params[3] > 0;
-    let _is_rotateable = *params.get(4).unwrap_or(&0) > 0;
-    let _is_random_rotatable = *params.get(5).unwrap_or(&0) > 0;
+    let is_rotateable = *params.get(4).unwrap_or(&0) > 0;
+    let is_random_rotateable = *params.get(5).unwrap_or(&0) > 0;
     let gun_type = match params[2] {
         1 => GunType::Solid,
         2 => GunType::Blaster,
         _ => GunType::Burst,
     };
-    commands.spawn((Tiles::new(&GUN_TILES[index..index + 1]), ));
-    commands.with(
-        ShootingDir::by_index(index)
-            .with_propability(0.05)
-            .with_gun_type(gun_type),
-    );
+    commands.spawn((Tiles::new(&GUN_TILES[index..index + 1]),));
+    commands
+        .with(ShootingDir::by_index(index))
+        .with(ShootingProp(0.05))
+        .with(gun_type);
     if is_moveable {
         commands.with(Moveable);
         commands.with(MovingDir::by_index(params[1]));
     }
+    if is_random_rotateable {
+        commands.with(Rotatable::Random);
+    } else if is_rotateable {
+        commands.with(Rotatable::Regular);
+    }
     commands
+}
+
+pub fn gun_set_shooting_dir(
+    commands: &mut Commands,
+    entity: Entity,
+    shooting_dir: ShootingDir,
+) -> &mut Commands {
+    let index = shooting_dir.to_index();
+    commands.insert(
+        entity,
+        (shooting_dir, Tiles::new(&GUN_TILES[index..index + 1])),
+    )
 }
 
 pub fn _create_horizontal_laser<'a>(
     commands: &'a mut Commands,
     _params: &[usize],
 ) -> &'a mut Commands {
-    commands.spawn((Tiles::new(&[53, 55]), ))
+    commands.spawn((Tiles::new(&[53, 55]),))
 }
 pub fn _create_vertical_laser<'a>(
     commands: &'a mut Commands,
     _params: &[usize],
 ) -> &'a mut Commands {
-    commands.spawn((Tiles::new(&[54, 56]), ))
+    commands.spawn((Tiles::new(&[54, 56]),))
 }
 
 const MAGNET_TILES: &[u32] = &[73, 0, 72, 1];
 
 pub fn create_magnet<'a>(commands: &'a mut Commands, index: usize) -> &'a mut Commands {
-    commands.spawn((Magnet::by_index(index), Tiles::new(&MAGNET_TILES[index..index + 1]), ))
+    commands.spawn((
+        Magnet::by_index(index),
+        Tiles::new(&MAGNET_TILES[index..index + 1]),
+    ))
 }
 
 pub fn create_forcefield<'a>(commands: &'a mut Commands, _index: usize) -> &'a mut Commands {

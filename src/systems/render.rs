@@ -17,20 +17,35 @@ pub fn render_setup(
 ) {
     let texture_handle = asset_server.load("assets/icons32.png").unwrap();
     let texture_atlas = TextureAtlas::from_grid(texture_handle, Vec2::new(384.0, 256.0), 12, 8);
+
     texture_atlases.set(TEXTURE_ATLAS_HANDLE, texture_atlas);
 
-    commands.spawn(Camera2dComponents {
-        translation: Translation::new(-BOX_SIZE / 2.0, -BOX_SIZE / 2.0, 0.0),
-        orthographic_projection: OrthographicProjection {
-            bottom: 0.0,
-            top: HEIGHT as f32 * BOX_SIZE / 2.0,
-            left: 0.0,
-            right: WIDTH as f32 * BOX_SIZE / 2.0,
-            window_origin: WindowOrigin::BottomLeft,
+    commands
+        .spawn(Camera2dComponents {
+            translation: Translation::new(-BOX_SIZE / 2.0, -BOX_SIZE / 2.0, 0.0),
+            orthographic_projection: OrthographicProjection {
+                bottom: 0.0,
+                top: HEIGHT as f32 * BOX_SIZE / 2.0,
+                left: 0.0,
+                right: WIDTH as f32 * BOX_SIZE / 2.0,
+                window_origin: WindowOrigin::BottomLeft,
+                ..Default::default()
+            },
             ..Default::default()
-        },
-        ..Default::default()
-    });
+        });
+        // .spawn(UiCameraComponents::default())
+        // .spawn(TextComponents {
+        //     text: Text {
+        //         value: "bla".to_string(),
+        //         font: asset_server.load("assets/fonts/FiraSans-Bold.ttf").unwrap(),
+        //         style: TextStyle {
+        //             font_size: 60.0,
+        //             color: Color::WHITE,
+        //         },
+        //         ..Default::default()
+        //     },
+        //     ..Default::default()
+        // });
 }
 
 pub fn create_sprites(
@@ -87,6 +102,5 @@ pub fn prepare_render(
             translation.0 = dest;
         }
         sprite.index = tiles.tiles[tiles.current];
-
     }
 }

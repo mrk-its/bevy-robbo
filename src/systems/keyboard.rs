@@ -1,4 +1,4 @@
-use crate::components::{Int2Ops, MovingDir, Robbo, ShootingDir, Tiles};
+use crate::components::prelude::*;
 use crate::frame_cnt::FrameCnt;
 use crate::levels::Level;
 use crate::game_events::{GameEvent, GameEvents};
@@ -36,7 +36,7 @@ pub fn keyboard_system(
             let ky = jp_up - jp_down;
             if kx != 0 || ky != 0 {
                 *moving_dir = MovingDir::zero();
-                commands.insert_one(entity, ShootingDir::new(kx, ky).with_propability(1.0));
+                commands.insert_one(entity, ShootingDir::new(kx, ky));
             }
         } else {
             let kx = (right | jp_right) - (left | jp_left);

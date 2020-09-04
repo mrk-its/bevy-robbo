@@ -7,19 +7,23 @@ mod inventory;
 mod levels;
 mod systems;
 
+use rand;
 use bevy::prelude::*;
 use bevy::sprite::TextureAtlas;
 use bevy::window;
 // use bevy::render::pass::ClearColor;
-use components::{Capsule, Usable, Tiles, Position, Animation};
+use components::{
+    Animation, Capsule, Int2Ops, Position, Rotatable, ShootingDir, Tiles, Usable, Wall,
+};
 use frame_cnt::{FrameCnt, FrameCntPlugin};
 use frame_limiter::FrameLimiterPlugin;
 use game_events::{GameEvent, GameEvents};
 use inventory::Inventory;
 use levels::{Level, LevelLoader};
+use entities::gun_set_shooting_dir;
 use systems::{
-    create_sprites, game_event_system, move_robbo, move_system, prepare_render, render_setup,
-    shot_system, KeyboardPlugin, magnetic_field_system
+    create_sprites, game_event_system, magnetic_field_system, move_robbo, move_system,
+    prepare_render, render_setup, shot_system, KeyboardPlugin,
 };
 
 mod consts {
@@ -132,20 +136,27 @@ pub fn activate_capsule_system(
 pub fn tick_system(
     mut commands: Commands,
     frame_cnt: Res<FrameCnt>,
-    mut items: Query<(
-        Entity,
-        &Position,
-        &mut Tiles,
-    )>,
-    all: Query<(
-        Entity,
-        &Position,
-    )>) {
+    mut items: Query<Without<Wall, (Entity, &Position, &mut Tiles)>>,
+    all: Query<(Entity, &Position)>,
+    shooting_dirs: Query<(&Rotatable, &mut ShootingDir)>,
+) {
     for (entity, position, mut tiles) in &mut items.iter() {
         if frame_cnt.do_it() {
             tiles.current = (tiles.current + 1) % tiles.tiles.len();
             if tiles.current == 0 && tiles.tiles.len() > 0 && all.get::<Animation>(entity).is_ok() {
                 commands.despawn(entity);
+            } else if let Ok(rotatable) = all.get::<Rotatable>(entity) {
+                if rand::random::<f32>() < 0.25 {
+                    let shooting_dir = shooting_dirs.get::<ShootingDir>(entity).unwrap();
+                    match *rotatable {
+                        Rotatable::Regular => {
+                            gun_set_shooting_dir(&mut commands, entity, shooting_dir.rotate_clockwise());
+                        }
+                        Rotatable::Random => {
+                            gun_set_shooting_dir(&mut commands, entity,  ShootingDir::by_index(rand::random::<usize>() % 4));
+                        }
+                    };
+                }
             }
         }
     }
