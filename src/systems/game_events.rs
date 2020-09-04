@@ -7,10 +7,11 @@ use crate::systems::utils::{process_damage, teleport_dest_position};
 use bevy::prelude::*;
 use std::collections::HashSet;
 use bevy::render::pass::ClearColor;
+use crate::entities::{create_small_explosion, create_robbo, spawn_robbo};
 
 pub fn game_event_system(
     mut commands: Commands,
-    (frame_cnt, mut events, mut inventory, levels, _clear_color): (
+    (frame_cnt, mut game_events, mut inventory, levels, _clear_color): (
         Res<FrameCnt>,
         ResMut<GameEvents>,
         ResMut<Inventory>,
@@ -21,7 +22,7 @@ pub fn game_event_system(
     bombs: Query<&Bomb>,
     destroyable: Query<&Destroyable>,
     mut teleports: Query<(&Teleport, &Position)>,
-    mut robbo: Query<With<Robbo, &mut Position>>,
+    mut robbo: Query<With<Robbo, (Entity, &mut Position)>>,
     mut all_positions: Query<(Entity, &Position)>,
 ) {
     if !frame_cnt.do_it() {
@@ -29,7 +30,7 @@ pub fn game_event_system(
     }
     let mut despawned = HashSet::new();
 
-    let _events = events.take();
+    let _events = game_events.take();
 
     // separate step for ReloadLevel event
     // because we want to process it first
@@ -38,6 +39,8 @@ pub fn game_event_system(
         if let GameEvent::ReloadLevel(handle) = event {
             if let Some(level) = levels.get(&handle) {
                 create_level(&mut commands, &mut all_positions, level);
+                *inventory = Inventory::default();
+                inventory.show();
                 return;
             }
         }
@@ -48,7 +51,7 @@ pub fn game_event_system(
             GameEvent::Damage(position, is_bomb) => {
                 process_damage(
                     &mut commands,
-                    &mut events,
+                    &mut game_events,
                     position,
                     is_bomb,
                     &mut items,
@@ -56,6 +59,9 @@ pub fn game_event_system(
                     &destroyable,
                     &mut despawned,
                 );
+            }
+            GameEvent::SpawnRobbo(pos) => {
+                create_robbo(&mut commands).with(pos);
             }
             GameEvent::RemoveEntity(entity) => {
                 commands.despawn(entity);
@@ -77,8 +83,10 @@ pub fn game_event_system(
                         let dest_robbo_pos =
                             teleport_dest_position(&occupied, entity, direction, &mut teleports);
                         if let Some(dest_robbo_pos) = dest_robbo_pos {
-                            for mut robbo_pos in &mut robbo.iter() {
-                                *robbo_pos = dest_robbo_pos;
+                            for (robbo_entity, robbo_pos) in &mut robbo.iter() {
+                                commands.despawn(robbo_entity);
+                                create_small_explosion(&mut commands).with(*robbo_pos);
+                                spawn_robbo(&mut commands, dest_robbo_pos);
                                 return;
                             }
                         }

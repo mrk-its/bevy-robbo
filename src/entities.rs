@@ -1,9 +1,11 @@
 use crate::components::prelude::*;
+use crate::game_events::GameEvent;
 use bevy::ecs::*;
 
 pub fn create_robbo<'a>(commands: &'a mut Commands) -> &'a mut Commands {
     commands
         .spawn((Robbo, MovingDir::zero(), Tiles::new(&[60])))
+        .with(Destroyable)
         .with(GunType::Burst)
         .with(ShootingProp(1.0))
 }
@@ -131,7 +133,25 @@ pub fn create_bomb<'a>(commands: &'a mut Commands) -> &'a mut Commands {
 }
 
 pub fn create_explosion<'a>(commands: &'a mut Commands) -> &'a mut Commands {
-    commands.spawn((Animation, Undestroyable, Tiles::new(&[52, 51, 50])))
+    commands.spawn((
+        Animation(None),
+        Undestroyable,
+        Tiles::new(&[84, 85, 86, 85, 84]),
+    ))
+}
+
+pub fn spawn_robbo<'a>(commands: &'a mut Commands, pos: Position) -> &'a mut Commands {
+    commands
+        .spawn((
+            Animation(Some(GameEvent::SpawnRobbo(pos))),
+            Undestroyable,
+            Tiles::new(&[84, 85, 86]),
+        ))
+        .with(pos)
+}
+
+pub fn create_small_explosion<'a>(commands: &'a mut Commands) -> &'a mut Commands {
+    commands.spawn((Animation(None), Undestroyable, Tiles::new(&[85, 84])))
 }
 
 pub fn create_questionmark<'a>(commands: &'a mut Commands) -> &'a mut Commands {

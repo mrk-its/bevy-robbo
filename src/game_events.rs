@@ -4,11 +4,13 @@ use bevy::ecs::Entity;
 use bevy::asset::Handle;
 use std::mem::take;
 
+#[derive(Copy, Clone)]
 pub enum GameEvent {
     Damage(Position, bool),
     RemoveEntity(Entity),
     Use(Entity, MovingDir),
     ReloadLevel(Handle<Level>),
+    SpawnRobbo(Position),
 }
 
 #[derive(Default)]

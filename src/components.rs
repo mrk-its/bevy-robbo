@@ -1,3 +1,4 @@
+use crate::game_events::GameEvent;
 pub struct Robbo;
 pub struct Bomb;
 pub struct Bird;
@@ -5,7 +6,7 @@ pub struct Bear(pub bool);
 pub struct Bullet;
 pub struct Wall;
 pub struct PushBox;
-pub struct Animation;
+pub struct Animation(pub Option<GameEvent>);
 pub struct ForceField;
 
 pub struct Moveable;

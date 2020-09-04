@@ -1,5 +1,5 @@
 use crate::components::prelude::*;
-use crate::entities::{create_laser_tail, create_explosion};
+use crate::entities::{create_laser_tail, create_explosion, create_small_explosion};
 use crate::frame_cnt::FrameCnt;
 use crate::game_events::{GameEvent, GameEvents};
 use crate::inventory::Inventory;
@@ -149,8 +149,8 @@ fn move_bullet(
     if occupied.contains_key(&new_pos) {
         *dir = MovingDir::zero();
         let entity = occupied.get(&position).unwrap();
-        create_explosion(commands).with(*position);
-        events.send(GameEvent::RemoveEntity(*entity));
+        create_small_explosion(commands).with(*position);
+        commands.despawn(*entity);
         events.send(GameEvent::Damage(new_pos, false));
     } else {
         move_entity(&mut position, &new_pos, occupied);

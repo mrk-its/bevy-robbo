@@ -13,6 +13,9 @@ impl Inventory {
             Collectable::Screw => self.screws += 1,
             Collectable::Ammo => self.bullets += 9,
         }
-        println!("inventory: {:?}", self);
+        self.show();
+    }
+    pub fn show(&self) {
+        println!("{:?}", self);
     }
 }

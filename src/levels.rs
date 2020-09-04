@@ -148,7 +148,7 @@ pub fn create_level(
                 's' => create_wall(commands, 7),
                 'S' => create_wall(commands, 8),
                 'H' => create_ground(commands),
-                'R' => create_robbo(commands),
+                'R' => spawn_robbo(commands, Position::new(x, y)),
                 'D' => create_door(commands),
                 '#' => create_static_box(commands),
                 '~' => create_push_box(commands),
