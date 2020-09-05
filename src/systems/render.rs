@@ -24,9 +24,9 @@ pub fn render_setup(
         translation: Translation::new(-BOX_SIZE / 2.0, -BOX_SIZE / 2.0, 0.0),
         orthographic_projection: OrthographicProjection {
             bottom: 0.0,
-            top: HEIGHT as f32 * BOX_SIZE / 2.0,
+            top: MAX_HEIGHT as f32 * BOX_SIZE / 2.0,
             left: 0.0,
-            right: WIDTH as f32 * BOX_SIZE / 2.0,
+            right: MAX_WIDTH as f32 * BOX_SIZE / 2.0,
             window_origin: WindowOrigin::BottomLeft,
             ..Default::default()
         },

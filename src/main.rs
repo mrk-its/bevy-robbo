@@ -25,8 +25,8 @@ use systems::{
 };
 
 mod consts {
-    pub const WIDTH: i32 = 31;
-    pub const HEIGHT: i32 = 16;
+    pub const MAX_WIDTH: i32 = 31;
+    pub const MAX_HEIGHT: i32 = 16;
     pub const SCALE: f32 = 1.5;
     pub const FPS: f32 = 30.0;
     pub const BOX_SIZE: f32 = 32.0 * SCALE;
@@ -42,8 +42,8 @@ fn main() {
     App::build()
         .add_resource(WindowDescriptor {
             title: "Robbo".to_string(),
-            width: ((32 * consts::WIDTH) as f32 * SCALE) as u32,
-            height: ((32 * HEIGHT) as f32 * SCALE) as u32,
+            width: ((32 * MAX_WIDTH) as f32 * SCALE) as u32,
+            height: ((32 * MAX_HEIGHT) as f32 * SCALE) as u32,
             vsync: true,
             resizable: false,
             mode: window::WindowMode::Windowed,
