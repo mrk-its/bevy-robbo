@@ -1,4 +1,4 @@
-use crate::components::{Int2Ops, MovingDir, Position, ShootingDir};
+use crate::components::{Int2Ops, MovingDir, Position, ForceFieldBounds};
 use crate::entities::*;
 use bevy::asset::AssetLoader;
 use bevy::prelude::*;
@@ -133,6 +133,8 @@ pub fn create_level(
     }
 
     for (x, column) in level.tiles.iter().enumerate() {
+        let mut force_field_entities = Vec::with_capacity(16);
+        let mut wall_last_y = 0;
         for (y, c) in column.chars().enumerate() {
             let (x, y) = (x as i32, y as i32);
 
@@ -169,11 +171,27 @@ pub fn create_level(
                 '!' => create_capsule(commands),
                 'b' => create_bomb(commands),
                 '?' => create_questionmark(commands),
-                '=' => create_forcefield(commands, additional.unwrap_or(&[0])[0]), // TODO - direction
-                'M' => create_magnet(commands, additional.unwrap_or(&[0])[0]), // TODO - direction
+                '=' => create_forcefield(
+                    commands,
+                    additional.unwrap_or(&[0])[0],
+                ),
+                'M' => create_magnet(commands, additional.unwrap_or(&[0])[0]),
                 _ => continue,
             };
-            commands.with(Position::new(x, y));
+            // postprocess ForceField entities (add wall bounds)
+            static WALL_CHARS: &[char] = &['O', 'o', '-', 'Q', 'q', 'p', 'P', 's', 'S'];
+            if WALL_CHARS.contains(&c) {
+                if !force_field_entities.is_empty() {
+                    for entity in &force_field_entities {
+                        commands.insert_one(*entity, ForceFieldBounds(wall_last_y+1, y));
+                    }
+                    force_field_entities.clear();
+                }
+                wall_last_y = y;
+            } else if c == '=' {
+                force_field_entities.push(commands.current_entity().unwrap());
+            }
+             commands.with(Position::new(x, y));
         }
     }
 }

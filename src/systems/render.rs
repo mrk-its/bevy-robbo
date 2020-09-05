@@ -85,7 +85,7 @@ pub fn prepare_render(
 
     const STEPS: usize = 4;
     const MIN_STEP: f32 = BOX_SIZE / (STEPS as f32);
-    for (entity, position, mut tiles, mut translation, mut sprite) in &mut items.iter() {
+    for (entity, position, tiles, mut translation, mut sprite) in &mut items.iter() {
         let dest = Vec3::new(position.x() as f32, (position.y()) as f32, 0.0) * BOX_SIZE;
         if to_smooth_update.contains(&entity) {
             let steps_left = (STEPS - ((frame_cnt.value()) % STEPS)) as f32;

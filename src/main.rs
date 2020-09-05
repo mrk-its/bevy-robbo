@@ -4,26 +4,24 @@ mod frame_cnt;
 mod frame_limiter;
 mod game_events;
 mod inventory;
+mod keyboard;
 mod levels;
 mod systems;
 
-use rand;
 use bevy::prelude::*;
 use bevy::sprite::TextureAtlas;
 use bevy::window;
 // use bevy::render::pass::ClearColor;
-use components::{
-    Animation, Capsule, Int2Ops, Position, Rotatable, ShootingDir, Tiles, Usable, Wall,
-};
-use frame_cnt::{FrameCnt, FrameCntPlugin};
+use frame_cnt::FrameCntPlugin;
 use frame_limiter::FrameLimiterPlugin;
 use game_events::{GameEvent, GameEvents};
 use inventory::Inventory;
+use keyboard::KeyboardPlugin;
 use levels::{Level, LevelLoader};
-use entities::gun_set_shooting_dir;
 use systems::{
-    create_sprites, game_event_system, magnetic_field_system, move_robbo, move_system,
-    prepare_render, render_setup, shot_system, KeyboardPlugin,
+    activate_capsule_system, create_sprites, damage_system, force_field_system, game_event_system,
+    magnetic_field_system, move_robbo, move_system, prepare_render, render_setup, shot_system,
+    tick_system,
 };
 
 mod consts {
@@ -37,15 +35,6 @@ mod consts {
 use consts::*;
 
 use bevy::asset::AddAsset;
-
-fn level_setup(
-    asset_server: Res<AssetServer>,
-    mut current_level_handle: ResMut<Option<Handle<Level>>>,
-) {
-    asset_server.watch_for_changes().unwrap();
-    let level_handle: Handle<Level> = asset_server.load("assets/level.txt").unwrap();
-    current_level_handle.replace(level_handle);
-}
 
 pub struct TextureAtlasHandle(pub Option<Handle<TextureAtlas>>);
 
@@ -81,6 +70,7 @@ fn main() {
         .add_stage_after("pre_update1", "pre_update2")
         .add_stage_after(stage::POST_UPDATE, "post_update2")
         .add_stage_after("keyboard", "magnetic_field")
+        .add_stage_after("frame_cnt", "tick")
         .add_system_to_stage("magnetic_field", magnetic_field_system.system())
         .add_system_to_stage(stage::EVENT_UPDATE, asset_events.system())
         .add_system_to_stage("pre_update1", game_event_system.system())
@@ -90,7 +80,9 @@ fn main() {
         .add_system_to_stage(stage::POST_UPDATE, create_sprites.system())
         .add_system_to_stage("post_update2", prepare_render.system())
         .add_system_to_stage("events", activate_capsule_system.system())
-        .add_system_to_stage("frame_cnt", tick_system.system())
+        .add_system_to_stage("tick", tick_system.system())
+        .add_system_to_stage("tick", damage_system.system())
+        .add_system_to_stage("tick", force_field_system.system())
         .run();
 }
 
@@ -114,54 +106,11 @@ pub fn asset_events(
     }
 }
 
-pub fn activate_capsule_system(
-    mut commands: Commands,
-    inventory: Res<Inventory>,
-    levels: Res<Assets<Level>>,
-    current_level_handle: Res<Option<Handle<Level>>>,
-    mut query: Query<With<Capsule, Without<Usable, Entity>>>,
+fn level_setup(
+    asset_server: Res<AssetServer>,
+    mut current_level_handle: ResMut<Option<Handle<Level>>>,
 ) {
-    for capsule in &mut query.iter() {
-        if let Some(handle) = *current_level_handle {
-            if let Some(level) = levels.get(&handle) {
-                if inventory.screws >= level.screw_count {
-                    println!("activating capsule");
-                    entities::repair_capsule(&mut commands, capsule);
-                }
-            }
-        }
-    }
-}
-
-pub fn tick_system(
-    mut commands: Commands,
-    frame_cnt: Res<FrameCnt>,
-    mut game_events: ResMut<GameEvents>,
-    mut items: Query<Without<Wall, (Entity, &Position, &mut Tiles)>>,
-    all: Query<(Entity, &Position)>,
-    shooting_dirs: Query<(&Rotatable, &mut ShootingDir)>,
-) {
-    for (entity, position, mut tiles) in &mut items.iter() {
-        if frame_cnt.do_it() {
-            tiles.current = (tiles.current + 1) % tiles.tiles.len();
-            if let (true, Ok(animation)) = (tiles.current == 0 && tiles.tiles.len() > 0, all.get::<Animation>(entity)) {
-                commands.despawn(entity);
-                if let Some(event) = animation.0.as_ref() {
-                    game_events.send(*event);
-                }
-            } else if let Ok(rotatable) = all.get::<Rotatable>(entity) {
-                if rand::random::<f32>() < 0.25 {
-                    let shooting_dir = shooting_dirs.get::<ShootingDir>(entity).unwrap();
-                    match *rotatable {
-                        Rotatable::Regular => {
-                            gun_set_shooting_dir(&mut commands, entity, shooting_dir.rotate_clockwise());
-                        }
-                        Rotatable::Random => {
-                            gun_set_shooting_dir(&mut commands, entity,  ShootingDir::by_index(rand::random::<usize>() % 4));
-                        }
-                    };
-                }
-            }
-        }
-    }
+    asset_server.watch_for_changes().unwrap();
+    let level_handle: Handle<Level> = asset_server.load("assets/level.txt").unwrap();
+    current_level_handle.replace(level_handle);
 }

@@ -13,6 +13,7 @@ pub fn create_robbo<'a>(commands: &'a mut Commands) -> &'a mut Commands {
 pub fn create_bird<'a>(commands: &'a mut Commands, params: &[usize]) -> &'a mut Commands {
     commands.spawn((
         Bird,
+        Deadly,
         Destroyable,
         MovingDir::by_index(params[1]),
         Tiles::new(&[15, 16]),
@@ -27,11 +28,11 @@ pub fn create_bird<'a>(commands: &'a mut Commands, params: &[usize]) -> &'a mut 
 }
 
 pub fn create_bear<'a>(commands: &'a mut Commands) -> &'a mut Commands {
-    commands.spawn((Bear(false), Destroyable, Tiles::new(&[13, 14])))
+    commands.spawn((Bear(false), Deadly, Destroyable, Tiles::new(&[13, 14])))
 }
 
 pub fn create_black_bear<'a>(commands: &'a mut Commands) -> &'a mut Commands {
-    commands.spawn((Bear(true), Destroyable, Tiles::new(&[30, 31])))
+    commands.spawn((Bear(true), Deadly, Destroyable, Tiles::new(&[30, 31])))
 }
 
 pub fn create_push_box<'a>(commands: &'a mut Commands) -> &'a mut Commands {
@@ -120,12 +121,12 @@ pub fn create_ground<'a>(commands: &'a mut Commands) -> &'a mut Commands {
 }
 
 pub fn create_capsule<'a>(commands: &'a mut Commands) -> &'a mut Commands {
-    commands.spawn((Capsule, Moveable, Tiles::new(&[18])))
+    commands.spawn((Capsule, Moveable, Tiles::new(&[17])))
 }
 
 pub fn repair_capsule<'a>(commands: &'a mut Commands, entity: Entity) -> &'a mut Commands {
     commands.remove_one::<Moveable>(entity);
-    commands.insert(entity, (Usable::Capsule, Tiles::new(&[17, 18])))
+    commands.insert(entity, (Usable::Capsule, Tiles::new(&[17, 17, 18, 18])))
 }
 
 pub fn create_bomb<'a>(commands: &'a mut Commands) -> &'a mut Commands {
@@ -170,7 +171,7 @@ pub fn create_teleport<'a>(commands: &'a mut Commands, params: &[usize]) -> &'a 
     ))
 }
 pub fn create_eyes<'a>(commands: &'a mut Commands) -> &'a mut Commands {
-    commands.spawn((Destroyable, Tiles::new(&[32, 33])))
+    commands.spawn((Eyes, Deadly, Destroyable, Tiles::new(&[32, 33])))
 }
 
 static GUN_TILES: &[u32] = &[56, 53, 54, 55];
@@ -186,13 +187,9 @@ pub fn create_gun<'a>(commands: &'a mut Commands, params: &[usize]) -> &'a mut C
         _ => GunType::Burst,
     };
     commands.spawn((Tiles::new(&GUN_TILES[index..index + 1]),));
-    commands
-        .with(ShootingDir::by_index(index))
-        .with(ShootingProp(0.05))
-        .with(gun_type);
+    commands.with_bundle((ShootingDir::by_index(index), ShootingProp(0.05), gun_type));
     if is_moveable {
-        commands.with(Moveable);
-        commands.with(MovingDir::by_index(params[1]));
+        commands.with_bundle((Moveable, MovingDir::by_index(params[1])));
     }
     if is_random_rotateable {
         commands.with(Rotatable::Random);
@@ -232,10 +229,16 @@ const MAGNET_TILES: &[u32] = &[73, 0, 72, 1];
 pub fn create_magnet<'a>(commands: &'a mut Commands, index: usize) -> &'a mut Commands {
     commands.spawn((
         Magnet::by_index(index),
+        Deadly,
         Tiles::new(&MAGNET_TILES[index..index + 1]),
     ))
 }
 
-pub fn create_forcefield<'a>(commands: &'a mut Commands, _index: usize) -> &'a mut Commands {
-    commands.spawn((Destroyable, ForceField, Tiles::new(&[45, 57])))
+pub fn create_forcefield<'a>(commands: &'a mut Commands, index: usize) -> &'a mut Commands {
+    commands.spawn((
+        Destroyable,
+        RoughUpdate,
+        ForceField(MovingDir::by_index(index)),
+        Tiles::new(&[45, 45, 45, 45, 57, 57, 57, 57]),
+    ))
 }

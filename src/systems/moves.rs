@@ -242,9 +242,7 @@ pub fn move_system(
         if *dir == MovingDir::zero() || processed.contains(&*position) {
             continue;
         }
-        if let Ok(_) = all.get::<Bird>(entity) {
-            move_bird(&mut occupied, position, dir);
-        } else if let Ok(bear) = all.get::<Bear>(entity) {
+        if let Ok(bear) = all.get::<Bear>(entity) {
             move_bear(&mut occupied, bear.0, position, dir);
         } else if let Ok(_) = all.get::<Bullet>(entity) {
             move_bullet(&mut commands, &mut events, &mut occupied, position, dir);
@@ -262,6 +260,8 @@ pub fn move_system(
             );
         } else if let Ok(_) = all.get::<BlasterHead>(entity) {
             move_blaster_head(&mut commands, &mut occupied, position, dir, &destroyable);
+        } else {
+            move_bird(&mut occupied, position, dir);
         }
     }
 }

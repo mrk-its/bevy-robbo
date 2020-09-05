@@ -18,7 +18,7 @@ impl FrameCnt {
 impl Plugin for FrameCntPlugin {
     fn build(&self, app: &mut AppBuilder) {
         app.add_resource(FrameCnt(0))
-        .add_stage_before(stage::LAST, "frame_cnt")
+            .add_stage_before(stage::LAST, "frame_cnt")
             .add_system_to_stage("frame_cnt", frame_cnt_system.system());
     }
 }

@@ -3,14 +3,16 @@ pub struct Robbo;
 pub struct Bomb;
 pub struct Bird;
 pub struct Bear(pub bool);
+pub struct Eyes;
 pub struct Bullet;
 pub struct Wall;
 pub struct PushBox;
 pub struct Animation(pub Option<GameEvent>);
-pub struct ForceField;
-
+pub struct ForceField(pub MovingDir);
+pub struct ForceFieldBounds(pub i32, pub i32);
 pub struct Moveable;
 pub struct Destroyable;
+pub struct Deadly;
 pub enum Usable {
     Door,
     Teleport,
@@ -63,7 +65,6 @@ pub trait Int2Ops where Self::Output: Copy {
     }
     fn new(kx: Int, ky: Int) -> Self::Output;
     fn by_index(index: usize) -> Self::Output {
-        //static ALL_DIRS: &[(i32, i32)] = &[(1, 0), (0, 1), (-1, 0), (0, -1)];
         static ALL_DIRS: &[(i32, i32)] = &[(0, 1), (1, 0), (0, -1), (-1, 0)];
         let (kx, ky) = ALL_DIRS[index];
         Self::new(kx, ky)
