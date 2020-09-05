@@ -3,7 +3,7 @@ use crate::entities::{create_robbo, create_small_explosion, spawn_robbo};
 use crate::frame_cnt::FrameCnt;
 use crate::game_events::{GameEvent, GameEvents};
 use crate::inventory::Inventory;
-use crate::levels::{create_level, Level};
+use crate::levels::{create_level, LevelSet, LevelInfo};
 use crate::systems::utils::{process_damage, teleport_dest_position};
 use bevy::prelude::*;
 use bevy::render::pass::ClearColor;
@@ -11,11 +11,12 @@ use std::collections::HashSet;
 
 pub fn game_event_system(
     mut commands: Commands,
-    (frame_cnt, mut game_events, mut inventory, levels, _clear_color): (
+    (frame_cnt, mut game_events, mut inventory, mut level_info, level_sets, _clear_color): (
         Res<FrameCnt>,
         ResMut<GameEvents>,
         ResMut<Inventory>,
-        Res<Assets<Level>>,
+        ResMut<LevelInfo>,
+        Res<Assets<LevelSet>>,
         ResMut<ClearColor>,
     ),
     mut items: Query<Without<Undestroyable, (Entity, &Position)>>,
@@ -30,23 +31,29 @@ pub fn game_event_system(
     }
     let mut despawned = HashSet::new();
 
-    let _events = game_events.take();
+    let events = game_events.take();
 
     // separate step for ReloadLevel event
     // because we want to process it first
     // to make sure no despawns are queued
-    for event in &_events {
-        if let GameEvent::ReloadLevel(handle) = event {
-            if let Some(level) = levels.get(&handle) {
+    for event in &events {
+        if let GameEvent::ReloadLevel(k) = *event {
+            if let Some(level_set) = level_sets.get(&level_info.level_set_handle) {
+                let level = level_info.inc_current_level(k, level_set);
+                println!("{:?}", *level_info);
+                level_info.screws = level.screw_count;
+                level_info.width = level.height;
+                level_info.height = level.width;
                 create_level(&mut commands, &mut all_positions, level);
                 *inventory = Inventory::default();
                 inventory.show();
                 return;
             }
+
         }
     }
 
-    for event in &_events {
+    for event in &events {
         match *event {
             GameEvent::Damage(position, is_bomb) => {
                 process_damage(
@@ -63,10 +70,6 @@ pub fn game_event_system(
             GameEvent::SpawnRobbo(pos) => {
                 create_robbo(&mut commands).with(pos);
             }
-            GameEvent::RemoveEntity(entity) => {
-                commands.despawn(entity);
-                despawned.insert(entity);
-            }
             GameEvent::Use(entity, direction) => {
                 let usable = items.get::<Usable>(entity).unwrap();
                 match *usable {
@@ -77,7 +80,7 @@ pub fn game_event_system(
                             despawned.insert(entity);
                         }
                     }
-                    Usable::Capsule => println!("Bye! Going to next level!"),
+                    Usable::Capsule => game_events.send(GameEvent::ReloadLevel(1)),
                     Usable::Teleport => {
                         let occupied: HashSet<_> =
                             all_positions.iter().iter().map(|(_, pos)| *pos).collect();

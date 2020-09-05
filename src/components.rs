@@ -39,6 +39,11 @@ pub enum Collectable {
 }
 
 pub struct ShootingProp(pub f32);
+impl Default for ShootingProp {
+    fn default() -> Self {
+        Self(0.05)
+    }
+}
 
 #[derive(Debug, Eq, PartialEq, Hash, Clone, Copy)]
 pub struct Tile(pub u32);

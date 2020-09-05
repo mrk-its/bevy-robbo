@@ -193,13 +193,12 @@ fn move_laser_head(
         .map(|entity| others.get::<LaserTail>(*entity).is_ok())
         .unwrap_or_default();
     if !occupied.contains_key(&new_pos) {
-        let (tx, ty) = position.as_tuple();
+        let old_pos = **position;
         move_entity(&mut position, &new_pos, occupied);
-        create_laser_tail(commands, dir.x(), dir.y()).with(Position::new(tx, ty));
-        occupied.insert(**position, commands.current_entity().unwrap());
+        create_laser_tail(commands, dir).with(old_pos);
+        occupied.insert(old_pos, commands.current_entity().unwrap());
     } else if laser_head.is_moving_back && is_laser_tail_in_front {
         let entity = occupied.remove(&new_pos).unwrap();
-        //events.send(GameEvent::RemoveEntity(entity));
         commands.despawn(entity);
         move_entity(&mut position, &new_pos, occupied);
     } else if !laser_head.is_moving_back {
@@ -209,7 +208,6 @@ fn move_laser_head(
     } else {
         **dir = MovingDir::zero();
         let entity = occupied.remove(&position).unwrap();
-        //events.send(GameEvent::RemoveEntity(entity));
         commands.despawn(entity);
         create_small_explosion(commands).with(**position);
     }

@@ -1,15 +1,12 @@
 use crate::components::{MovingDir, Position};
-use crate::levels::Level;
-use bevy::asset::Handle;
 use bevy::ecs::Entity;
 use std::mem::take;
 
 #[derive(Copy, Clone)]
 pub enum GameEvent {
     Damage(Position, bool),
-    RemoveEntity(Entity),
     Use(Entity, MovingDir),
-    ReloadLevel(Handle<Level>),
+    ReloadLevel(i32),
     SpawnRobbo(Position),
 }
 
@@ -24,8 +21,5 @@ impl GameEvents {
     }
     pub fn take(&mut self) -> Vec<GameEvent> {
         take(&mut self.events)
-    }
-    pub fn flush(&mut self) {
-        self.take();
     }
 }

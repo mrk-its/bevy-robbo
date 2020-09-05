@@ -14,14 +14,14 @@ use bevy::window;
 // use bevy::render::pass::ClearColor;
 use frame_cnt::FrameCntPlugin;
 use frame_limiter::FrameLimiterPlugin;
-use game_events::{GameEvent, GameEvents};
+use game_events::GameEvents;
 use inventory::Inventory;
 use keyboard::KeyboardPlugin;
-use levels::{Level, LevelLoader};
+use levels::{LevelInfo, LevelSet, LevelSetLoader};
 use systems::{
-    activate_capsule_system, create_sprites, damage_system, force_field_system, game_event_system,
-    magnetic_field_system, move_robbo, move_system, prepare_render, render_setup, shot_system,
-    tick_system,
+    activate_capsule_system, asset_events, create_sprites, damage_system, force_field_system,
+    game_event_system, level_setup, magnetic_field_system, move_robbo, move_system, prepare_render,
+    render_setup, shot_system, tick_system,
 };
 
 mod consts {
@@ -53,12 +53,12 @@ fn main() {
         .add_resource(TextureAtlasHandle(None))
         .add_resource(Inventory::default())
         .add_resource(GameEvents::default())
-        .add_resource(None as Option<Handle<Level>>)
+        .add_resource(LevelInfo::default())
         .add_default_plugins()
-        .add_asset::<Level>()
-        .add_asset_loader::<Level, LevelLoader>()
+        .add_asset::<LevelSet>()
+        .add_asset_loader::<LevelSet, LevelSetLoader>()
         .add_plugin(bevy::diagnostic::FrameTimeDiagnosticsPlugin::default())
-        //.add_plugin(bevy::diagnostic::PrintDiagnosticsPlugin::default())
+        // .add_plugin(bevy::diagnostic::PrintDiagnosticsPlugin::default())
         .add_plugin(FrameLimiterPlugin { fps: FPS })
         .add_plugin(FrameCntPlugin)
         .add_plugin(KeyboardPlugin)
@@ -84,33 +84,4 @@ fn main() {
         .add_system_to_stage("tick", damage_system.system())
         .add_system_to_stage("tick", force_field_system.system())
         .run();
-}
-
-#[derive(Default)]
-pub struct AssetEventsState {
-    reader: EventReader<AssetEvent<Level>>,
-}
-
-pub fn asset_events(
-    mut game_events: ResMut<GameEvents>,
-    mut state: Local<AssetEventsState>,
-    events: Res<Events<AssetEvent<Level>>>,
-) {
-    for event in state.reader.iter(&events) {
-        let handle = match event {
-            AssetEvent::Created { handle } => handle,
-            AssetEvent::Modified { handle } => handle,
-            _ => continue,
-        };
-        game_events.send(GameEvent::ReloadLevel(*handle));
-    }
-}
-
-fn level_setup(
-    asset_server: Res<AssetServer>,
-    mut current_level_handle: ResMut<Option<Handle<Level>>>,
-) {
-    asset_server.watch_for_changes().unwrap();
-    let level_handle: Handle<Level> = asset_server.load("assets/level.txt").unwrap();
-    current_level_handle.replace(level_handle);
 }

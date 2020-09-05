@@ -21,7 +21,7 @@ pub fn create_bird<'a>(commands: &'a mut Commands, params: &[usize]) -> &'a mut 
     if params[2] > 0 {
         commands
             .with(ShootingDir::by_index(params[1]))
-            .with(ShootingProp(0.05))
+            .with(ShootingProp::default())
             .with(GunType::Burst);
     }
     commands
@@ -92,11 +92,11 @@ pub fn create_blaster_head<'a>(commands: &'a mut Commands, kx: i32, ky: i32) -> 
     ))
 }
 
-pub fn create_laser_tail<'a>(commands: &'a mut Commands, _kx: i32, ky: i32) -> &'a mut Commands {
+pub fn create_laser_tail<'a>(commands: &'a mut Commands, dir: &MovingDir) -> &'a mut Commands {
     commands.spawn((
         LaserTail,
         Undestroyable,
-        Tiles::new(if ky == 0 {
+        Tiles::new(if dir.y() == 0 {
             BULLET_H_TILES
         } else {
             BULLET_V_TILES
@@ -187,7 +187,7 @@ pub fn create_gun<'a>(commands: &'a mut Commands, params: &[usize]) -> &'a mut C
         _ => GunType::Burst,
     };
     commands.spawn((Tiles::new(&GUN_TILES[index..index + 1]),));
-    commands.with_bundle((ShootingDir::by_index(index), ShootingProp(0.05), gun_type));
+    commands.with_bundle((ShootingDir::by_index(index), ShootingProp::default(), gun_type));
     if is_moveable {
         commands.with_bundle((Moveable, MovingDir::by_index(params[1])));
     }

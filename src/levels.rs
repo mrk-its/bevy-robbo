@@ -3,6 +3,8 @@ use crate::entities::*;
 use bevy::asset::AssetLoader;
 use bevy::prelude::*;
 use std::collections::HashMap;
+use anyhow;
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Level {
     pub number: usize,
@@ -13,14 +15,30 @@ pub struct Level {
     pub screw_count: usize,
     pub additional: AdditionalMap,
 }
+
+#[derive(Default, Debug)]
+pub struct LevelInfo {
+    pub current_level: usize,
+    pub level_set_handle: Handle<LevelSet>,
+    pub width: i32,
+    pub height: i32,
+    pub screws: usize,
+}
+
+impl LevelInfo {
+    pub fn inc_current_level<'a>(&mut self, k: i32, level_set: &'a LevelSet) -> &'a Level {
+        self.current_level = ((self.current_level as i32 + level_set.levels.len() as i32 + k) % level_set.levels.len() as i32) as usize;
+        level_set.get(self.current_level).unwrap()
+    }
+}
+
 type AdditionalMap = HashMap<(i32, i32), Vec<usize>>;
 
 impl Level {
-    pub fn parse(data: &str) -> Level {
+    pub fn parse(lines: &mut std::str::Split<char>) -> Option<Level> {
         let mut _level_set_name: Option<&str> = None;
         let mut default_level_color: Option<String> = Some(String::from("608050"));
         let mut collecting_data: bool = false;
-        let mut lines = data.split('\n');
         let mut number: Option<usize> = None;
         let mut width: Option<i32> = None;
         let mut height: Option<i32> = None;
@@ -29,7 +47,8 @@ impl Level {
         let mut tiles: Vec<String> = vec![];
         let mut screw_count = 0;
         loop {
-            let line = lines.next().unwrap();
+            let line = lines.next()?;
+
             if line.starts_with('[') {
                 collecting_data = false;
             }
@@ -76,7 +95,7 @@ impl Level {
                     if color.is_none() {
                         color = default_level_color.clone();
                     }
-                    return Level {
+                    return Some(Level {
                         number: number.unwrap(),
                         width: width.unwrap(),
                         height: height.unwrap(),
@@ -84,7 +103,7 @@ impl Level {
                         tiles,
                         additional,
                         screw_count,
-                    };
+                    });
                 }
                 _ => {
                     if collecting_data {
@@ -95,7 +114,7 @@ impl Level {
             }
         }
     }
-    pub fn get_color(&self) -> Color {
+    pub fn _get_color(&self) -> Color {
         let rgb: Vec<f32> = (0..3)
             .map(|i| i * 2)
             .map(|i| &self.color[i..i + 2])
@@ -105,16 +124,42 @@ impl Level {
         Color::rgb(rgb[0], rgb[1], rgb[2])
     }
 }
+pub struct LevelSetIterator<'a> {
+    pub lines: std::str::Split<'a, char>
+}
+
+impl<'a> Iterator for LevelSetIterator<'a> {
+    type Item = Level;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        Level::parse(&mut self.lines)
+    }
+}
+
+pub struct LevelSet {
+    pub levels: Vec<Level>,
+}
+
+impl LevelSet {
+    pub fn new(data: &str) -> Self {
+        Self { levels: LevelSetIterator {lines: data.split('\n')}.collect() }
+    }
+    pub fn get(&self, n: usize) -> Option<&Level> {
+        self.levels.get(n)
+    }
+}
 
 #[derive(Default)]
-pub struct LevelLoader;
-impl AssetLoader<Level> for LevelLoader {
+pub struct LevelSetLoader;
+impl AssetLoader<LevelSet> for LevelSetLoader {
     fn from_bytes(
         &self,
         _asset_path: &std::path::Path,
         bytes: Vec<u8>,
-    ) -> Result<Level, anyhow::Error> {
-        Ok(Level::parse(&String::from_utf8(bytes).unwrap()))
+    ) -> Result<LevelSet, anyhow::Error> {
+        let data = String::from_utf8(bytes)?;
+        let level_set = LevelSet::new(&data);
+        Ok(level_set)
     }
 
     fn extensions(&self) -> &[&str] {

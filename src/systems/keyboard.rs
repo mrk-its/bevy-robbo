@@ -2,24 +2,23 @@ use crate::components::prelude::*;
 use crate::frame_cnt::FrameCnt;
 use crate::game_events::{GameEvent, GameEvents};
 use crate::inventory::Inventory;
-use crate::levels::Level;
 use bevy::prelude::*;
 
 pub fn keyboard_system(
     mut commands: Commands,
     keyboard_input: Res<Input<KeyCode>>,
-    (current_level_handle, mut events, mut inventory): (
-        Res<Option<Handle<Level>>>,
-        ResMut<GameEvents>,
-        ResMut<Inventory>,
-    ),
+    (mut events, mut inventory): (ResMut<GameEvents>, ResMut<Inventory>),
     mut robbo_dir: ResMut<RobboDir>,
     mut query: Query<With<Robbo, (Entity, &mut MovingDir, &mut Tiles)>>,
 ) {
     if keyboard_input.just_pressed(KeyCode::Escape) {
-        if let Some(handle) = *current_level_handle {
-            events.send(GameEvent::ReloadLevel(handle));
-        }
+        events.send(GameEvent::ReloadLevel(0));
+        return;
+    } else if keyboard_input.just_pressed(KeyCode::RBracket) {
+        events.send(GameEvent::ReloadLevel(1));
+        return;
+    } else if keyboard_input.just_pressed(KeyCode::LBracket) {
+        events.send(GameEvent::ReloadLevel(-1));
         return;
     }
     let is_shift =
