@@ -89,6 +89,9 @@ where
     fn neg(&self) -> Self::Output {
         Self::new(-self.x(), -self.y())
     }
+    fn signum(&self) -> Self::Output {
+        Self::new(self.x().signum(), self.y().signum())
+    }
     fn rotate_clockwise(&self) -> Self::Output {
         Self::new(-self.y(), self.x())
     }

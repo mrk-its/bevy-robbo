@@ -10,6 +10,7 @@ mod shots;
 mod ticks;
 mod utils;
 mod levels;
+mod eyes;
 
 pub use activate_capsule::activate_capsule_system;
 pub use damage::damage_system;
@@ -21,3 +22,4 @@ pub use render::{create_sprites, prepare_render, render_setup};
 pub use shots::shot_system;
 pub use ticks::tick_system;
 pub use levels::{level_setup, asset_events};
+pub use eyes::eyes_system;
