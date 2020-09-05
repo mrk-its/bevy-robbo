@@ -1,5 +1,5 @@
-use bevy::prelude::*;
 use crate::systems::keyboard::{keyboard_system, robbo_dir_reset, RobboDir};
+use bevy::prelude::*;
 pub struct KeyboardPlugin;
 
 impl Plugin for KeyboardPlugin {

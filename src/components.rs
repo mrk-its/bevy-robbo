@@ -25,7 +25,7 @@ pub struct Undestroyable;
 
 #[derive(Default)]
 pub struct LaserHead {
-    pub is_moving_back: bool
+    pub is_moving_back: bool,
 }
 pub struct BlasterHead;
 
@@ -48,7 +48,10 @@ type Int = i32;
 #[derive(Debug, Default, Eq, Hash, PartialEq, Clone, Copy)]
 pub struct IntVec2(pub Int, pub Int);
 
-pub trait Int2Ops where Self::Output: Copy {
+pub trait Int2Ops
+where
+    Self::Output: Copy,
+{
     type Output;
     fn get(&self) -> IntVec2;
     fn as_tuple(&self) -> (Int, Int) {
@@ -155,9 +158,7 @@ pub struct ShootingDir {
 impl Int2Ops for ShootingDir {
     type Output = ShootingDir;
     fn new(x: Int, y: Int) -> Self {
-        ShootingDir {
-            dir: IntVec2(x, y),
-        }
+        ShootingDir { dir: IntVec2(x, y) }
     }
     fn get(&self) -> IntVec2 {
         self.dir
@@ -176,7 +177,6 @@ impl Tiles {
     }
 }
 
-
 #[derive(Debug, PartialEq, Clone, Copy)]
 pub struct Magnet {
     pub dir: IntVec2,
@@ -185,9 +185,7 @@ pub struct Magnet {
 impl Int2Ops for Magnet {
     type Output = Magnet;
     fn new(x: Int, y: Int) -> Self {
-        Magnet {
-            dir: IntVec2(x, y),
-        }
+        Magnet { dir: IntVec2(x, y) }
     }
     fn get(&self) -> IntVec2 {
         self.dir

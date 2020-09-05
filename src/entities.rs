@@ -15,7 +15,7 @@ pub fn create_bird<'a>(commands: &'a mut Commands, params: &[usize]) -> &'a mut 
         Bird,
         Deadly,
         Destroyable,
-        MovingDir::by_index(params[1]),
+        MovingDir::by_index(params[0]),
         Tiles::new(&[15, 16]),
     ));
     if params[2] > 0 {

@@ -1,4 +1,4 @@
-use crate::components::{Int2Ops, MovingDir, Position, ForceFieldBounds};
+use crate::components::{ForceFieldBounds, Int2Ops, MovingDir, Position};
 use crate::entities::*;
 use bevy::asset::AssetLoader;
 use bevy::prelude::*;
@@ -171,10 +171,7 @@ pub fn create_level(
                 '!' => create_capsule(commands),
                 'b' => create_bomb(commands),
                 '?' => create_questionmark(commands),
-                '=' => create_forcefield(
-                    commands,
-                    additional.unwrap_or(&[0])[0],
-                ),
+                '=' => create_forcefield(commands, additional.unwrap_or(&[0])[0]),
                 'M' => create_magnet(commands, additional.unwrap_or(&[0])[0]),
                 _ => continue,
             };
@@ -183,7 +180,7 @@ pub fn create_level(
             if WALL_CHARS.contains(&c) {
                 if !force_field_entities.is_empty() {
                     for entity in &force_field_entities {
-                        commands.insert_one(*entity, ForceFieldBounds(wall_last_y+1, y));
+                        commands.insert_one(*entity, ForceFieldBounds(wall_last_y + 1, y));
                     }
                     force_field_entities.clear();
                 }
@@ -191,7 +188,7 @@ pub fn create_level(
             } else if c == '=' {
                 force_field_entities.push(commands.current_entity().unwrap());
             }
-             commands.with(Position::new(x, y));
+            commands.with(Position::new(x, y));
         }
     }
 }

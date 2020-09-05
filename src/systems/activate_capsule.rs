@@ -1,8 +1,8 @@
-use bevy::prelude::*;
-use crate::inventory::Inventory;
-use crate::levels::Level;
 use crate::components::prelude::*;
 use crate::entities::repair_capsule;
+use crate::inventory::Inventory;
+use crate::levels::Level;
+use bevy::prelude::*;
 
 pub fn activate_capsule_system(
     mut commands: Commands,

@@ -1,7 +1,7 @@
 use crate::components::{MovingDir, Position};
 use crate::levels::Level;
-use bevy::ecs::Entity;
 use bevy::asset::Handle;
+use bevy::ecs::Entity;
 use std::mem::take;
 
 #[derive(Copy, Clone)]

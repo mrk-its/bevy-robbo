@@ -21,7 +21,7 @@ pub fn damage_system(
                 if let Ok(magnet) = all.get::<Magnet>(entity) {
                     if (dx, dy) != magnet.as_tuple() {
                         // magnet is deadly on the front only
-                        continue
+                        continue;
                     }
                 }
                 commands.despawn(robbo_entity);

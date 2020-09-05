@@ -1,7 +1,7 @@
 use crate::components::prelude::*;
 use crate::entities::*;
-use crate::game_events::{GameEvents, GameEvent};
 use crate::frame_cnt::FrameCnt;
+use crate::game_events::{GameEvent, GameEvents};
 
 use bevy::prelude::*;
 use rand::random;
@@ -35,7 +35,7 @@ pub fn shot_system(
                 GunType::Blaster => {
                     create_blaster_head(&mut commands, dir.x(), dir.y()).with(bullet_pos);
                 }
-                GunType::Burst  => {
+                GunType::Burst => {
                     create_bullet(&mut commands, dir.x(), dir.y()).with(bullet_pos);
                 }
             }

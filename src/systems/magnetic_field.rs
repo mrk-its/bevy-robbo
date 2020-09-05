@@ -15,7 +15,7 @@ pub fn magnetic_field_system(
                 || (pos.y() == robbo_pos.y()) && attracts(magnet.x(), pos.x(), robbo_pos.x())
         }) {
             let mut pos = magnet_pos.add(magnet_dir);
-            while pos != *robbo_pos && !occupied.contains(&pos){
+            while pos != *robbo_pos && !occupied.contains(&pos) {
                 pos = pos.add(magnet_dir);
             }
             if pos == *robbo_pos {

@@ -20,32 +20,31 @@ pub fn render_setup(
 
     texture_atlases.set(TEXTURE_ATLAS_HANDLE, texture_atlas);
 
-    commands
-        .spawn(Camera2dComponents {
-            translation: Translation::new(-BOX_SIZE / 2.0, -BOX_SIZE / 2.0, 0.0),
-            orthographic_projection: OrthographicProjection {
-                bottom: 0.0,
-                top: HEIGHT as f32 * BOX_SIZE / 2.0,
-                left: 0.0,
-                right: WIDTH as f32 * BOX_SIZE / 2.0,
-                window_origin: WindowOrigin::BottomLeft,
-                ..Default::default()
-            },
+    commands.spawn(Camera2dComponents {
+        translation: Translation::new(-BOX_SIZE / 2.0, -BOX_SIZE / 2.0, 0.0),
+        orthographic_projection: OrthographicProjection {
+            bottom: 0.0,
+            top: HEIGHT as f32 * BOX_SIZE / 2.0,
+            left: 0.0,
+            right: WIDTH as f32 * BOX_SIZE / 2.0,
+            window_origin: WindowOrigin::BottomLeft,
             ..Default::default()
-        });
-        // .spawn(UiCameraComponents::default())
-        // .spawn(TextComponents {
-        //     text: Text {
-        //         value: "bla".to_string(),
-        //         font: asset_server.load("assets/fonts/FiraSans-Bold.ttf").unwrap(),
-        //         style: TextStyle {
-        //             font_size: 60.0,
-        //             color: Color::WHITE,
-        //         },
-        //         ..Default::default()
-        //     },
-        //     ..Default::default()
-        // });
+        },
+        ..Default::default()
+    });
+    // .spawn(UiCameraComponents::default())
+    // .spawn(TextComponents {
+    //     text: Text {
+    //         value: "bla".to_string(),
+    //         font: asset_server.load("assets/fonts/FiraSans-Bold.ttf").unwrap(),
+    //         style: TextStyle {
+    //             font_size: 60.0,
+    //             color: Color::WHITE,
+    //         },
+    //         ..Default::default()
+    //     },
+    //     ..Default::default()
+    // });
 }
 
 pub fn create_sprites(

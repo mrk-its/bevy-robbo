@@ -1,14 +1,18 @@
 use crate::components::prelude::*;
 use crate::frame_cnt::FrameCnt;
-use crate::levels::Level;
-use crate::inventory::Inventory;
 use crate::game_events::{GameEvent, GameEvents};
+use crate::inventory::Inventory;
+use crate::levels::Level;
 use bevy::prelude::*;
 
 pub fn keyboard_system(
     mut commands: Commands,
     keyboard_input: Res<Input<KeyCode>>,
-    (current_level_handle, mut events, mut inventory): (Res<Option<Handle<Level>>>, ResMut<GameEvents>, ResMut<Inventory>),
+    (current_level_handle, mut events, mut inventory): (
+        Res<Option<Handle<Level>>>,
+        ResMut<GameEvents>,
+        ResMut<Inventory>,
+    ),
     mut robbo_dir: ResMut<RobboDir>,
     mut query: Query<With<Robbo, (Entity, &mut MovingDir, &mut Tiles)>>,
 ) {

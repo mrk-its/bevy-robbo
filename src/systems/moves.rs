@@ -1,5 +1,5 @@
 use crate::components::prelude::*;
-use crate::entities::{create_laser_tail, create_explosion, create_small_explosion};
+use crate::entities::{create_laser_tail, create_small_explosion};
 use crate::frame_cnt::FrameCnt;
 use crate::game_events::{GameEvent, GameEvents};
 use crate::inventory::Inventory;
@@ -36,8 +36,7 @@ pub fn move_robbo(
                     inventory.collect(*collectable);
                     commands.despawn(entity);
                     *position = new_pos;
-                } else if all.get::<Moveable>(entity).is_ok() && !occupied.contains(&new_pos2)
-                {
+                } else if all.get::<Moveable>(entity).is_ok() && !occupied.contains(&new_pos2) {
                     // investigate why I cannot do all.get_mut<MovingDir>
                     // when &mut Position is replaced with &Position in query
                     let x = all.get_mut::<Position>(entity);
@@ -210,8 +209,9 @@ fn move_laser_head(
     } else {
         **dir = MovingDir::zero();
         let entity = occupied.remove(&position).unwrap();
-        events.send(GameEvent::RemoveEntity(entity));
-        create_explosion(commands).with(**position);
+        //events.send(GameEvent::RemoveEntity(entity));
+        commands.despawn(entity);
+        create_small_explosion(commands).with(**position);
     }
 }
 

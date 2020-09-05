@@ -1,13 +1,13 @@
-use crate::components::{Bomb, Destroyable, Position, Usable, Robbo, Teleport, Undestroyable};
+use crate::components::{Bomb, Destroyable, Position, Robbo, Teleport, Undestroyable, Usable};
+use crate::entities::{create_robbo, create_small_explosion, spawn_robbo};
 use crate::frame_cnt::FrameCnt;
 use crate::game_events::{GameEvent, GameEvents};
 use crate::inventory::Inventory;
 use crate::levels::{create_level, Level};
 use crate::systems::utils::{process_damage, teleport_dest_position};
 use bevy::prelude::*;
-use std::collections::HashSet;
 use bevy::render::pass::ClearColor;
-use crate::entities::{create_small_explosion, create_robbo, spawn_robbo};
+use std::collections::HashSet;
 
 pub fn game_event_system(
     mut commands: Commands,
@@ -17,7 +17,7 @@ pub fn game_event_system(
         ResMut<Inventory>,
         Res<Assets<Level>>,
         ResMut<ClearColor>,
-),
+    ),
     mut items: Query<Without<Undestroyable, (Entity, &Position)>>,
     bombs: Query<&Bomb>,
     destroyable: Query<&Destroyable>,
@@ -79,7 +79,8 @@ pub fn game_event_system(
                     }
                     Usable::Capsule => println!("Bye! Going to next level!"),
                     Usable::Teleport => {
-                        let occupied: HashSet<_> = all_positions.iter().iter().map(|(_, pos)| *pos).collect();
+                        let occupied: HashSet<_> =
+                            all_positions.iter().iter().map(|(_, pos)| *pos).collect();
                         let dest_robbo_pos =
                             teleport_dest_position(&occupied, entity, direction, &mut teleports);
                         if let Some(dest_robbo_pos) = dest_robbo_pos {
@@ -92,8 +93,8 @@ pub fn game_event_system(
                         }
                     }
                 }
-            },
-            _ => ()
+            }
+            _ => (),
         }
     }
 }
