@@ -13,7 +13,7 @@ pub fn keyboard_system(
     mut query: Query<With<Robbo, (Entity, &mut MovingDir, &mut Tiles)>>,
 ) {
     if keyboard_input.just_pressed(KeyCode::Escape) {
-        events.send(GameEvent::ReloadLevel(0));
+        events.send(GameEvent::KillRobbo);
         return;
     } else if keyboard_input.just_pressed(KeyCode::RBracket) {
         events.send(GameEvent::ReloadLevel(1));

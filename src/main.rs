@@ -21,7 +21,7 @@ use levels::{LevelInfo, LevelSet, LevelSetLoader};
 use systems::{
     activate_capsule_system, asset_events, create_sprites, damage_system, force_field_system,
     game_event_system, level_setup, magnetic_field_system, move_robbo, move_system, prepare_render,
-    render_setup, shot_system, tick_system, eyes_system,
+    render_setup, shot_system, tick_system, eyes_system, reload_level
 };
 
 mod consts {
@@ -99,6 +99,7 @@ fn main() {
         .add_system_to_stage("create_sprites", create_sprites.system())
         .add_system_to_stage("prepare_render", prepare_render.system())
         .add_system_to_stage("tick", activate_capsule_system.system())
+        .add_system_to_stage("tick", reload_level.system())
         .add_system_to_stage("tick", tick_system.system())
         .add_system_to_stage("tick", damage_system.system())
         .run();

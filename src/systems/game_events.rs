@@ -87,6 +87,11 @@ pub fn game_event_system(
             GameEvent::SpawnRobbo(pos) => {
                 create_robbo(&mut commands).with(pos);
             }
+            GameEvent::KillRobbo => {
+                for (_, pos) in &mut robbo.iter() {
+                    game_events.send(GameEvent::Damage(*pos, false));
+                }
+            }
             GameEvent::Use(entity, direction) => {
                 let usable = items.get::<Usable>(entity).unwrap();
                 match *usable {
