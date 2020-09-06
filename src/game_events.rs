@@ -8,6 +8,7 @@ pub enum GameEvent {
     Use(Entity, MovingDir),
     ReloadLevel(i32),
     SpawnRobbo(Position),
+    PlaySound(&'static str),
 }
 
 #[derive(Default)]

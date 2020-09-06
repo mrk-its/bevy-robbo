@@ -30,6 +30,9 @@ impl LevelInfo {
         self.current_level = ((self.current_level as i32 + level_set.levels.len() as i32 + k) % level_set.levels.len() as i32) as usize;
         level_set.get(self.current_level).unwrap()
     }
+    pub fn is_occupied(&self, pos: &Position) -> bool {
+        pos.x() < 0 || pos.y() < 0 || pos.x() >= self.width || pos.y() >= self.height
+    }
 }
 
 type AdditionalMap = HashMap<(i32, i32), Vec<usize>>;

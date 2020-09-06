@@ -5,19 +5,22 @@ use crate::game_events::{GameEvent, GameEvents};
 use crate::inventory::Inventory;
 use crate::levels::{create_level, LevelSet, LevelInfo};
 use crate::systems::utils::{process_damage, teleport_dest_position};
+use crate::sounds;
 use bevy::prelude::*;
 use bevy::render::pass::ClearColor;
 use std::collections::HashSet;
 
 pub fn game_event_system(
     mut commands: Commands,
-    (frame_cnt, mut game_events, mut inventory, mut level_info, level_sets, _clear_color): (
+    (frame_cnt, mut game_events, mut inventory, mut level_info, level_sets, _clear_color, audio_output, asset_server): (
         Res<FrameCnt>,
         ResMut<GameEvents>,
         ResMut<Inventory>,
         ResMut<LevelInfo>,
         Res<Assets<LevelSet>>,
         ResMut<ClearColor>,
+        Res<AudioOutput>,
+        Res<AssetServer>,
     ),
     mut items: Query<Without<Undestroyable, (Entity, &Position)>>,
     bombs: Query<&Bomb>,
@@ -55,6 +58,15 @@ pub fn game_event_system(
 
     for event in &events {
         match *event {
+            GameEvent::PlaySound(path) =>
+            {
+                println!("playing {:?}", path);
+                if let Some(handle) = asset_server.get_handle(path) {
+                    audio_output.play(handle)
+                } else {
+                    println!("{:?} not found", path);
+                }
+            }
             GameEvent::Damage(position, is_bomb) => {
                 process_damage(
                     &mut commands,
@@ -79,18 +91,20 @@ pub fn game_event_system(
                             commands.despawn(entity);
                             despawned.insert(entity);
                         }
+                        game_events.send(GameEvent::PlaySound(sounds::DOOR));
                     }
                     Usable::Capsule => game_events.send(GameEvent::ReloadLevel(1)),
                     Usable::Teleport => {
                         let occupied: HashSet<_> =
                             all_positions.iter().iter().map(|(_, pos)| *pos).collect();
                         let dest_robbo_pos =
-                            teleport_dest_position(&occupied, entity, direction, &mut teleports);
+                            teleport_dest_position(&level_info, &occupied, entity, direction, &mut teleports);
                         if let Some(dest_robbo_pos) = dest_robbo_pos {
                             for (robbo_entity, robbo_pos) in &mut robbo.iter() {
                                 commands.despawn(robbo_entity);
                                 create_small_explosion(&mut commands).with(*robbo_pos);
                                 spawn_robbo(&mut commands, dest_robbo_pos);
+                                game_events.send(GameEvent::PlaySound(sounds::TELEPORT));
                                 return;
                             }
                         }

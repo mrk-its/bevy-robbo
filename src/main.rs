@@ -32,6 +32,19 @@ mod consts {
     pub const BOX_SIZE: f32 = 32.0 * SCALE;
 }
 
+mod sounds {
+    pub const AMMO: &str = "assets/sounds/ammo.ogg";
+    pub const KEY: &str = "assets/sounds/key.ogg";
+    pub const SCREW: &str = "assets/sounds/screw.ogg";
+    pub const BOMB: &str = "assets/sounds/bomb.ogg";
+    pub const WALK: &str = "assets/sounds/walk.ogg";
+    pub const TELEPORT: &str = "assets/sounds/teleport.ogg";
+    pub const SHOT: &str = "assets/sounds/shot.ogg";
+    pub const SPAWN: &str = "assets/sounds/spawn.ogg";
+    pub const DOOR: &str = "assets/sounds/door.ogg";
+    pub const BURN: &str = "assets/sounds/burn.ogg";
+}
+
 use consts::*;
 
 use bevy::asset::AddAsset;

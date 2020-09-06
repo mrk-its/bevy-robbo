@@ -4,6 +4,8 @@ use crate::game_events::{GameEvent, GameEvents};
 use bevy::prelude::*;
 use std::collections::HashSet;
 use crate::entities::create_explosion;
+use crate::levels::LevelInfo;
+use crate::sounds;
 
 pub fn process_damage(
     commands: &mut Commands,
@@ -31,12 +33,14 @@ pub fn process_damage(
                 despawned.insert(entity);
                 commands.despawn(entity);
                 create_explosion(commands).with(*pos);
+                events.send(GameEvent::PlaySound(if is_bomb {sounds::BOMB} else {sounds::BURN}));
             }
         }
     }
 }
 
 pub fn teleport_dest_position(
+    level_info: &LevelInfo,
     occupied: &HashSet<Position>,
     teleport_entity: Entity,
     direction: MovingDir,
@@ -65,7 +69,7 @@ pub fn teleport_dest_position(
         let cc = dir.x() != 0; // hack for level 16
         for _ in 0..4 {
             let dest_robbo_pos = teleport_pos.add(&dir);
-            if !occupied.contains(&dest_robbo_pos) {
+            if !occupied.contains(&dest_robbo_pos) && !level_info.is_occupied(&dest_robbo_pos) {
                 return Some(dest_robbo_pos);
             }
             dir = if cc {

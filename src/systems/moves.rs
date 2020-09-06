@@ -3,13 +3,14 @@ use crate::entities::{create_laser_tail, create_small_explosion};
 use crate::frame_cnt::FrameCnt;
 use crate::game_events::{GameEvent, GameEvents};
 use crate::inventory::Inventory;
+use crate::levels::LevelInfo;
 
 use bevy::prelude::*;
 use std::collections::{HashMap, HashSet};
 
 pub fn move_robbo(
     mut commands: Commands,
-    (mut inventory, mut events, frame_cnt): (ResMut<Inventory>, ResMut<GameEvents>, Res<FrameCnt>),
+    (mut inventory, mut events, frame_cnt, level_info): (ResMut<Inventory>, ResMut<GameEvents>, Res<FrameCnt>, Res<LevelInfo>),
     mut robbo: Query<(&Robbo, &mut Position, &MovingDir)>,
     mut all: Query<(&mut Position, Entity)>,
 ) {
@@ -22,21 +23,22 @@ pub fn move_robbo(
         occupied.insert(*pos);
         entities.insert(*pos, entity);
     }
+    let is_free = |pos: &Position| !occupied.contains(pos) && !level_info.is_occupied(pos);
     for (_, mut position, dir) in &mut robbo.iter() {
         if *dir == MovingDir::zero() {
             continue;
         }
         let new_pos = position.add(dir);
         let new_pos2 = new_pos.add(dir);
-        if !occupied.contains(&new_pos) {
+        if is_free(&new_pos) {
             *position = new_pos;
         } else {
             if let Some(&entity) = entities.get(&new_pos) {
                 if let Ok(collectable) = all.get::<Collectable>(entity) {
-                    inventory.collect(*collectable);
+                    inventory.collect(*collectable, &mut events);
                     commands.despawn(entity);
                     *position = new_pos;
-                } else if all.get::<Moveable>(entity).is_ok() && !occupied.contains(&new_pos2) {
+                } else if all.get::<Moveable>(entity).is_ok() && is_free(&new_pos2) {
                     // investigate why I cannot do all.get_mut<MovingDir>
                     // when &mut Position is replaced with &Position in query
                     let x = all.get_mut::<Position>(entity);
