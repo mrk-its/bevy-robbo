@@ -1,10 +1,10 @@
 use crate::components::prelude::*;
-use crate::entities::{create_laser_tail, create_small_explosion};
+use crate::entities::{create_laser_tail, create_blaster_tail, create_small_explosion};
 use crate::frame_cnt::FrameCnt;
 use crate::game_events::{GameEvent, GameEvents};
 use crate::inventory::Inventory;
 use crate::levels::LevelInfo;
-
+use crate::sounds;
 use bevy::prelude::*;
 use std::collections::{HashMap, HashSet};
 
@@ -50,12 +50,18 @@ pub fn move_robbo(
                                 *mdir = *dir
                             }
                         }
+                    } else {
+                        continue;
                     }
                 } else if all.get::<Usable>(entity).is_ok() {
-                    events.send(GameEvent::Use(entity, *dir))
+                    events.send(GameEvent::Use(entity, *dir));
+                    continue;
+                } else {
+                    continue
                 }
             }
         }
+        events.send(GameEvent::PlaySound(sounds::WALK));
     }
 }
 
@@ -166,6 +172,7 @@ fn move_blaster_head(
     destroyable: &Query<&Destroyable>,
 ) {
     let new_pos = position.add(&*dir);
+    let old_pos = *position;
     if let Some(&entity) = occupied.get(&new_pos) {
         let is_destroyable = destroyable.get::<Destroyable>(entity).is_ok();
         if is_destroyable {
@@ -179,25 +186,26 @@ fn move_blaster_head(
     } else {
         move_entity(&mut position, &new_pos, occupied);
     }
+    create_blaster_tail(commands).with(old_pos);
 }
 fn move_laser_head(
     commands: &mut Commands,
     events: &mut ResMut<GameEvents>,
     occupied: &mut HashMap<Position, Entity>,
-    mut position: &mut Mut<Position>,
-    dir: &mut Mut<MovingDir>,
+    mut position: Mut<Position>,
+    mut dir: Mut<MovingDir>,
     laser_head: &mut LaserHead,
     others: &Query<(&mut Position, Entity)>,
 ) {
-    let new_pos = position.add(&**dir);
+    let new_pos = position.add(&*dir);
     let is_laser_tail_in_front = occupied
         .get(&new_pos)
         .map(|entity| others.get::<LaserTail>(*entity).is_ok())
         .unwrap_or_default();
     if !occupied.contains_key(&new_pos) {
-        let old_pos = **position;
+        let old_pos = *position;
         move_entity(&mut position, &new_pos, occupied);
-        create_laser_tail(commands, dir).with(old_pos);
+        create_laser_tail(commands, &*dir).with(old_pos);
         occupied.insert(old_pos, commands.current_entity().unwrap());
     } else if laser_head.is_moving_back && is_laser_tail_in_front {
         let entity = occupied.remove(&new_pos).unwrap();
@@ -205,13 +213,13 @@ fn move_laser_head(
         move_entity(&mut position, &new_pos, occupied);
     } else if !laser_head.is_moving_back {
         laser_head.is_moving_back = true;
-        **dir = dir.neg();
+        *dir = dir.neg();
         events.send(GameEvent::Damage(new_pos, false));
     } else {
-        **dir = MovingDir::zero();
+        *dir = MovingDir::zero();
         let entity = occupied.remove(&position).unwrap();
         commands.despawn(entity);
-        create_small_explosion(commands).with(**position);
+        create_small_explosion(commands).with(*position);
     }
 }
 
@@ -238,7 +246,7 @@ pub fn move_system(
             .iter()
             .map(|(entity, pos, _)| (*pos, entity)),
     );
-    for (entity, mut position, mut dir) in &mut moving_items.iter() {
+    for (entity, position, dir) in &mut moving_items.iter() {
         if *dir == MovingDir::zero() || processed.contains(&*position) {
             continue;
         }
@@ -253,8 +261,8 @@ pub fn move_system(
                 &mut commands,
                 &mut events,
                 &mut occupied,
-                &mut position,
-                &mut dir,
+                position,
+                dir,
                 &mut *laser_head,
                 &all,
             );

@@ -8,7 +8,7 @@ impl FrameCnt {
         (self.0 % 4) == 0
     }
     pub fn do_shooting(&self) -> bool {
-        (self.0 % 4) == 3
+        (self.0 % 4) == 0
     }
     pub fn value(&self) -> usize {
         self.0

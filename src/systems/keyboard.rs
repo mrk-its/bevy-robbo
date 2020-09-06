@@ -2,6 +2,7 @@ use crate::components::prelude::*;
 use crate::frame_cnt::FrameCnt;
 use crate::game_events::{GameEvent, GameEvents};
 use crate::inventory::Inventory;
+use crate::sounds;
 use bevy::prelude::*;
 
 pub fn keyboard_system(
@@ -43,6 +44,7 @@ pub fn keyboard_system(
                 inventory.show();
                 *moving_dir = MovingDir::zero();
                 commands.insert_one(entity, ShootingDir::new(kx, ky));
+                events.send(GameEvent::PlaySound(sounds::SHOT));
             }
         } else {
             let kx = (right | jp_right) - (left | jp_left);

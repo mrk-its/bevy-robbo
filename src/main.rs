@@ -52,8 +52,8 @@ use bevy::asset::AddAsset;
 pub struct TextureAtlasHandle(pub Option<Handle<TextureAtlas>>);
 
 fn main() {
-    App::build()
-        .add_resource(WindowDescriptor {
+    let mut builder = App::build();
+        builder.add_resource(WindowDescriptor {
             title: "Robbo".to_string(),
             width: ((32 * MAX_WIDTH) as f32 * SCALE) as u32,
             height: ((32 * MAX_HEIGHT) as f32 * SCALE) as u32,
@@ -77,25 +77,29 @@ fn main() {
         .add_plugin(KeyboardPlugin)
         .add_startup_system(render_setup.system())
         .add_startup_system(level_setup.system())
-        .add_stage_after(stage::UPDATE, "move_robbo")
-        .add_stage_after("move_robbo", "events")
-        .add_stage_after(stage::PRE_UPDATE, "pre_update1")
-        .add_stage_after("pre_update1", "pre_update2")
-        .add_stage_after(stage::POST_UPDATE, "post_update2")
+        .add_stage_before(stage::UPDATE, "move")
+        .add_stage_before(stage::UPDATE, "eyes")
+        .add_stage_before(stage::UPDATE, "force_field")
+        .add_stage_before(stage::UPDATE, "move_robbo")
+        .add_stage_before(stage::POST_UPDATE, "shots")
+        .add_stage_before(stage::POST_UPDATE, "game_events")
+        .add_stage_before(stage::POST_UPDATE, "create_sprites")
+        .add_stage_before(stage::POST_UPDATE, "prepare_render")
         .add_stage_after("keyboard", "magnetic_field")
         .add_stage_after("frame_cnt", "tick")
+
         .add_system_to_stage("magnetic_field", magnetic_field_system.system())
         .add_system_to_stage(stage::EVENT_UPDATE, asset_events.system())
-        .add_system_to_stage("pre_update1", game_event_system.system())
-        .add_system_to_stage("pre_update2", shot_system.system())
-        .add_system_to_stage(stage::UPDATE, move_system.system())
-        .add_system_to_stage("move_robbo", move_robbo.system()) // it must be after move_system
-        .add_system_to_stage(stage::POST_UPDATE, create_sprites.system())
-        .add_system_to_stage("post_update2", prepare_render.system())
-        .add_system_to_stage("events", activate_capsule_system.system())
+        .add_system_to_stage("move", move_system.system())
+        .add_system_to_stage("eyes", eyes_system.system())
+        .add_system_to_stage("force_field", force_field_system.system())
+        .add_system_to_stage("move_robbo", move_robbo.system())
+        .add_system_to_stage("shots", shot_system.system())
+        .add_system_to_stage("game_events", game_event_system.system())
+        .add_system_to_stage("create_sprites", create_sprites.system())
+        .add_system_to_stage("prepare_render", prepare_render.system())
+        .add_system_to_stage("tick", activate_capsule_system.system())
         .add_system_to_stage("tick", tick_system.system())
-        .add_system_to_stage("tick", eyes_system.system())
         .add_system_to_stage("tick", damage_system.system())
-        .add_system_to_stage("tick", force_field_system.system())
         .run();
 }

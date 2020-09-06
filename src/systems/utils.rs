@@ -11,7 +11,7 @@ pub fn process_damage(
     commands: &mut Commands,
     events: &mut ResMut<GameEvents>,
     position: Position,
-    is_bomb: bool,
+    is_bomb_damage: bool,
     items: &mut Query<Without<Undestroyable, (Entity, &Position)>>,
     bombs: &Query<&Bomb>,
     destroyable: &Query<&Destroyable>,
@@ -19,7 +19,8 @@ pub fn process_damage(
 ) {
     for (entity, pos) in &mut items.iter() {
         if position == *pos {
-            if bombs.get::<Bomb>(entity).is_ok() {
+            let is_bomb_entity = bombs.get::<Bomb>(entity).is_ok();
+            if is_bomb_entity {
                 for ky in -1..=1 {
                     for kx in -1..=1 {
                         if kx != 0 || ky != 0 {
@@ -28,12 +29,15 @@ pub fn process_damage(
                         }
                     }
                 }
+                events.send(GameEvent::PlaySound(sounds::BOMB));
             }
-            if !despawned.contains(&entity) && (destroyable.get::<Destroyable>(entity).is_ok() || is_bomb) {
+            if !despawned.contains(&entity) && (destroyable.get::<Destroyable>(entity).is_ok() || is_bomb_damage) {
                 despawned.insert(entity);
                 commands.despawn(entity);
                 create_explosion(commands).with(*pos);
-                events.send(GameEvent::PlaySound(if is_bomb {sounds::BOMB} else {sounds::BURN}));
+                if !is_bomb_entity && !is_bomb_damage {
+                    events.send(GameEvent::PlaySound(sounds::BURN));
+                }
             }
         }
     }

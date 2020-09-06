@@ -84,11 +84,7 @@ pub fn create_blaster_head<'a>(commands: &'a mut Commands, kx: i32, ky: i32) -> 
         Undestroyable,
         RoughUpdate,
         MovingDir::new(kx, ky),
-        Tiles::new(if ky == 0 {
-            BULLET_H_TILES
-        } else {
-            BULLET_V_TILES
-        }),
+        Tiles::new(&[84]),
     ))
 }
 
@@ -101,6 +97,14 @@ pub fn create_laser_tail<'a>(commands: &'a mut Commands, dir: &MovingDir) -> &'a
         } else {
             BULLET_V_TILES
         }),
+    ))
+}
+
+pub fn create_blaster_tail<'a>(commands: &'a mut Commands) -> &'a mut Commands {
+    commands.spawn((
+        Animation(None),
+        Undestroyable,
+        Tiles::new(&[85, 86, 86, 86, 85, 84]),
     ))
 }
 
