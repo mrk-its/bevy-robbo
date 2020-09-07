@@ -16,7 +16,6 @@ pub fn activate_capsule_system(
 ) {
     for capsule in &mut query.iter() {
         if inventory.screws >= level_info.screws {
-            println!("activating capsule");
             repair_capsule(&mut commands, capsule);
             game_events.send(GameEvent::PlaySound(sounds::BOMB));
         }

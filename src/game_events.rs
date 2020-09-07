@@ -1,6 +1,5 @@
 use crate::components::{MovingDir, Position};
 use bevy::ecs::Entity;
-use std::mem::take;
 
 #[derive(Copy, Clone, Debug)]
 pub enum GameEvent {

@@ -40,15 +40,11 @@ pub fn process_damage(
                         events.send(damage_event(1, 0));
                         events.send(damage_event(-1, 0));
                     }
-                    true
-                } else {
-                    false
-                };
+                }
                 true
             } else {
                 false
             };
-            println!("is_bomb_entity: {:?}", is_bomb_entity);
             if !despawned.contains(&entity) && (destroyable.get::<Destroyable>(entity).is_ok() || is_bomb_damage) {
                 despawned.insert(entity);
                 commands.despawn(entity);
