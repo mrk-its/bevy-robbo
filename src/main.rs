@@ -8,10 +8,10 @@ mod keyboard;
 mod levels;
 mod systems;
 
-use structopt::StructOpt;
 use bevy::prelude::*;
 use bevy::sprite::TextureAtlas;
 use bevy::window;
+use structopt::StructOpt;
 // use bevy::render::pass::ClearColor;
 use frame_cnt::FrameCntPlugin;
 use frame_limiter::FrameLimiterPlugin;
@@ -64,14 +64,14 @@ pub struct Opts {
     #[structopt(short, long)]
     pub no_audio: bool,
 
-    #[structopt(short, long, default_value="0")]
+    #[structopt(short, long, default_value = "0")]
     pub level: usize,
 
-    #[structopt(long, default_value="assets/original.txt")]
+    #[structopt(long, default_value = "assets/original.txt")]
     pub levelset_path: std::path::PathBuf,
 
-    #[structopt(long, default_value="1.5")]
-    pub zoom: f32
+    #[structopt(long, default_value = "1.5")]
+    pub zoom: f32,
 }
 
 fn main() {
@@ -137,10 +137,9 @@ fn main() {
         builder.add_system_to_stage("reload_level", benchmark_reload_level.system());
         if !opts.no_render {
             builder
-            .add_system_to_stage("create_sprites", create_sprites.system())
-            .add_system_to_stage("prepare_render", prepare_render.system());
+                .add_system_to_stage("create_sprites", create_sprites.system())
+                .add_system_to_stage("prepare_render", prepare_render.system());
         }
-
     }
     builder.run();
 }

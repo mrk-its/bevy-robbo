@@ -5,7 +5,6 @@ use crate::game_events::GameEvent;
 use bevy::prelude::*;
 use std::collections::{HashMap, HashSet};
 
-
 fn move_bear(
     occupied: &mut HashMap<Position, Entity>,
     is_black: bool,

@@ -22,7 +22,7 @@ pub use game_events::{game_event_system, update_game_events};
 pub use levels::{asset_events, level_setup};
 pub use magnetic_field::magnetic_field_system;
 pub use moves::move_system;
-pub use reload_level::{reload_level, benchmark_reload_level};
+pub use reload_level::{benchmark_reload_level, reload_level};
 pub use render::{create_sprites, prepare_render, render_setup};
 pub use robbo_move::move_robbo;
 pub use shots::shot_system;

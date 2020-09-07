@@ -40,7 +40,7 @@ pub fn move_robbo(
             if is_free(&new_pos) {
                 *position = new_pos;
                 events.send(GameEvent::PlaySound(sounds::WALK));
-                return
+                return;
             } else {
                 if let Some(&entity) = entities.get(&new_pos) {
                     if let Ok(collectable) = all.get::<Collectable>(entity) {
@@ -48,7 +48,7 @@ pub fn move_robbo(
                         commands.despawn(entity);
                         *position = new_pos;
                         events.send(GameEvent::PlaySound(sounds::WALK));
-                        return
+                        return;
                     } else if all.get::<Moveable>(entity).is_ok() && is_free(&new_pos2) {
                         // investigate why I cannot do all.get_mut<MovingDir>
                         // when &mut Position is replaced with &Position in query
@@ -62,15 +62,14 @@ pub fn move_robbo(
                                 }
                             }
                             events.send(GameEvent::PlaySound(sounds::WALK));
-                            return
+                            return;
                         }
                     } else if all.get::<Usable>(entity).is_ok() {
                         events.send(GameEvent::Use(entity, *dir));
-                        return
+                        return;
                     }
                 }
             }
-
         }
     }
 }

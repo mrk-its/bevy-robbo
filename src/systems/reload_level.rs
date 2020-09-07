@@ -6,8 +6,8 @@ use crate::levels::{LevelInfo, LevelSet};
 use crate::sounds;
 use std::time::Instant;
 
-use bevy::prelude::*;
 use bevy::app::AppExit;
+use bevy::prelude::*;
 
 pub fn reload_level(
     mut commands: Commands,
@@ -43,7 +43,10 @@ pub struct BenchmarkData {
 
 impl Default for BenchmarkData {
     fn default() -> Self {
-        Self {frame_cnt: 0, start: Instant::now()}
+        Self {
+            frame_cnt: 0,
+            start: Instant::now(),
+        }
     }
 }
 
@@ -63,7 +66,7 @@ pub fn benchmark_reload_level(
                 let dur = state.start.elapsed();
                 println!("number of frames: {}", state.frame_cnt);
                 println!("duration: {:?}", dur);
-                println!("FPS: {:.2}", (state.frame_cnt as f32) /  dur.as_secs_f32());
+                println!("FPS: {:.2}", (state.frame_cnt as f32) / dur.as_secs_f32());
                 app_exit_events.send(AppExit);
             } else {
                 game_events.send(GameEvent::ReloadLevel(1));
