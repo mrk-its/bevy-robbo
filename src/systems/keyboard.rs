@@ -1,6 +1,6 @@
 use crate::components::prelude::*;
 use crate::frame_cnt::FrameCnt;
-use crate::game_events::{GameEvent, GameEvents};
+use crate::game_events::GameEvent;
 use crate::inventory::Inventory;
 use crate::sounds;
 use bevy::prelude::*;
@@ -8,7 +8,7 @@ use bevy::prelude::*;
 pub fn keyboard_system(
     mut commands: Commands,
     keyboard_input: Res<Input<KeyCode>>,
-    (mut events, mut inventory): (ResMut<GameEvents>, ResMut<Inventory>),
+    (mut events, mut inventory): (ResMut<Events<GameEvent>>, ResMut<Inventory>),
     mut robbo_dir: ResMut<RobboDir>,
     mut query: Query<With<Robbo, (Entity, &mut MovingDir, &mut Tiles)>>,
 ) {

@@ -134,7 +134,7 @@ pub fn repair_capsule<'a>(commands: &'a mut Commands, entity: Entity) -> &'a mut
 }
 
 pub fn create_bomb<'a>(commands: &'a mut Commands) -> &'a mut Commands {
-    commands.spawn((Bomb, Moveable, Destroyable, Tiles::new(&[8])))
+    commands.spawn((Bomb(false), Moveable, Destroyable, Tiles::new(&[8])))
 }
 
 pub fn create_explosion<'a>(commands: &'a mut Commands) -> &'a mut Commands {

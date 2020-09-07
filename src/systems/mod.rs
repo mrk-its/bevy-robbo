@@ -16,7 +16,7 @@ mod reload_level;
 pub use activate_capsule::activate_capsule_system;
 pub use damage::damage_system;
 pub use force_field::force_field_system;
-pub use game_events::game_event_system;
+pub use game_events::{game_event_system, update_game_events};
 pub use magnetic_field::magnetic_field_system;
 pub use moves::{move_robbo, move_system};
 pub use render::{create_sprites, prepare_render, render_setup};

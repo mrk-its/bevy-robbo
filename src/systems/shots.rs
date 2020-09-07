@@ -1,7 +1,7 @@
 use crate::components::prelude::*;
 use crate::entities::*;
 use crate::frame_cnt::FrameCnt;
-use crate::game_events::{GameEvent, GameEvents};
+use crate::game_events::GameEvent;
 
 use bevy::prelude::*;
 use rand::random;
@@ -9,7 +9,7 @@ use std::collections::HashSet;
 
 pub fn shot_system(
     mut commands: Commands,
-    mut events: ResMut<GameEvents>,
+    mut game_events: ResMut<Events<GameEvent>>,
     frame_cnt: Res<FrameCnt>,
     mut items: Query<&Position>,
     mut shooting_items: Query<(&Position, &ShootingDir, &GunType, &ShootingProp)>,
@@ -40,7 +40,7 @@ pub fn shot_system(
                 }
             }
         } else {
-            events.send(GameEvent::Damage(bullet_pos, false));
+            game_events.send(GameEvent::Damage(bullet_pos, false));
         }
     }
     for entity in &mut robbo_query.iter() {

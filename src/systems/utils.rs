@@ -1,6 +1,6 @@
 
 use crate::components::{Bomb, Destroyable, Int2Ops, MovingDir, Position, Teleport, Undestroyable};
-use crate::game_events::{GameEvent, GameEvents};
+use crate::game_events::{GameEvent, };
 use bevy::prelude::*;
 use std::collections::HashSet;
 use crate::entities::create_explosion;
@@ -9,28 +9,46 @@ use crate::sounds;
 
 pub fn process_damage(
     commands: &mut Commands,
-    events: &mut ResMut<GameEvents>,
+    events: &mut ResMut<Events<GameEvent>>,
     position: Position,
     is_bomb_damage: bool,
     items: &mut Query<Without<Undestroyable, (Entity, &Position)>>,
-    bombs: &Query<&Bomb>,
+    bombs: &mut Query<&mut Bomb>,
     destroyable: &Query<&Destroyable>,
     despawned: &mut HashSet<Entity>,
 ) {
     for (entity, pos) in &mut items.iter() {
         if position == *pos {
-            let is_bomb_entity = bombs.get::<Bomb>(entity).is_ok();
-            if is_bomb_entity {
-                for ky in -1..=1 {
-                    for kx in -1..=1 {
-                        if kx != 0 || ky != 0 {
-                            let damage_pos = pos.add(&MovingDir::new(kx, ky));
-                            events.send(GameEvent::Damage(damage_pos, true));
-                        }
+            let damage_event = |kx, ky| {
+                GameEvent::Damage(pos.add(&MovingDir::new(kx, ky)), true)
+            };
+
+            let is_bomb_entity = if let Ok(mut bomb) = bombs.entity(entity) {
+                if let Some(mut bomb) = bomb.get() {
+                    if !bomb.0 {
+                        bomb.0 = true;
+                        events.send(damage_event(0, 0));
+                        events.send(damage_event(1, 1));
+                        events.send(damage_event(-1, -1));
+                        events.send(damage_event(1, -1));
+                        events.send(damage_event(-1, 1));
+                        events.send(GameEvent::PlaySound(sounds::BOMB));
+                        continue;
+                    } else {
+                        events.send(damage_event(0, 1));
+                        events.send(damage_event(0, -1));
+                        events.send(damage_event(1, 0));
+                        events.send(damage_event(-1, 0));
                     }
-                }
-                events.send(GameEvent::PlaySound(sounds::BOMB));
-            }
+                    true
+                } else {
+                    false
+                };
+                true
+            } else {
+                false
+            };
+            println!("is_bomb_entity: {:?}", is_bomb_entity);
             if !despawned.contains(&entity) && (destroyable.get::<Destroyable>(entity).is_ok() || is_bomb_damage) {
                 despawned.insert(entity);
                 commands.despawn(entity);

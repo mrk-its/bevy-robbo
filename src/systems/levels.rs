@@ -1,4 +1,4 @@
-use crate::game_events::{GameEvent, GameEvents};
+use crate::game_events::GameEvent;
 use crate::levels::{LevelInfo, LevelSet};
 use bevy::prelude::*;
 
@@ -8,7 +8,7 @@ pub struct AssetEventsState {
 }
 
 pub fn asset_events(
-    mut game_events: ResMut<GameEvents>,
+    mut game_events: ResMut<Events<GameEvent>>,
     mut level_info: ResMut<LevelInfo>,
     mut state: Local<AssetEventsState>,
     events: Res<Events<AssetEvent<LevelSet>>>,

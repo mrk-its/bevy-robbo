@@ -1,6 +1,8 @@
+use bevy::prelude::*;
 use crate::components::Collectable;
-use crate::game_events::{GameEvent, GameEvents};
+use crate::game_events::GameEvent;
 use crate::sounds;
+
 
 #[derive(Default, Debug)]
 pub struct Inventory {
@@ -10,7 +12,7 @@ pub struct Inventory {
 }
 
 impl Inventory {
-    pub fn collect(&mut self, item: Collectable, events: &mut GameEvents) {
+    pub fn collect(&mut self, item: Collectable, events: &mut ResMut<Events<GameEvent>>) {
         match item {
             Collectable::Key => {
                 self.keys += 1;

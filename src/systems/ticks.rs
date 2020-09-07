@@ -1,13 +1,13 @@
 use crate::components::prelude::*;
 use crate::entities::gun_set_shooting_dir;
 use crate::frame_cnt::FrameCnt;
-use crate::game_events::GameEvents;
+use crate::game_events::GameEvent;
 use bevy::prelude::*;
 
 pub fn tick_system(
     mut commands: Commands,
     frame_cnt: Res<FrameCnt>,
-    mut game_events: ResMut<GameEvents>,
+    mut game_events: ResMut<Events<GameEvent>>,
     mut items: Query<Without<Wall, (Entity, &Position, &mut Tiles)>>,
     all: Query<(Entity, &Position)>,
     shooting_dirs: Query<(&Rotatable, &mut ShootingDir)>,

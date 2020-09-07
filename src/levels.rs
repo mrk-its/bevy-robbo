@@ -23,6 +23,7 @@ pub struct LevelInfo {
     pub width: i32,
     pub height: i32,
     pub screws: usize,
+    pub missing_robbo_ticks: usize,
 }
 
 impl LevelInfo {

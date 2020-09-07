@@ -1,7 +1,7 @@
 use crate::components::prelude::*;
 use crate::entities::{create_laser_tail, create_blaster_tail, create_small_explosion};
 use crate::frame_cnt::FrameCnt;
-use crate::game_events::{GameEvent, GameEvents};
+use crate::game_events::GameEvent;
 use crate::inventory::Inventory;
 use crate::levels::LevelInfo;
 use crate::sounds;
@@ -10,7 +10,7 @@ use std::collections::{HashMap, HashSet};
 
 pub fn move_robbo(
     mut commands: Commands,
-    (mut inventory, mut events, frame_cnt, level_info): (ResMut<Inventory>, ResMut<GameEvents>, Res<FrameCnt>, Res<LevelInfo>),
+    (mut inventory, mut events, frame_cnt, level_info): (ResMut<Inventory>, ResMut<Events<GameEvent>>, Res<FrameCnt>, Res<LevelInfo>),
     mut robbo: Query<(&Robbo, &mut Position, &MovingDir)>,
     mut all: Query<(&mut Position, Entity)>,
 ) {
@@ -129,7 +129,7 @@ fn move_bird(
 }
 
 fn move_box(
-    events: &mut ResMut<GameEvents>,
+    events: &mut ResMut<Events<GameEvent>>,
     occupied: &mut HashMap<Position, Entity>,
     processed: &mut HashSet<Position>,
     mut position: Mut<Position>,
@@ -147,7 +147,7 @@ fn move_box(
 
 fn move_bullet(
     commands: &mut Commands,
-    events: &mut ResMut<GameEvents>,
+    events: &mut ResMut<Events<GameEvent>>,
     occupied: &mut HashMap<Position, Entity>,
     mut position: Mut<Position>,
     mut dir: Mut<MovingDir>,
@@ -190,7 +190,7 @@ fn move_blaster_head(
 }
 fn move_laser_head(
     commands: &mut Commands,
-    events: &mut ResMut<GameEvents>,
+    events: &mut ResMut<Events<GameEvent>>,
     occupied: &mut HashMap<Position, Entity>,
     mut position: Mut<Position>,
     mut dir: Mut<MovingDir>,
@@ -225,7 +225,7 @@ fn move_laser_head(
 
 pub fn move_system(
     mut commands: Commands,
-    mut events: ResMut<GameEvents>,
+    mut events: ResMut<Events<GameEvent>>,
     frame_cnt: Res<FrameCnt>,
     mut moving_items: Query<Without<Robbo, (Entity, &mut Position, &mut MovingDir)>>,
     mut all: Query<(&mut Position, Entity)>,

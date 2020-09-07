@@ -1,38 +1,47 @@
 use crate::components::{Bomb, Destroyable, Position, Robbo, Teleport, Undestroyable, Usable};
 use crate::entities::{create_robbo, create_small_explosion, spawn_robbo};
 use crate::frame_cnt::FrameCnt;
-use crate::game_events::{GameEvent, GameEvents};
+use crate::game_events::GameEvent;
 use crate::inventory::Inventory;
 use crate::levels::{create_level, LevelInfo, LevelSet};
 use crate::sounds;
 use crate::systems::utils::{process_damage, teleport_dest_position};
 use bevy::prelude::*;
-use bevy::render::pass::ClearColor;
 use std::collections::HashSet;
+
+#[derive(Default)]
+pub struct State {
+    pub events: EventReader<GameEvent>,
+}
+
+pub fn update_game_events(frame_cnt: Res<FrameCnt>, events: ResMut<Events<GameEvent>>) {
+    if frame_cnt.do_it() {
+        Events::<GameEvent>::update_system(events)
+    }
+}
 
 pub fn game_event_system(
     mut commands: Commands,
+    mut state: Local<State>,
     (
         frame_cnt,
         mut game_events,
         mut inventory,
         mut level_info,
         level_sets,
-        _clear_color,
         audio_output,
         asset_server,
     ): (
         Res<FrameCnt>,
-        ResMut<GameEvents>,
+        ResMut<Events<GameEvent>>,
         ResMut<Inventory>,
         ResMut<LevelInfo>,
         Res<Assets<LevelSet>>,
-        ResMut<ClearColor>,
         Res<AudioOutput>,
         Res<AssetServer>,
     ),
     mut items: Query<Without<Undestroyable, (Entity, &Position)>>,
-    bombs: Query<&Bomb>,
+    mut bombs: Query<&mut Bomb>,
     destroyable: Query<&Destroyable>,
     mut teleports: Query<(&Teleport, &Position)>,
     mut robbo: Query<With<Robbo, (Entity, &mut Position)>>,
@@ -43,8 +52,7 @@ pub fn game_event_system(
     }
     let mut despawned = HashSet::new();
 
-    let events = game_events.take();
-
+    let events: Vec<GameEvent> = state.events.iter(&game_events).map(|e| *e).collect();
     // separate step for ReloadLevel event
     // because we want to process it first
     // to make sure no despawns are queued
@@ -53,6 +61,7 @@ pub fn game_event_system(
             if let Some(level_set) = level_sets.get(&level_info.level_set_handle) {
                 let level = level_info.inc_current_level(k, level_set);
                 println!("{:?}", *level_info);
+                level_info.missing_robbo_ticks = 0;
                 level_info.screws = level.screw_count;
                 level_info.width = level.height;
                 level_info.height = level.width;
@@ -65,6 +74,7 @@ pub fn game_event_system(
         }
     }
 
+    // deduplicate sounds
     let mut sounds_to_play = HashSet::new();
 
     for event in &events {
@@ -79,7 +89,7 @@ pub fn game_event_system(
                     position,
                     is_bomb,
                     &mut items,
-                    &bombs,
+                    &mut bombs,
                     &destroyable,
                     &mut despawned,
                 );
