@@ -58,10 +58,10 @@ pub struct Opts {
     #[structopt(short, long)]
     pub benchmark_mode: bool,
 
-    #[structopt(short, long)]
+    #[structopt(long)]
     pub no_render: bool,
 
-    #[structopt(short, long)]
+    #[structopt(long)]
     pub no_audio: bool,
 
     #[structopt(short, long, default_value = "0")]
