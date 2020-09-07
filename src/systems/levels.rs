@@ -9,6 +9,7 @@ pub struct AssetEventsState {
 
 pub fn asset_events(
     mut game_events: ResMut<Events<GameEvent>>,
+    opts: Res<crate::Opts>,
     mut level_info: ResMut<LevelInfo>,
     mut state: Local<AssetEventsState>,
     events: Res<Events<AssetEvent<LevelSet>>>,
@@ -20,18 +21,15 @@ pub fn asset_events(
             _ => continue,
         };
         level_info.level_set_handle = *handle;
-        level_info.current_level = std::env::var("LEVEL")
-            .ok()
-            .and_then(|val| val.parse::<usize>().ok())
-            .unwrap_or(0);
+        level_info.current_level = opts.level;
         game_events.send(GameEvent::ReloadLevel(0));
     }
 }
 
-pub fn level_setup(asset_server: Res<AssetServer>) {
+pub fn level_setup(asset_server: Res<AssetServer>, opts: Res<crate::Opts>) {
     asset_server.watch_for_changes().unwrap();
     asset_server.load_asset_folder("assets/sounds/").unwrap();
     asset_server
-        .load::<Handle<LevelSet>, _>("assets/original.txt")
+        .load::<Handle<LevelSet>, _>(opts.levelset_path.clone())
         .unwrap();
 }

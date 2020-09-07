@@ -8,6 +8,7 @@ mod keyboard;
 mod levels;
 mod systems;
 
+use structopt::StructOpt;
 use bevy::prelude::*;
 use bevy::sprite::TextureAtlas;
 use bevy::window;
@@ -18,19 +19,18 @@ use game_events::GameEvent;
 use inventory::Inventory;
 use keyboard::KeyboardPlugin;
 use levels::{LevelInfo, LevelSet, LevelSetLoader};
+
 use systems::{
-    activate_capsule_system, asset_events, create_sprites, damage_system, eyes_system,
-    force_field_system, game_event_system, level_setup, magnetic_field_system, move_robbo,
-    move_system, prepare_render, reload_level, render_setup, shot_system, tick_system,
+    activate_capsule_system, asset_events, benchmark_reload_level, create_sprites, damage_system,
+    eyes_system, force_field_system, game_event_system, level_setup, magnetic_field_system,
+    move_robbo, move_system, prepare_render, reload_level, render_setup, shot_system, tick_system,
     update_game_events,
 };
 
 mod consts {
     pub const MAX_WIDTH: i32 = 31;
     pub const MAX_HEIGHT: i32 = 16;
-    pub const SCALE: f32 = 1.5;
     pub const FPS: f32 = 30.0;
-    pub const BOX_SIZE: f32 = 32.0 * SCALE;
 }
 
 mod sounds {
@@ -52,13 +52,37 @@ use bevy::asset::AddAsset;
 
 pub struct TextureAtlasHandle(pub Option<Handle<TextureAtlas>>);
 
+#[derive(StructOpt, Debug, Default, Clone)]
+#[structopt(name = "basic")]
+pub struct Opts {
+    #[structopt(short, long)]
+    pub benchmark_mode: bool,
+
+    #[structopt(short, long)]
+    pub no_render: bool,
+
+    #[structopt(short, long)]
+    pub no_audio: bool,
+
+    #[structopt(short, long, default_value="0")]
+    pub level: usize,
+
+    #[structopt(long, default_value="assets/original.txt")]
+    pub levelset_path: std::path::PathBuf,
+
+    #[structopt(long, default_value="1.5")]
+    pub zoom: f32
+}
+
 fn main() {
+    let opts = Opts::from_args();
+
     let mut builder = App::build();
     builder
         .add_resource(WindowDescriptor {
             title: "Robbo".to_string(),
-            width: ((32 * MAX_WIDTH) as f32 * SCALE) as u32,
-            height: ((32 * MAX_HEIGHT) as f32 * SCALE) as u32,
+            width: ((32 * MAX_WIDTH) as f32 * opts.zoom) as u32,
+            height: ((32 * MAX_HEIGHT) as f32 * opts.zoom) as u32,
             vsync: true,
             resizable: false,
             mode: window::WindowMode::Windowed,
@@ -69,13 +93,13 @@ fn main() {
         .add_resource(Inventory::default())
         .add_resource(LevelInfo::default())
         .add_resource(Events::<GameEvent>::default())
+        .add_resource(opts.clone())
         .add_system_to_stage(stage::EVENT_UPDATE, update_game_events.system())
         .add_default_plugins()
         .add_asset::<LevelSet>()
         .add_asset_loader::<LevelSet, LevelSetLoader>()
         .add_plugin(bevy::diagnostic::FrameTimeDiagnosticsPlugin::default())
         // .add_plugin(bevy::diagnostic::PrintDiagnosticsPlugin::default())
-        .add_plugin(FrameLimiterPlugin { fps: FPS })
         .add_plugin(FrameCntPlugin)
         .add_plugin(KeyboardPlugin)
         .add_startup_system(render_setup.system())
@@ -97,13 +121,26 @@ fn main() {
         .add_system_to_stage("eyes", eyes_system.system())
         .add_system_to_stage("force_field", force_field_system.system())
         .add_system_to_stage("move_robbo", move_robbo.system())
-        .add_system_to_stage("reload_level", reload_level.system())
         .add_system_to_stage("shots", shot_system.system())
         .add_system_to_stage("game_events", game_event_system.system())
-        .add_system_to_stage("create_sprites", create_sprites.system())
-        .add_system_to_stage("prepare_render", prepare_render.system())
         .add_system_to_stage("tick", activate_capsule_system.system())
         .add_system_to_stage("tick", tick_system.system())
-        .add_system_to_stage("tick", damage_system.system())
-        .run();
+        .add_system_to_stage("tick", damage_system.system());
+
+    if !opts.benchmark_mode {
+        builder
+            .add_system_to_stage("reload_level", reload_level.system())
+            .add_system_to_stage("create_sprites", create_sprites.system())
+            .add_system_to_stage("prepare_render", prepare_render.system())
+            .add_plugin(FrameLimiterPlugin { fps: FPS });
+    } else {
+        builder.add_system_to_stage("reload_level", benchmark_reload_level.system());
+        if !opts.no_render {
+            builder
+            .add_system_to_stage("create_sprites", create_sprites.system())
+            .add_system_to_stage("prepare_render", prepare_render.system());
+        }
+
+    }
+    builder.run();
 }

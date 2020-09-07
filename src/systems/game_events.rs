@@ -6,6 +6,8 @@ use crate::inventory::Inventory;
 use crate::levels::{create_level, LevelInfo, LevelSet};
 use crate::sounds;
 use crate::systems::utils::{process_damage, teleport_dest_position};
+use crate::Opts;
+
 use bevy::prelude::*;
 use std::collections::HashSet;
 
@@ -28,6 +30,7 @@ pub fn game_event_system(
         mut game_events,
         mut inventory,
         mut level_info,
+        opt,
         level_sets,
         audio_output,
         asset_server,
@@ -36,6 +39,7 @@ pub fn game_event_system(
         ResMut<Events<GameEvent>>,
         ResMut<Inventory>,
         ResMut<LevelInfo>,
+        Res<Opts>,
         Res<Assets<LevelSet>>,
         Res<AudioOutput>,
         Res<AssetServer>,
@@ -75,7 +79,7 @@ pub fn game_event_system(
     }
 
     // deduplicate sounds
-    let mut sounds_to_play = HashSet::new();
+    let mut sounds_to_play: HashSet<Handle<AudioSource>> = HashSet::new();
 
     for event in &events {
         match *event {
@@ -140,6 +144,8 @@ pub fn game_event_system(
         }
     }
     for handle in &sounds_to_play {
-        audio_output.play(*handle);
+        if !opt.no_audio {
+            audio_output.play(*handle);
+        }
     }
 }
