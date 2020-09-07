@@ -1,9 +1,9 @@
 use crate::components::{ForceFieldBounds, Int2Ops, MovingDir, Position};
 use crate::entities::*;
+use anyhow;
 use bevy::asset::AssetLoader;
 use bevy::prelude::*;
 use std::collections::HashMap;
-use anyhow;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Level {
@@ -28,7 +28,8 @@ pub struct LevelInfo {
 
 impl LevelInfo {
     pub fn inc_current_level<'a>(&mut self, k: i32, level_set: &'a LevelSet) -> &'a Level {
-        self.current_level = ((self.current_level as i32 + level_set.levels.len() as i32 + k) % level_set.levels.len() as i32) as usize;
+        self.current_level = ((self.current_level as i32 + level_set.levels.len() as i32 + k)
+            % level_set.levels.len() as i32) as usize;
         level_set.get(self.current_level).unwrap()
     }
     pub fn is_occupied(&self, pos: &Position) -> bool {
@@ -129,7 +130,7 @@ impl Level {
     }
 }
 pub struct LevelSetIterator<'a> {
-    pub lines: std::str::Split<'a, char>
+    pub lines: std::str::Split<'a, char>,
 }
 
 impl<'a> Iterator for LevelSetIterator<'a> {
@@ -146,7 +147,12 @@ pub struct LevelSet {
 
 impl LevelSet {
     pub fn new(data: &str) -> Self {
-        Self { levels: LevelSetIterator {lines: data.split('\n')}.collect() }
+        Self {
+            levels: LevelSetIterator {
+                lines: data.split('\n'),
+            }
+            .collect(),
+        }
     }
     pub fn get(&self, n: usize) -> Option<&Level> {
         self.levels.get(n)

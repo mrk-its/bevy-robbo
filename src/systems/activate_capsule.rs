@@ -1,8 +1,8 @@
 use crate::components::prelude::*;
 use crate::entities::repair_capsule;
+use crate::game_events::GameEvent;
 use crate::inventory::Inventory;
 use crate::levels::LevelInfo;
-use crate::game_events::GameEvent;
 use crate::sounds;
 
 use bevy::prelude::*;

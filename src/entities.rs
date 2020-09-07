@@ -191,7 +191,11 @@ pub fn create_gun<'a>(commands: &'a mut Commands, params: &[usize]) -> &'a mut C
         _ => GunType::Burst,
     };
     commands.spawn((Tiles::new(&GUN_TILES[index..index + 1]),));
-    commands.with_bundle((ShootingDir::by_index(index), ShootingProp::default(), gun_type));
+    commands.with_bundle((
+        ShootingDir::by_index(index),
+        ShootingProp::default(),
+        gun_type,
+    ));
     if is_moveable {
         commands.with_bundle((Moveable, MovingDir::by_index(params[1])));
     }

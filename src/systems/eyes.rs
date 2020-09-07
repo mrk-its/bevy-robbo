@@ -1,9 +1,8 @@
-use std::collections::HashSet;
 use crate::components::prelude::*;
 use crate::frame_cnt::FrameCnt;
 use bevy::prelude::*;
 use rand::random;
-
+use std::collections::HashSet;
 
 const RANDOM_MOVE_PROP: f32 = 0.5;
 

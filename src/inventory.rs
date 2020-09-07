@@ -1,8 +1,7 @@
-use bevy::prelude::*;
 use crate::components::Collectable;
 use crate::game_events::GameEvent;
 use crate::sounds;
-
+use bevy::prelude::*;
 
 #[derive(Default, Debug)]
 pub struct Inventory {
@@ -17,7 +16,7 @@ impl Inventory {
             Collectable::Key => {
                 self.keys += 1;
                 events.send(GameEvent::PlaySound(sounds::KEY));
-            },
+            }
             Collectable::Screw => {
                 self.screws += 1;
                 events.send(GameEvent::PlaySound(sounds::SCREW));

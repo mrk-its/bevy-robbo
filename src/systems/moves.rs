@@ -1,5 +1,5 @@
 use crate::components::prelude::*;
-use crate::entities::{create_laser_tail, create_blaster_tail, create_small_explosion};
+use crate::entities::{create_blaster_tail, create_laser_tail, create_small_explosion};
 use crate::frame_cnt::FrameCnt;
 use crate::game_events::GameEvent;
 use crate::inventory::Inventory;
@@ -10,7 +10,12 @@ use std::collections::{HashMap, HashSet};
 
 pub fn move_robbo(
     mut commands: Commands,
-    (mut inventory, mut events, frame_cnt, level_info): (ResMut<Inventory>, ResMut<Events<GameEvent>>, Res<FrameCnt>, Res<LevelInfo>),
+    (mut inventory, mut events, frame_cnt, level_info): (
+        ResMut<Inventory>,
+        ResMut<Events<GameEvent>>,
+        Res<FrameCnt>,
+        Res<LevelInfo>,
+    ),
     mut robbo: Query<(&Robbo, &mut Position, &MovingDir)>,
     mut all: Query<(&mut Position, Entity)>,
 ) {
@@ -57,7 +62,7 @@ pub fn move_robbo(
                     events.send(GameEvent::Use(entity, *dir));
                     continue;
                 } else {
-                    continue
+                    continue;
                 }
             }
         }
