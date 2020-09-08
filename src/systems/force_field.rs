@@ -9,7 +9,7 @@ pub fn force_field_system(
     mut force_field: Query<(&ForceField, &ForceFieldBounds, &mut Position)>,
     mut all: Query<Without<ForceField, Without<Wall, (&Position, Entity)>>>,
 ) {
-    if !frame_cnt.do_it() {
+    if !frame_cnt.is_keyframe() {
         return;
     }
 

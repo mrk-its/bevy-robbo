@@ -15,7 +15,7 @@ pub fn shot_system(
     mut shooting_items: Query<(&Position, &ShootingDir, &GunType, &ShootingProp)>,
     mut robbo_query: Query<With<Robbo, Entity>>,
 ) {
-    if !frame_cnt.do_shooting() {
+    if !frame_cnt.is_keyframe() {
         return;
     }
     let mut occupied = HashSet::new();

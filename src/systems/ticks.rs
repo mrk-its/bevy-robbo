@@ -12,7 +12,7 @@ pub fn tick_system(
     all: Query<(Entity, &Position)>,
     shooting_dirs: Query<(&Rotatable, &mut ShootingDir)>,
 ) {
-    if !frame_cnt.do_it() {
+    if !frame_cnt.is_keyframe() {
         return;
     }
     for (entity, _position, mut tiles) in &mut items.iter() {

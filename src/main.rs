@@ -31,6 +31,7 @@ mod consts {
     pub const MAX_WIDTH: i32 = 31;
     pub const MAX_HEIGHT: i32 = 16;
     pub const FPS: f32 = 30.0;
+    pub const KEYFRAME_INTERVAL: usize = 4;
 }
 
 mod sounds {
@@ -83,7 +84,7 @@ fn main() {
             title: "Robbo".to_string(),
             width: ((32 * MAX_WIDTH) as f32 * opts.zoom) as u32,
             height: ((32 * MAX_HEIGHT) as f32 * opts.zoom) as u32,
-            vsync: true,
+            vsync: !opts.benchmark_mode,
             resizable: false,
             mode: window::WindowMode::Windowed,
             ..Default::default()

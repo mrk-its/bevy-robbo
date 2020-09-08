@@ -171,7 +171,7 @@ pub fn move_system(
     mut all: Query<(&mut Position, Entity)>,
     destroyable: Query<&Destroyable>,
 ) {
-    if !frame_cnt.do_it() {
+    if !frame_cnt.is_keyframe() {
         return;
     }
     let mut processed: HashSet<Position> = HashSet::new();

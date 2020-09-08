@@ -73,7 +73,7 @@ pub fn keyboard_system(
     }
 }
 pub fn robbo_dir_reset(mut robbo_dir: ResMut<RobboDir>, frame_cnt: Res<FrameCnt>) {
-    if frame_cnt.do_it() {
+    if frame_cnt.is_keyframe() {
         robbo_dir.just_pressed = false;
     }
 }

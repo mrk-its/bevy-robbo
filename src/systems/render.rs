@@ -88,12 +88,11 @@ pub fn prepare_render(
         .collect();
 
     let box_size = opts.zoom * 32.0;
-    const STEPS: usize = 4;
-    let min_step = box_size / (STEPS as f32);
+    let min_step = box_size / (KEYFRAME_INTERVAL as f32);
     for (entity, position, tiles, mut translation, mut sprite) in &mut items.iter() {
         let dest = Vec3::new(position.x() as f32, (position.y()) as f32, 0.0) * box_size;
         if to_smooth_update.contains(&entity) {
-            let steps_left = (STEPS - ((frame_cnt.value()) % STEPS)) as f32;
+            let steps_left = (KEYFRAME_INTERVAL - ((frame_cnt.value()) % KEYFRAME_INTERVAL)) as f32;
             let cur = translation.0;
             let step = (dest - cur) / steps_left;
             if step.x().abs() > 0.01 || step.y().abs() > 0.01 {

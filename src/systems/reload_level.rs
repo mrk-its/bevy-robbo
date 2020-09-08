@@ -17,7 +17,7 @@ pub fn reload_level(
     mut robbo_query: Query<With<Robbo, Entity>>,
     mut all: Query<Without<Wall, (Entity, &Position)>>,
 ) {
-    if !frame_cnt.do_it() {
+    if !frame_cnt.is_keyframe() {
         return;
     }
     for _ in &mut robbo_query.iter() {

@@ -17,7 +17,7 @@ pub struct State {
 }
 
 pub fn update_game_events(frame_cnt: Res<FrameCnt>, events: ResMut<Events<GameEvent>>) {
-    if frame_cnt.do_it() {
+    if frame_cnt.is_keyframe() {
         Events::<GameEvent>::update_system(events)
     }
 }
@@ -51,7 +51,7 @@ pub fn game_event_system(
     mut robbo: Query<With<Robbo, (Entity, &mut Position)>>,
     mut all_positions: Query<(Entity, &Position)>,
 ) {
-    if !frame_cnt.do_it() {
+    if !frame_cnt.is_keyframe() {
         return;
     }
     let mut despawned = HashSet::new();

@@ -12,7 +12,7 @@ pub fn eyes_system(
     mut all_query: Query<&Position>,
     mut robbo_query: Query<With<Robbo, &Position>>,
 ) {
-    if !frame_cnt.do_it() {
+    if !frame_cnt.is_keyframe() {
         return;
     }
     let occupied: HashSet<Position> = all_query.iter().into_iter().cloned().collect();

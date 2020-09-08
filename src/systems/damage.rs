@@ -9,7 +9,7 @@ pub fn damage_system(
     mut deadly: Query<With<Deadly, (Entity, &Position)>>,
     all: Query<&Position>,
 ) {
-    if !frame_cnt.do_it() {
+    if !frame_cnt.is_keyframe() {
         return;
     }
     for (robbo_entity, robbo_pos) in &mut robbo.iter() {

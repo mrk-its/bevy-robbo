@@ -1,15 +1,14 @@
 use bevy::prelude::*;
+use crate::consts::*;
 
 pub struct FrameCntPlugin;
 pub struct FrameCnt(usize);
 
 impl FrameCnt {
-    pub fn do_it(&self) -> bool {
-        (self.0 % 4) == 0
+    pub fn is_keyframe(&self) -> bool {
+        (self.0 % KEYFRAME_INTERVAL) == 0
     }
-    pub fn do_shooting(&self) -> bool {
-        (self.0 % 4) == 0
-    }
+
     pub fn value(&self) -> usize {
         self.0
     }

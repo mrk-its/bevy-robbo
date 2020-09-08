@@ -18,7 +18,7 @@ pub fn move_robbo(
     mut robbo: Query<(&Robbo, &mut Position, &MovingDir)>,
     mut all: Query<Without<Robbo, (&mut Position, Entity)>>,
 ) {
-    if !frame_cnt.do_it() {
+    if !frame_cnt.is_keyframe() {
         return;
     }
     for (_, mut position, dir) in &mut robbo.iter() {
