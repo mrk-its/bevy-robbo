@@ -4,6 +4,7 @@ use crate::frame_cnt::FrameCnt;
 use crate::game_events::GameEvent;
 use crate::inventory::Inventory;
 use crate::levels::{create_level, LevelInfo, LevelSet};
+use crate::resources::DamageMap;
 use crate::sounds;
 use crate::systems::utils::teleport_dest_position;
 use crate::Opts;
@@ -30,6 +31,7 @@ pub fn game_event_system(
         mut game_events,
         mut inventory,
         mut level_info,
+        mut damage_map,
         opt,
         level_sets,
         audio_output,
@@ -39,6 +41,7 @@ pub fn game_event_system(
         ResMut<Events<GameEvent>>,
         ResMut<Inventory>,
         ResMut<LevelInfo>,
+        ResMut<DamageMap>,
         Res<Opts>,
         Res<Assets<LevelSet>>,
         Res<AudioOutput>,
@@ -89,7 +92,7 @@ pub fn game_event_system(
             }
             GameEvent::KillRobbo => {
                 for (_, pos) in &mut robbo.iter() {
-                    game_events.send(GameEvent::Damage(*pos, false));
+                    damage_map.do_damage(&*pos, false);
                 }
             }
             GameEvent::Use(entity, direction) => {
