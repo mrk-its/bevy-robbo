@@ -153,7 +153,7 @@ pub enum Rotatable {
 }
 
 #[derive(Debug, PartialEq, Clone, Copy)]
-pub enum GunType {
+pub enum Gun {
     Solid,
     Blaster,
     Burst,

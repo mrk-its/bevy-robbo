@@ -15,13 +15,13 @@ mod ticks;
 mod utils;
 
 pub use activate_capsule::activate_capsule_system;
-pub use damage::damage_system;
+pub use damage::{damage_system, process_damage};
 pub use eyes::eyes_system;
 pub use force_field::force_field_system;
 pub use game_events::{game_event_system, update_game_events};
 pub use levels::{asset_events, level_setup};
 pub use magnetic_field::magnetic_field_system;
-pub use moves::move_system;
+pub use moves::{move_bear, move_bird, move_box, move_bullet, move_blaster_head, move_laser_head};
 pub use reload_level::{benchmark_reload_level, reload_level};
 pub use render::{create_sprites, prepare_render, render_setup};
 pub use robbo_move::move_robbo;

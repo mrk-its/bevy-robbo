@@ -1,7 +1,7 @@
 use crate::components::prelude::*;
 use crate::entities::*;
 use crate::frame_cnt::FrameCnt;
-use crate::game_events::GameEvent;
+use crate::levels::LevelInfo;
 
 use bevy::prelude::*;
 use rand::random;
@@ -9,10 +9,10 @@ use std::collections::HashSet;
 
 pub fn shot_system(
     mut commands: Commands,
-    mut game_events: ResMut<Events<GameEvent>>,
+    mut level_info: ResMut<LevelInfo>,
     frame_cnt: Res<FrameCnt>,
-    mut items: Query<&Position>,
-    mut shooting_items: Query<(&Position, &ShootingDir, &GunType, &ShootingProp)>,
+    mut items: Query<Without<Wall, &Position>>,
+    mut shooting_items: Query<(&Position, &ShootingDir, &Gun, &ShootingProp)>,
     mut robbo_query: Query<With<Robbo, Entity>>,
 ) {
     if !frame_cnt.is_keyframe() {
@@ -27,20 +27,20 @@ pub fn shot_system(
             continue;
         }
         let bullet_pos = pos.add(dir);
-        if !occupied.contains(&bullet_pos) {
+        if !occupied.contains(&bullet_pos) && !level_info.is_occupied(&bullet_pos) {
             match *gun_type {
-                GunType::Solid => {
+                Gun::Solid => {
                     create_laser_head(&mut commands, dir.x(), dir.y()).with(bullet_pos);
                 }
-                GunType::Blaster => {
+                Gun::Blaster => {
                     create_blaster_head(&mut commands, dir.x(), dir.y()).with(bullet_pos);
                 }
-                GunType::Burst => {
+                Gun::Burst => {
                     create_bullet(&mut commands, dir.x(), dir.y()).with(bullet_pos);
                 }
             }
         } else {
-            game_events.send(GameEvent::Damage(bullet_pos, false));
+            level_info.do_damage(&bullet_pos, false);
         }
     }
     for entity in &mut robbo_query.iter() {

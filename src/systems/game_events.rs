@@ -1,11 +1,11 @@
-use crate::components::{Bomb, Destroyable, Position, Robbo, Teleport, Undestroyable, Usable};
+use crate::components::{Position, Robbo, Teleport, Undestroyable, Usable};
 use crate::entities::{create_robbo, create_small_explosion, spawn_robbo};
 use crate::frame_cnt::FrameCnt;
 use crate::game_events::GameEvent;
 use crate::inventory::Inventory;
 use crate::levels::{create_level, LevelInfo, LevelSet};
 use crate::sounds;
-use crate::systems::utils::{process_damage, teleport_dest_position};
+use crate::systems::utils::teleport_dest_position;
 use crate::Opts;
 
 use bevy::prelude::*;
@@ -44,9 +44,7 @@ pub fn game_event_system(
         Res<AudioOutput>,
         Res<AssetServer>,
     ),
-    mut items: Query<Without<Undestroyable, (Entity, &Position)>>,
-    mut bombs: Query<&mut Bomb>,
-    destroyable: Query<&Destroyable>,
+    items: Query<Without<Undestroyable, (Entity, &Position)>>,
     mut teleports: Query<(&Teleport, &Position)>,
     mut robbo: Query<With<Robbo, (Entity, &mut Position)>>,
     mut all_positions: Query<(Entity, &Position)>,
@@ -64,12 +62,12 @@ pub fn game_event_system(
         if let GameEvent::ReloadLevel(k) = *event {
             if let Some(level_set) = level_sets.get(&level_info.level_set_handle) {
                 let level = level_info.inc_current_level(k, level_set);
-                println!("{:?}", *level_info);
+                println!("Level: {:?}", level_info.current_level);
                 level_info.missing_robbo_ticks = 0;
                 level_info.screws = level.screw_count;
                 level_info.width = level.height;
                 level_info.height = level.width;
-                create_level(&mut commands, &mut all_positions, level);
+                create_level(&mut commands, &mut all_positions, level, &mut level_info);
                 *inventory = Inventory::default();
                 inventory.show();
                 game_events.send(GameEvent::PlaySound(sounds::SPAWN));
@@ -85,18 +83,6 @@ pub fn game_event_system(
         match *event {
             GameEvent::PlaySound(path) => {
                 sounds_to_play.insert(asset_server.get_handle(path).unwrap());
-            }
-            GameEvent::Damage(position, is_bomb) => {
-                process_damage(
-                    &mut commands,
-                    &mut game_events,
-                    position,
-                    is_bomb,
-                    &mut items,
-                    &mut bombs,
-                    &destroyable,
-                    &mut despawned,
-                );
             }
             GameEvent::SpawnRobbo(pos) => {
                 create_robbo(&mut commands).with(pos);

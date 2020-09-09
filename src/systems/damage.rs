@@ -1,7 +1,11 @@
 use crate::components::prelude::*;
 use crate::entities::create_explosion;
+use crate::game_events::GameEvent;
+use crate::sounds;
 use crate::frame_cnt::FrameCnt;
+use crate::levels::LevelInfo;
 use bevy::prelude::*;
+
 pub fn damage_system(
     mut commands: Commands,
     frame_cnt: Res<FrameCnt>,
@@ -27,6 +31,59 @@ pub fn damage_system(
                 commands.despawn(robbo_entity);
                 create_explosion(&mut commands).with(*robbo_pos);
                 return;
+            }
+        }
+    }
+}
+
+pub fn process_damage(
+    mut commands: Commands,
+    frame_cnt: Res<FrameCnt>,
+    mut events: ResMut<Events<GameEvent>>,
+    mut level_info: ResMut<LevelInfo>,
+    mut items: Query<Without<Undestroyable, (Entity, &Position)>>,
+    bombs: Query<&mut Bomb>,
+    destroyable: Query<&Destroyable>,
+) {
+    if !frame_cnt.is_keyframe() {
+        return;
+    }
+    let damage = std::mem::take(&mut level_info.damage);
+
+    for (entity, pos) in &mut items.iter() {
+        if let Some(is_bomb_damage) = damage.get(pos) {
+            let mut do_damage = |kx, ky| {
+                level_info.do_damage(&pos.add(&MovingDir::new(kx, ky)), true)
+            };
+
+            let is_bomb_entity = if let Ok(mut bomb) = bombs.entity(entity) {
+                if let Some(mut bomb) = bomb.get() {
+                    if !bomb.0 {
+                        bomb.0 = true;
+                        do_damage(0, 0);
+                        do_damage(1, 1);
+                        do_damage(-1, -1);
+                        do_damage(1, -1);
+                        do_damage(-1, 1);
+                        events.send(GameEvent::PlaySound(sounds::BOMB));
+                        continue;
+                    } else {
+                        do_damage(0, 1);
+                        do_damage(0, -1);
+                        do_damage(1, 0);
+                        do_damage(-1, 0);
+                    }
+                }
+                true
+            } else {
+                false
+            };
+            if destroyable.get::<Destroyable>(entity).is_ok() || *is_bomb_damage {
+                commands.despawn(entity);
+                create_explosion(&mut commands).with(*pos);
+                if !is_bomb_entity && !is_bomb_damage {
+                    events.send(GameEvent::PlaySound(sounds::BURN));
+                }
             }
         }
     }

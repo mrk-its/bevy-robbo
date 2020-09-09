@@ -1,9 +1,9 @@
+use std::collections::{HashSet, HashMap};
 use crate::components::{ForceFieldBounds, Int2Ops, MovingDir, Position};
 use crate::entities::*;
 use anyhow;
 use bevy::asset::AssetLoader;
 use bevy::prelude::*;
-use std::collections::HashMap;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Level {
@@ -24,6 +24,8 @@ pub struct LevelInfo {
     pub height: i32,
     pub screws: usize,
     pub missing_robbo_ticks: usize,
+    pub wall_positions: HashSet<Position>,
+    pub damage: HashMap<Position, bool>,
 }
 
 impl LevelInfo {
@@ -33,7 +35,13 @@ impl LevelInfo {
         level_set.get(self.current_level).unwrap()
     }
     pub fn is_occupied(&self, pos: &Position) -> bool {
-        pos.x() < 0 || pos.y() < 0 || pos.x() >= self.width || pos.y() >= self.height
+        pos.x() < 0 || pos.y() < 0 || pos.x() >= self.width || pos.y() >= self.height || self.wall_positions.contains(pos)
+    }
+    pub fn do_damage(&mut self, pos: &Position, is_bomb: bool) {
+        self.damage.insert(*pos, is_bomb);
+    }
+    pub fn is_damaged(&self, pos: &Position) -> bool {
+        return self.damage.contains_key(pos)
     }
 }
 
@@ -182,10 +190,12 @@ pub fn create_level(
     commands: &mut Commands,
     items: &mut Query<(Entity, &Position)>,
     level: &Level,
+    level_info: &mut LevelInfo,
 ) {
     for (entity, _) in &mut items.iter() {
         commands.despawn(entity);
     }
+    level_info.wall_positions.clear();
 
     for (x, column) in level.tiles.iter().enumerate() {
         let mut force_field_entities = Vec::with_capacity(16);
@@ -233,6 +243,7 @@ pub fn create_level(
             // postprocess ForceField entities (add wall bounds)
             static WALL_CHARS: &[char] = &['O', 'o', '-', 'Q', 'q', 'p', 'P', 's', 'S'];
             if WALL_CHARS.contains(&c) {
+                level_info.wall_positions.insert(Position::new(x, y));
                 if !force_field_entities.is_empty() {
                     for entity in &force_field_entities {
                         commands.insert_one(*entity, ForceFieldBounds(wall_last_y + 1, y));

@@ -20,12 +20,7 @@ use inventory::Inventory;
 use keyboard::KeyboardPlugin;
 use levels::{LevelInfo, LevelSet, LevelSetLoader};
 
-use systems::{
-    activate_capsule_system, asset_events, benchmark_reload_level, create_sprites, damage_system,
-    eyes_system, force_field_system, game_event_system, level_setup, magnetic_field_system,
-    move_robbo, move_system, prepare_render, reload_level, render_setup, shot_system, tick_system,
-    update_game_events,
-};
+use systems::*;
 
 mod consts {
     pub const MAX_WIDTH: i32 = 31;
@@ -106,11 +101,10 @@ fn main() {
         .add_startup_system(render_setup.system())
         .add_startup_system(level_setup.system())
         .add_stage_before(stage::UPDATE, "move")
-        .add_stage_before(stage::UPDATE, "eyes")
-        .add_stage_before(stage::UPDATE, "force_field")
         .add_stage_before(stage::UPDATE, "move_robbo")
         .add_stage_before(stage::POST_UPDATE, "reload_level")
         .add_stage_before(stage::POST_UPDATE, "shots")
+        .add_stage_before(stage::POST_UPDATE, "process_damage")
         .add_stage_before(stage::POST_UPDATE, "game_events")
         .add_stage_before(stage::POST_UPDATE, "create_sprites")
         .add_stage_before(stage::POST_UPDATE, "prepare_render")
@@ -118,9 +112,15 @@ fn main() {
         .add_stage_after("frame_cnt", "tick")
         .add_system_to_stage("magnetic_field", magnetic_field_system.system())
         .add_system_to_stage(stage::EVENT_UPDATE, asset_events.system())
-        .add_system_to_stage("move", move_system.system())
-        .add_system_to_stage("eyes", eyes_system.system())
-        .add_system_to_stage("force_field", force_field_system.system())
+        .add_system_to_stage("process_damage", process_damage.system())
+        .add_system_to_stage("move", move_laser_head.system())
+        .add_system_to_stage("move", move_bear.system())
+        .add_system_to_stage("move", move_bird.system())
+        .add_system_to_stage("move", move_box.system())
+        .add_system_to_stage("move", move_bullet.system())
+        .add_system_to_stage("move", move_blaster_head.system())
+        .add_system_to_stage("move", eyes_system.system())
+        .add_system_to_stage("move", force_field_system.system())
         .add_system_to_stage("move_robbo", move_robbo.system())
         .add_system_to_stage("shots", shot_system.system())
         .add_system_to_stage("game_events", game_event_system.system())

@@ -16,7 +16,7 @@ pub fn move_robbo(
         Res<LevelInfo>,
     ),
     mut robbo: Query<(&Robbo, &mut Position, &MovingDir)>,
-    mut all: Query<Without<Robbo, (&mut Position, Entity)>>,
+    mut all: Query<Without<Wall, Without<Robbo, (&mut Position, Entity)>>>,
 ) {
     if !frame_cnt.is_keyframe() {
         return;

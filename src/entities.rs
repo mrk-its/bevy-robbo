@@ -6,7 +6,7 @@ pub fn create_robbo<'a>(commands: &'a mut Commands) -> &'a mut Commands {
     commands
         .spawn((Robbo, MovingDir::zero(), Tiles::new(&[60])))
         .with(Destroyable)
-        .with(GunType::Burst)
+        .with(Gun::Burst)
         .with(ShootingProp(1.0))
 }
 
@@ -22,7 +22,7 @@ pub fn create_bird<'a>(commands: &'a mut Commands, params: &[usize]) -> &'a mut 
         commands
             .with(ShootingDir::by_index(params[1]))
             .with(ShootingProp::default())
-            .with(GunType::Burst);
+            .with(Gun::Burst);
     }
     commands
 }
@@ -186,9 +186,9 @@ pub fn create_gun<'a>(commands: &'a mut Commands, params: &[usize]) -> &'a mut C
     let is_rotateable = *params.get(4).unwrap_or(&0) > 0;
     let is_random_rotateable = *params.get(5).unwrap_or(&0) > 0;
     let gun_type = match params[2] {
-        1 => GunType::Solid,
-        2 => GunType::Blaster,
-        _ => GunType::Burst,
+        1 => Gun::Solid,
+        2 => Gun::Blaster,
+        _ => Gun::Burst,
     };
     commands.spawn((Tiles::new(&GUN_TILES[index..index + 1]),));
     commands.with_bundle((
