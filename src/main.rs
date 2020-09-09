@@ -118,7 +118,7 @@ fn main() {
         .add_system_to_stage("move", move_laser_head.system())
         .add_system_to_stage("move", move_bear.system())
         .add_system_to_stage("move", move_bird.system())
-        .add_system_to_stage("move", move_box.system())
+        .add_system_to_stage("move", move_pushbox.system())
         .add_system_to_stage("move", move_bullet.system())
         .add_system_to_stage("move", move_blaster_head.system())
         .add_system_to_stage("move", eyes_system.system())
