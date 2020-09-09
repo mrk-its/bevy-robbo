@@ -1,5 +1,5 @@
 use std::collections::{HashSet, HashMap};
-use crate::components::{ForceFieldBounds, Int2Ops, MovingDir, Position};
+use crate::components::{ForceFieldBounds, Int2Ops, MovingDir, Position, Wall};
 use crate::entities::*;
 use anyhow;
 use bevy::asset::AssetLoader;
@@ -16,6 +16,34 @@ pub struct Level {
     pub additional: AdditionalMap,
 }
 
+pub struct HashMapOccupancyCheck<'a> {
+    pub hash_map: HashMap<Position, Entity>,
+    pub level_info: &'a LevelInfo,
+}
+
+impl<'a> HashMapOccupancyCheck<'a> {
+    pub fn is_free(&self, pos: &Position) -> bool {
+        !self.is_occupied(pos)
+    }
+    pub fn is_occupied(&self, pos: &Position) -> bool {
+        self.hash_map.contains_key(&pos) || self.level_info.wall_positions.contains(&pos)
+    }
+    pub fn mv(&mut self, pos: &Position, new_pos: &Position) {
+        let entity = self.hash_map.remove(pos).unwrap();
+        self.hash_map.insert(*new_pos, entity);
+    }
+    pub fn get_entity(&self, pos: &Position) -> Option<&Entity> {
+        self.hash_map.get(pos)
+    }
+    pub fn put_entity(&mut self, pos: &Position, entity: Entity) {
+        self.hash_map.insert(*pos, entity);
+    }
+    pub fn remove(&mut self, pos: &Position) -> Option<Entity>{
+        self.hash_map.remove(pos)
+    }
+}
+
+
 #[derive(Default, Debug)]
 pub struct LevelInfo {
     pub current_level: usize,
@@ -25,7 +53,6 @@ pub struct LevelInfo {
     pub screws: usize,
     pub missing_robbo_ticks: usize,
     pub wall_positions: HashSet<Position>,
-    pub damage: HashMap<Position, bool>,
 }
 
 impl LevelInfo {
@@ -37,11 +64,16 @@ impl LevelInfo {
     pub fn is_occupied(&self, pos: &Position) -> bool {
         pos.x() < 0 || pos.y() < 0 || pos.x() >= self.width || pos.y() >= self.height || self.wall_positions.contains(pos)
     }
-    pub fn do_damage(&mut self, pos: &Position, is_bomb: bool) {
-        self.damage.insert(*pos, is_bomb);
-    }
-    pub fn is_damaged(&self, pos: &Position) -> bool {
-        return self.damage.contains_key(pos)
+
+    pub fn get_occupancy<'a>(&'a self, query: &mut Query<Without<Wall, (&Position, Entity)>>) -> HashMapOccupancyCheck<'a> {
+        HashMapOccupancyCheck {
+            hash_map: query
+            .iter()
+            .into_iter()
+            .map(|(pos, entity)| (*pos, entity))
+            .collect(),
+            level_info: &self,
+        }
     }
 }
 

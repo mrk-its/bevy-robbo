@@ -3,7 +3,8 @@ use crate::entities::create_explosion;
 use crate::game_events::GameEvent;
 use crate::sounds;
 use crate::frame_cnt::FrameCnt;
-use crate::levels::LevelInfo;
+use crate::resources::DamageMap;
+
 use bevy::prelude::*;
 
 pub fn damage_system(
@@ -36,11 +37,12 @@ pub fn damage_system(
     }
 }
 
+
 pub fn process_damage(
     mut commands: Commands,
     frame_cnt: Res<FrameCnt>,
     mut events: ResMut<Events<GameEvent>>,
-    mut level_info: ResMut<LevelInfo>,
+    mut damage_map: ResMut<DamageMap>,
     mut items: Query<Without<Undestroyable, (Entity, &Position)>>,
     bombs: Query<&mut Bomb>,
     destroyable: Query<&Destroyable>,
@@ -48,14 +50,13 @@ pub fn process_damage(
     if !frame_cnt.is_keyframe() {
         return;
     }
-    let damage = std::mem::take(&mut level_info.damage);
+    let damage = damage_map.take();
 
     for (entity, pos) in &mut items.iter() {
         if let Some(is_bomb_damage) = damage.get(pos) {
             let mut do_damage = |kx, ky| {
-                level_info.do_damage(&pos.add(&MovingDir::new(kx, ky)), true)
+                damage_map.do_damage(&pos.add(&MovingDir::new(kx, ky)), true)
             };
-
             let is_bomb_entity = if let Ok(mut bomb) = bombs.entity(entity) {
                 if let Some(mut bomb) = bomb.get() {
                     if !bomb.0 {

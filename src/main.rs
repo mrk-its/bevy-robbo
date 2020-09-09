@@ -7,6 +7,7 @@ mod inventory;
 mod keyboard;
 mod levels;
 mod systems;
+mod resources;
 
 use bevy::prelude::*;
 use bevy::sprite::TextureAtlas;
@@ -19,7 +20,7 @@ use game_events::GameEvent;
 use inventory::Inventory;
 use keyboard::KeyboardPlugin;
 use levels::{LevelInfo, LevelSet, LevelSetLoader};
-
+use resources::DamageMap;
 use systems::*;
 
 mod consts {
@@ -88,6 +89,7 @@ fn main() {
         .add_resource(TextureAtlasHandle(None))
         .add_resource(Inventory::default())
         .add_resource(LevelInfo::default())
+        .add_resource(DamageMap::default())
         .add_resource(Events::<GameEvent>::default())
         .add_resource(opts.clone())
         .add_system_to_stage(stage::EVENT_UPDATE, update_game_events.system())

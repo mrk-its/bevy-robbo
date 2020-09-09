@@ -15,10 +15,10 @@ pub fn keyboard_system(
     if keyboard_input.just_pressed(KeyCode::Escape) {
         events.send(GameEvent::KillRobbo);
         return;
-    } else if keyboard_input.just_pressed(KeyCode::RBracket) {
+    } else if keyboard_input.just_pressed(KeyCode::PageUp) {
         events.send(GameEvent::ReloadLevel(1));
         return;
-    } else if keyboard_input.just_pressed(KeyCode::LBracket) {
+    } else if keyboard_input.just_pressed(KeyCode::PageDown) {
         events.send(GameEvent::ReloadLevel(-1));
         return;
     }
