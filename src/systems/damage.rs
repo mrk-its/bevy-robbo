@@ -10,6 +10,7 @@ use bevy::prelude::*;
 pub fn damage_system(
     mut commands: Commands,
     frame_cnt: Res<FrameCnt>,
+    mut events: ResMut<Events<GameEvent>>,
     mut robbo: Query<With<Robbo, (Entity, &Position)>>,
     mut deadly: Query<With<Deadly, (Entity, &Position)>>,
     all: Query<&Position>,
@@ -31,6 +32,7 @@ pub fn damage_system(
                 }
                 commands.despawn(robbo_entity);
                 create_explosion(&mut commands).with(*robbo_pos);
+                events.send(GameEvent::PlaySound(sounds::BURN));
                 return;
             }
         }
