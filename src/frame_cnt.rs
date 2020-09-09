@@ -1,5 +1,5 @@
-use bevy::prelude::*;
 use crate::consts::*;
+use bevy::prelude::*;
 
 pub struct FrameCntPlugin;
 pub struct FrameCnt(usize);

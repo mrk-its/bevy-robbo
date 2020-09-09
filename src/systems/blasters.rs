@@ -4,7 +4,6 @@ use crate::frame_cnt::FrameCnt;
 use crate::levels::LevelInfo;
 use bevy::prelude::*;
 
-
 pub fn move_blaster_head(
     mut commands: Commands,
     frame_cnt: Res<FrameCnt>,

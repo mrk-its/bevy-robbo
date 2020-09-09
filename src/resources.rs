@@ -1,6 +1,5 @@
-
-use std::collections::HashMap;
 use crate::components::Position;
+use std::collections::HashMap;
 
 #[derive(Default)]
 pub struct DamageMap(pub HashMap<Position, bool>);
@@ -13,6 +12,6 @@ impl DamageMap {
         self.0.insert(*pos, is_bomb);
     }
     pub fn is_damaged(&self, pos: &Position) -> bool {
-        return self.0.contains_key(pos)
+        return self.0.contains_key(pos);
     }
 }

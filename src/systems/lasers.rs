@@ -19,7 +19,8 @@ pub fn move_laser_head(
     let mut occupancy = level_info.get_occupancy(&mut all_query);
     for (mut laser_head, mut position, mut dir) in &mut laser_heads.iter() {
         let new_pos = position.add(&*dir);
-        let is_laser_tail_in_front = occupancy.get_entity(&new_pos)
+        let is_laser_tail_in_front = occupancy
+            .get_entity(&new_pos)
             .map(|entity| all_query.get::<LaserTail>(*entity).is_ok())
             .unwrap_or_default();
         if occupancy.is_free(&new_pos) {

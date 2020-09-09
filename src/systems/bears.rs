@@ -4,7 +4,6 @@ use crate::levels::LevelInfo;
 use crate::resources::DamageMap;
 use bevy::prelude::*;
 
-
 pub fn move_bear(
     frame_cnt: Res<FrameCnt>,
     level_info: Res<LevelInfo>,
@@ -47,11 +46,9 @@ pub fn move_bear(
             let new_pos = position.add(&*dir);
             occupancy.mv(&position, &new_pos);
             *position = new_pos;
-        } else if occupancy.is_free(&(position.add(&new_dir2)))
-        {
+        } else if occupancy.is_free(&(position.add(&new_dir2))) {
             *dir = new_dir2
-        } else if occupancy.is_free(&(position.add(&new_dir3)))
-        {
+        } else if occupancy.is_free(&(position.add(&new_dir3))) {
             *dir = new_dir3
         }
     }

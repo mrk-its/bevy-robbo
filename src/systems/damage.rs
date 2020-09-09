@@ -1,9 +1,9 @@
 use crate::components::prelude::*;
 use crate::entities::create_explosion;
-use crate::game_events::GameEvent;
-use crate::sounds;
 use crate::frame_cnt::FrameCnt;
+use crate::game_events::GameEvent;
 use crate::resources::DamageMap;
+use crate::sounds;
 
 use bevy::prelude::*;
 
@@ -37,7 +37,6 @@ pub fn damage_system(
     }
 }
 
-
 pub fn process_damage(
     mut commands: Commands,
     frame_cnt: Res<FrameCnt>,
@@ -54,9 +53,8 @@ pub fn process_damage(
 
     for (entity, pos) in &mut items.iter() {
         if let Some(is_bomb_damage) = damage.get(pos) {
-            let mut do_damage = |kx, ky| {
-                damage_map.do_damage(&pos.add(&MovingDir::new(kx, ky)), true)
-            };
+            let mut do_damage =
+                |kx, ky| damage_map.do_damage(&pos.add(&MovingDir::new(kx, ky)), true);
             let is_bomb_entity = if let Ok(mut bomb) = bombs.entity(entity) {
                 if let Some(mut bomb) = bomb.get() {
                     if !bomb.0 {

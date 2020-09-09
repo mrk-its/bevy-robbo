@@ -6,8 +6,8 @@ mod game_events;
 mod inventory;
 mod keyboard;
 mod levels;
-mod systems;
 mod resources;
+mod systems;
 
 use bevy::prelude::*;
 use bevy::sprite::TextureAtlas;

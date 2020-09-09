@@ -1,9 +1,9 @@
-use std::collections::{HashSet, HashMap};
 use crate::components::{ForceFieldBounds, Int2Ops, MovingDir, Position, Wall};
 use crate::entities::*;
 use anyhow;
 use bevy::asset::AssetLoader;
 use bevy::prelude::*;
+use std::collections::{HashMap, HashSet};
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Level {
@@ -38,11 +38,10 @@ impl<'a> HashMapOccupancyCheck<'a> {
     pub fn put_entity(&mut self, pos: &Position, entity: Entity) {
         self.hash_map.insert(*pos, entity);
     }
-    pub fn remove(&mut self, pos: &Position) -> Option<Entity>{
+    pub fn remove(&mut self, pos: &Position) -> Option<Entity> {
         self.hash_map.remove(pos)
     }
 }
-
 
 #[derive(Default, Debug)]
 pub struct LevelInfo {
@@ -62,16 +61,23 @@ impl LevelInfo {
         level_set.get(self.current_level).unwrap()
     }
     pub fn is_occupied(&self, pos: &Position) -> bool {
-        pos.x() < 0 || pos.y() < 0 || pos.x() >= self.width || pos.y() >= self.height || self.wall_positions.contains(pos)
+        pos.x() < 0
+            || pos.y() < 0
+            || pos.x() >= self.width
+            || pos.y() >= self.height
+            || self.wall_positions.contains(pos)
     }
 
-    pub fn get_occupancy<'a>(&'a self, query: &mut Query<Without<Wall, (&Position, Entity)>>) -> HashMapOccupancyCheck<'a> {
+    pub fn get_occupancy<'a>(
+        &'a self,
+        query: &mut Query<Without<Wall, (&Position, Entity)>>,
+    ) -> HashMapOccupancyCheck<'a> {
         HashMapOccupancyCheck {
             hash_map: query
-            .iter()
-            .into_iter()
-            .map(|(pos, entity)| (*pos, entity))
-            .collect(),
+                .iter()
+                .into_iter()
+                .map(|(pos, entity)| (*pos, entity))
+                .collect(),
             level_info: &self,
         }
     }
