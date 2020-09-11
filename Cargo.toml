@@ -12,3 +12,6 @@ rand = "0.7"
 anyhow = "1.0"
 uuid = "0.8"
 structopt = "0.3"
+
+[profile.dev]
+opt-level = 1

@@ -2,6 +2,7 @@ use crate::game_events::GameEvent;
 pub struct Robbo;
 pub struct Bomb(pub bool);
 pub struct Bird;
+pub struct MovingBetweenWalls;
 pub struct Bear(pub bool);
 pub struct Eyes;
 pub struct Bullet;

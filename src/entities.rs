@@ -13,6 +13,7 @@ pub fn create_robbo<'a>(commands: &'a mut Commands) -> &'a mut Commands {
 pub fn create_bird<'a>(commands: &'a mut Commands, params: &[usize]) -> &'a mut Commands {
     commands.spawn((
         Bird,
+        MovingBetweenWalls,
         Deadly,
         Destroyable,
         MovingDir::by_index(params[0]),
@@ -197,7 +198,7 @@ pub fn create_gun<'a>(commands: &'a mut Commands, params: &[usize]) -> &'a mut C
         gun_type,
     ));
     if is_moveable {
-        commands.with_bundle((Moveable, MovingDir::by_index(params[1])));
+        commands.with_bundle((Moveable, MovingBetweenWalls, MovingDir::by_index(params[1])));
     }
     if is_random_rotateable {
         commands.with(Rotatable::Random);
