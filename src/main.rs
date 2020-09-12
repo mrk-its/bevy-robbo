@@ -79,7 +79,7 @@ fn main() {
         .add_resource(WindowDescriptor {
             title: "Robbo".to_string(),
             width: ((32 * MAX_WIDTH) as f32 * opts.zoom) as u32,
-            height: ((32 * MAX_HEIGHT) as f32 * opts.zoom) as u32,
+            height: ((32 * (MAX_HEIGHT + 2)) as f32 * opts.zoom) as u32,
             vsync: !opts.benchmark_mode,
             resizable: false,
             mode: window::WindowMode::Windowed,
@@ -135,6 +135,7 @@ fn main() {
             .add_system_to_stage("reload_level", reload_level.system())
             .add_system_to_stage("create_sprites", create_sprites.system())
             .add_system_to_stage("prepare_render", prepare_render.system())
+            .add_system_to_stage("prepare_render", update_status_bar.system())
             .add_plugin(FrameLimiterPlugin { fps: FPS });
     } else {
         builder.add_system_to_stage("reload_level", benchmark_reload_level.system());

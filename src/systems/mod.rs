@@ -33,7 +33,7 @@ pub use levels::{asset_events, level_setup};
 pub use magnetic_field::magnetic_field_system;
 pub use push_boxes::move_pushbox;
 pub use reload_level::{benchmark_reload_level, reload_level};
-pub use render::{create_sprites, prepare_render, render_setup};
+pub use render::{create_sprites, prepare_render, render_setup, update_status_bar};
 pub use robbo_move::move_robbo;
 pub use shots::shot_system;
 pub use ticks::tick_system;

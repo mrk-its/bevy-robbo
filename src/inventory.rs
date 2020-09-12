@@ -26,9 +26,5 @@ impl Inventory {
                 events.send(GameEvent::PlaySound(sounds::AMMO));
             }
         }
-        self.show();
-    }
-    pub fn show(&self) {
-        println!("{:?}", self);
     }
 }

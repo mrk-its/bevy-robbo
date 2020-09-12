@@ -41,7 +41,6 @@ pub fn keyboard_system(
             let ky = jp_up - jp_down;
             if (kx != 0 || ky != 0) && inventory.bullets > 0 {
                 inventory.bullets -= 1;
-                inventory.show();
                 *moving_dir = MovingDir::zero();
                 commands.insert_one(entity, ShootingDir::new(kx, ky));
                 events.send(GameEvent::PlaySound(sounds::SHOT));

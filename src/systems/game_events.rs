@@ -65,14 +65,12 @@ pub fn game_event_system(
         if let GameEvent::ReloadLevel(k) = *event {
             if let Some(level_set) = level_sets.get(&level_info.level_set_handle) {
                 let level = level_info.inc_current_level(k, level_set);
-                println!("Level: {:?}", level_info.current_level);
                 level_info.missing_robbo_ticks = 0;
                 level_info.screws = level.screw_count;
                 level_info.width = level.height;
                 level_info.height = level.width;
                 create_level(&mut commands, &mut all_positions, level, &mut level_info);
                 *inventory = Inventory::default();
-                inventory.show();
                 game_events.send(GameEvent::PlaySound(sounds::SPAWN));
                 return;
             }
