@@ -21,7 +21,7 @@ pub fn asset_events(
             _ => continue,
         };
         level_info.level_set_handle = *handle;
-        level_info.current_level = opts.level;
+        level_info.current_level = (opts.level - 1).max(0);
         game_events.send(GameEvent::ReloadLevel(0));
     }
 }

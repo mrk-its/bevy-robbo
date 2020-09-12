@@ -1,11 +1,13 @@
 use crate::components::prelude::*;
 use crate::frame_cnt::FrameCnt;
+use crate::resources::DamageMap;
 use bevy::prelude::*;
 use std::collections::HashMap;
 
 pub fn force_field_system(
     mut commands: Commands,
     frame_cnt: Res<FrameCnt>,
+    mut damage_map: ResMut<DamageMap>,
     mut force_field: Query<(&ForceField, &ForceFieldBounds, &mut Position)>,
     mut all: Query<Without<ForceField, Without<Wall, (&Position, Entity)>>>,
 ) {
@@ -31,6 +33,9 @@ pub fn force_field_system(
             **pos = Position::new(pos.x(), bounds.0);
         }
         if let Some(&entity) = entity_by_pos.get(&**pos) {
+            if all.get::<Bullet>(entity).is_ok() {
+                damage_map.do_damage(pos, false);
+            }
             commands.despawn(entity);
         }
     }

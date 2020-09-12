@@ -55,6 +55,9 @@ pub fn process_damage(
         return;
     }
     let damage = damage_map.take();
+    if damage.is_empty() {
+        return;
+    }
     let mut damaged_entities: HashSet<Position> = HashSet::new();
     for (entity, pos) in &mut items.iter() {
         if let Some(is_bomb_damage) = damage.get(pos) {

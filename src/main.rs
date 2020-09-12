@@ -13,7 +13,6 @@ use bevy::prelude::*;
 use bevy::sprite::TextureAtlas;
 use bevy::window;
 use structopt::StructOpt;
-// use bevy::render::pass::ClearColor;
 use frame_cnt::FrameCntPlugin;
 use frame_limiter::FrameLimiterPlugin;
 use game_events::GameEvent;
@@ -61,7 +60,7 @@ pub struct Opts {
     #[structopt(long)]
     pub no_audio: bool,
 
-    #[structopt(short, long, default_value = "0")]
+    #[structopt(short, long, default_value = "1")]
     pub level: usize,
 
     #[structopt(long, default_value = "assets/original.txt")]
