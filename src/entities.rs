@@ -114,7 +114,7 @@ pub fn create_screw<'a>(commands: &'a mut Commands) -> &'a mut Commands {
 }
 
 pub fn create_ammo<'a>(commands: &'a mut Commands) -> &'a mut Commands {
-    commands.spawn((Collectable::Ammo, Tiles::new(&[5])))
+    commands.spawn((Collectable::Ammo, Destroyable, Tiles::new(&[5])))
 }
 
 pub fn create_key<'a>(commands: &'a mut Commands) -> &'a mut Commands {
@@ -156,12 +156,22 @@ pub fn spawn_robbo<'a>(commands: &'a mut Commands, pos: Position) -> &'a mut Com
         .with(pos)
 }
 
+pub fn spawn_random<'a>(commands: &'a mut Commands, pos: Position) -> &'a mut Commands {
+    commands
+        .spawn((
+            Animation(Some(GameEvent::SpawnRandom(pos))),
+            Undestroyable,
+            Tiles::new(&[84, 85, 86]),
+        ))
+        .with(pos)
+}
+
 pub fn create_small_explosion<'a>(commands: &'a mut Commands) -> &'a mut Commands {
     commands.spawn((Animation(None), Undestroyable, Tiles::new(&[85, 84])))
 }
 
 pub fn create_questionmark<'a>(commands: &'a mut Commands) -> &'a mut Commands {
-    commands.spawn((Destroyable, Moveable, Tiles::new(&[12])))
+    commands.spawn((Destroyable, QuestionMark, Moveable, Tiles::new(&[12])))
 }
 
 pub fn create_door<'a>(commands: &'a mut Commands) -> &'a mut Commands {
@@ -206,6 +216,10 @@ pub fn create_gun<'a>(commands: &'a mut Commands, params: &[usize]) -> &'a mut C
         commands.with(Rotatable::Regular);
     }
     commands
+}
+
+pub fn create_questionmark_gun<'a>(commands: &'a mut Commands) -> &'a mut Commands {
+    create_gun(commands, &[0, 0, 0, 0, 0, 1])
 }
 
 pub fn gun_set_shooting_dir(

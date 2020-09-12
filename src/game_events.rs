@@ -6,6 +6,7 @@ pub enum GameEvent {
     Use(Entity, MovingDir),
     ReloadLevel(i32),
     SpawnRobbo(Position),
+    SpawnRandom(Position),
     KillRobbo,
     PlaySound(&'static str),
 }

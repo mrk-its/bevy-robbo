@@ -1,5 +1,5 @@
 use crate::components::{Position, Robbo, Teleport, Undestroyable, Usable};
-use crate::entities::{create_robbo, create_small_explosion, spawn_robbo};
+use crate::entities::*;
 use crate::frame_cnt::FrameCnt;
 use crate::game_events::GameEvent;
 use crate::inventory::Inventory;
@@ -8,6 +8,7 @@ use crate::resources::DamageMap;
 use crate::sounds;
 use crate::systems::utils::teleport_dest_position;
 use crate::Opts;
+use rand::random;
 
 use bevy::prelude::*;
 use std::collections::HashSet;
@@ -87,6 +88,21 @@ pub fn game_event_system(
             }
             GameEvent::SpawnRobbo(pos) => {
                 create_robbo(&mut commands).with(pos);
+            }
+            GameEvent::SpawnRandom(pos) => {
+                let create_item = [
+                    create_small_explosion,
+                    create_push_box,
+                    create_screw,
+                    create_ammo,
+                    create_key,
+                    create_bomb,
+                    create_ground,
+                    create_eyes,
+                    create_questionmark_gun,
+                    create_questionmark,
+                ];
+                create_item[random::<usize>() % create_item.len()](&mut commands).with(pos);
             }
             GameEvent::KillRobbo => {
                 for (_, pos) in &mut robbo.iter() {

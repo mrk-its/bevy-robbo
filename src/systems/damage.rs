@@ -1,5 +1,5 @@
 use crate::components::prelude::*;
-use crate::entities::create_explosion;
+use crate::entities::{create_explosion, spawn_random};
 use crate::frame_cnt::FrameCnt;
 use crate::game_events::GameEvent;
 use crate::resources::DamageMap;
@@ -81,7 +81,12 @@ pub fn process_damage(
             };
             if destroyable.get::<Destroyable>(entity).is_ok() || *is_bomb_damage {
                 commands.despawn(entity);
-                create_explosion(&mut commands).with(*pos);
+
+                if destroyable.get::<QuestionMark>(entity).is_ok() {
+                    spawn_random(&mut commands, *pos).with(*pos);
+                } else {
+                    create_explosion(&mut commands).with(*pos);
+                }
                 if !is_bomb_entity && !is_bomb_damage {
                     events.send(GameEvent::PlaySound(sounds::BURN));
                 }

@@ -110,19 +110,6 @@ pub fn render_setup(
     spawn_counter(&mut commands, ScrewCounter, translation, 6, 3, 83, opts.zoom);
     spawn_counter(&mut commands, KeyCounter, translation, 12, 3, 95, opts.zoom);
     spawn_counter(&mut commands, AmmoCounter, translation, 18, 3, 91, opts.zoom);
-    // .spawn(UiCameraComponents::default())
-    // .spawn(TextComponents {
-    //     text: Text {
-    //         value: "bla".to_string(),
-    //         font: asset_server.load("assets/fonts/FiraSans-Bold.ttf").unwrap(),
-    //         style: TextStyle {
-    //             font_size: 60.0,
-    //             color: Color::WHITE,
-    //         },
-    //         ..Default::default()
-    //     },
-    //     ..Default::default()
-    // });
 }
 pub fn update_status_bar(
     level_info: Res<LevelInfo>,

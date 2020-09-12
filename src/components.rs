@@ -8,6 +8,8 @@ pub struct Eyes;
 pub struct Bullet;
 pub struct Wall;
 pub struct PushBox;
+pub struct QuestionMark;
+
 pub struct Animation(pub Option<GameEvent>);
 pub struct ForceField(pub MovingDir);
 pub struct ForceFieldBounds(pub i32, pub i32);
