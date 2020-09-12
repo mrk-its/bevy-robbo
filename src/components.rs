@@ -38,8 +38,6 @@ pub struct AmmoCounter;
 #[derive(Clone, Copy)]
 pub struct KeyCounter;
 
-
-
 #[derive(Default)]
 pub struct LaserHead {
     pub is_moving_back: bool,

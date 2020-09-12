@@ -25,12 +25,17 @@ pub fn keyboard_system(
     let is_shift =
         keyboard_input.pressed(KeyCode::LShift) || keyboard_input.pressed(KeyCode::RShift);
 
-    let jp_right = (keyboard_input.just_pressed(KeyCode::Right) || keyboard_input.just_pressed(KeyCode::D)) as i32;
-    let jp_left = (keyboard_input.just_pressed(KeyCode::Left) || keyboard_input.just_pressed(KeyCode::A)) as i32;
-    let jp_up = (keyboard_input.just_pressed(KeyCode::Up) || keyboard_input.just_pressed(KeyCode::W)) as i32;
-    let jp_down = (keyboard_input.just_pressed(KeyCode::Down) || keyboard_input.just_pressed(KeyCode::S)) as i32;
+    let jp_right = (keyboard_input.just_pressed(KeyCode::Right)
+        || keyboard_input.just_pressed(KeyCode::D)) as i32;
+    let jp_left = (keyboard_input.just_pressed(KeyCode::Left)
+        || keyboard_input.just_pressed(KeyCode::A)) as i32;
+    let jp_up = (keyboard_input.just_pressed(KeyCode::Up)
+        || keyboard_input.just_pressed(KeyCode::W)) as i32;
+    let jp_down = (keyboard_input.just_pressed(KeyCode::Down)
+        || keyboard_input.just_pressed(KeyCode::S)) as i32;
 
-    let right = (keyboard_input.pressed(KeyCode::Right) || keyboard_input.pressed(KeyCode::D)) as i32;
+    let right =
+        (keyboard_input.pressed(KeyCode::Right) || keyboard_input.pressed(KeyCode::D)) as i32;
     let left = (keyboard_input.pressed(KeyCode::Left) || keyboard_input.pressed(KeyCode::A)) as i32;
     let up = (keyboard_input.pressed(KeyCode::Up) || keyboard_input.pressed(KeyCode::W)) as i32;
     let down = (keyboard_input.pressed(KeyCode::Down) || keyboard_input.pressed(KeyCode::S)) as i32;

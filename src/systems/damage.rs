@@ -6,8 +6,8 @@ use crate::resources::DamageMap;
 use crate::sounds;
 
 use crate::levels::LevelInfo;
-use std::collections::HashSet;
 use bevy::prelude::*;
+use std::collections::HashSet;
 
 pub fn damage_system(
     mut commands: Commands,

@@ -41,11 +41,14 @@ fn spawn_counter<T>(
             .spawn(SpriteSheetComponents {
                 texture_atlas: DIGITS_ATLAS_HANDLE,
                 scale: Scale(zoom),
-                translation: Translation(translation + Vec3::new(
-                    zoom * (((x_offset + n_digits - k - 1) * 16) + 32 - 8) as f32,
-                    0.0,
-                    0.0,
-                )),
+                translation: Translation(
+                    translation
+                        + Vec3::new(
+                            zoom * (((x_offset + n_digits - k - 1) * 16) + 32 - 8) as f32,
+                            0.0,
+                            0.0,
+                        ),
+                ),
                 sprite: TextureAtlasSprite {
                     index: 8,
                     color: Color::rgb_u8(0x40, 0x40, 0x40),
@@ -104,12 +107,32 @@ pub fn render_setup(
     });
 
     let status_width = 23.0 * 16.0 * opts.zoom;
-    let translation = Vec3::new((window.width as f32 - status_width) / 2.0, 16.0 * opts.zoom, 0.0);
+    let translation = Vec3::new(
+        (window.width as f32 - status_width) / 2.0,
+        16.0 * opts.zoom,
+        0.0,
+    );
 
     spawn_counter(&mut commands, LevelNumber, translation, 0, 3, 71, opts.zoom);
-    spawn_counter(&mut commands, ScrewCounter, translation, 6, 3, 83, opts.zoom);
+    spawn_counter(
+        &mut commands,
+        ScrewCounter,
+        translation,
+        6,
+        3,
+        83,
+        opts.zoom,
+    );
     spawn_counter(&mut commands, KeyCounter, translation, 12, 3, 95, opts.zoom);
-    spawn_counter(&mut commands, AmmoCounter, translation, 18, 3, 91, opts.zoom);
+    spawn_counter(
+        &mut commands,
+        AmmoCounter,
+        translation,
+        18,
+        3,
+        91,
+        opts.zoom,
+    );
 }
 pub fn update_status_bar(
     level_info: Res<LevelInfo>,

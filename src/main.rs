@@ -12,7 +12,6 @@ mod systems;
 use bevy::prelude::*;
 use bevy::sprite::TextureAtlas;
 use bevy::window;
-use structopt::StructOpt;
 use frame_cnt::FrameCntPlugin;
 use frame_limiter::FrameLimiterPlugin;
 use game_events::GameEvent;
@@ -20,6 +19,7 @@ use inventory::Inventory;
 use keyboard::KeyboardPlugin;
 use levels::{LevelInfo, LevelSet, LevelSetLoader};
 use resources::DamageMap;
+use structopt::StructOpt;
 use systems::*;
 
 mod consts {
