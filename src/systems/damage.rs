@@ -5,6 +5,8 @@ use crate::game_events::GameEvent;
 use crate::resources::DamageMap;
 use crate::sounds;
 
+use crate::levels::LevelInfo;
+use std::collections::HashSet;
 use bevy::prelude::*;
 
 pub fn damage_system(
@@ -42,6 +44,7 @@ pub fn damage_system(
 pub fn process_damage(
     mut commands: Commands,
     frame_cnt: Res<FrameCnt>,
+    level_info: Res<LevelInfo>,
     mut events: ResMut<Events<GameEvent>>,
     mut damage_map: ResMut<DamageMap>,
     mut items: Query<Without<Undestroyable, (Entity, &Position)>>,
@@ -52,9 +55,10 @@ pub fn process_damage(
         return;
     }
     let damage = damage_map.take();
-
+    let mut damaged_entities: HashSet<Position> = HashSet::new();
     for (entity, pos) in &mut items.iter() {
         if let Some(is_bomb_damage) = damage.get(pos) {
+            damaged_entities.insert(*pos);
             let mut do_damage =
                 |kx, ky| damage_map.do_damage(&pos.add(&MovingDir::new(kx, ky)), true);
             let is_bomb_entity = if let Ok(mut bomb) = bombs.entity(entity) {
@@ -91,6 +95,11 @@ pub fn process_damage(
                     events.send(GameEvent::PlaySound(sounds::BURN));
                 }
             }
+        }
+    }
+    for (&pos, &is_bomb_damage) in damage.iter() {
+        if is_bomb_damage && !damaged_entities.contains(&pos) && !level_info.is_occupied(&pos) {
+            create_explosion(&mut commands).with(pos);
         }
     }
 }

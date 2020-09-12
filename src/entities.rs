@@ -118,7 +118,7 @@ pub fn create_ammo<'a>(commands: &'a mut Commands) -> &'a mut Commands {
 }
 
 pub fn create_key<'a>(commands: &'a mut Commands) -> &'a mut Commands {
-    commands.spawn((Collectable::Key, Tiles::new(&[42])))
+    commands.spawn((Collectable::Key, Tiles::new(&[7])))
 }
 
 pub fn create_ground<'a>(commands: &'a mut Commands) -> &'a mut Commands {
