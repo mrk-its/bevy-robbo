@@ -1,10 +1,10 @@
 use bevy::prelude::*;
 
 use crate::components::prelude::*;
-use crate::FrameCnt;
 use crate::game_events::GameEvent;
 use crate::inventory::Inventory;
 use crate::sounds;
+use crate::FrameCnt;
 
 pub struct KeyboardPlugin;
 

@@ -22,7 +22,7 @@ pub struct RenderState {
 
 fn camera_scale(width: u32, height: u32) -> Scale {
     let scale_x = (MAX_WIDTH as f32 * 32.0) / (width as f32);
-    let scale_y =  ((MAX_HEIGHT + 2) as f32 * 32.0) / (height as f32);
+    let scale_y = ((MAX_HEIGHT + 2) as f32 * 32.0) / (height as f32);
     Scale(scale_x.max(scale_y))
 }
 
@@ -129,12 +129,12 @@ pub fn render_setup(
         ..Default::default()
     });
 
-    let offs = (62 - 23) / 2;
+    let offs = (62 - 22) / 2;
 
-    spawn_counter(&mut commands, LevelNumber, offs + 0, 3, 71);
-    spawn_counter(&mut commands, ScrewCounter, offs + 6, 3, 83);
-    spawn_counter(&mut commands, KeyCounter, offs + 12, 3, 95);
-    spawn_counter(&mut commands, AmmoCounter, offs + 18, 3, 91);
+    spawn_counter(&mut commands, ScrewCounter, offs + 0, 2, 83);
+    spawn_counter(&mut commands, KeyCounter, offs + 6, 2, 95);
+    spawn_counter(&mut commands, AmmoCounter, offs + 12, 2, 91);
+    spawn_counter(&mut commands, LevelNumber, offs + 18, 2, 71);
 }
 
 pub fn update_camera(
@@ -184,6 +184,7 @@ pub fn create_sprites(
 
 pub fn prepare_render(
     frame_cnt: Res<FrameCnt>,
+    opts: Res<crate::Opts>,
     mut items: Query<(
         Entity,
         &Position,
@@ -199,27 +200,33 @@ pub fn prepare_render(
         .into_iter()
         .chain(smooth_update_items2.iter().into_iter())
         .collect();
-
     let box_size = 32.0;
-    let min_step = box_size / (KEYFRAME_INTERVAL as f32) * 1.01;
+    let min_step = box_size / (opts.key_frame_interval as f32) * 1.01;
     let trans = Vec3::new(0.0, 2.0 * box_size, 0.0);
     for (entity, position, tiles, mut translation, mut sprite) in &mut items.iter() {
         let dest = trans + Vec3::new(position.x() as f32, position.y() as f32, 0.0) * box_size;
-        if to_smooth_update.contains(&entity) {
-            let steps_left = (KEYFRAME_INTERVAL - ((frame_cnt.value()) % KEYFRAME_INTERVAL)) as f32;
-            let cur = translation.0;
-            let step = (dest - cur) / steps_left;
-            if step.x().abs() > 0.01 || step.y().abs() > 0.01 {
-                translation.0 = if step.x().abs() <= min_step && step.y().abs() <= min_step {
-                    cur + step
-                } else {
-                    dest
-                };
+        if translation.0 != dest {
+            if to_smooth_update.contains(&entity) {
+                let steps_left = (opts.key_frame_interval
+                    - ((frame_cnt.value()) % opts.key_frame_interval))
+                    as f32;
+                let cur = translation.0;
+                let step = (dest - cur) / steps_left;
+                if step.x().abs() > 0.01 || step.y().abs() > 0.01 {
+                    translation.0 = if step.x().abs() <= min_step && step.y().abs() <= min_step {
+                        cur + step
+                    } else {
+                        dest
+                    };
+                }
+            } else {
+                translation.0 = dest;
             }
-        } else {
-            translation.0 = dest;
         }
-        sprite.index = tiles.tiles[tiles.current];
+        let sprite_index = tiles.tiles[tiles.current];
+        if sprite.index != sprite_index {
+            sprite.index = sprite_index;
+        }
     }
 }
 

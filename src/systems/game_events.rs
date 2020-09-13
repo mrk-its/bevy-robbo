@@ -129,7 +129,7 @@ pub fn game_event_system(
                             game_events.send(GameEvent::PlaySound(sounds::CAPSULE));
                             fly_away(&mut commands, pos);
                         }
-                    },
+                    }
                     Usable::Teleport => {
                         let occupied: HashSet<_> =
                             all_positions.iter().iter().map(|(_, pos)| *pos).collect();

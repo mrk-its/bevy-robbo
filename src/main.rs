@@ -3,18 +3,18 @@ mod entities;
 mod game_events;
 mod inventory;
 mod levels;
+mod plugins;
 mod resources;
 mod systems;
-mod plugins;
 
 use bevy::prelude::*;
 use bevy::sprite::TextureAtlas;
 use bevy::window;
-use plugins::frame_cnt;
-use plugins::{FrameCntPlugin, FrameCnt, FrameLimiterPlugin, KeyboardPlugin};
 use game_events::GameEvent;
 use inventory::Inventory;
 use levels::{LevelInfo, LevelSet, LevelSetLoader};
+use plugins::frame_cnt;
+use plugins::{FrameCnt, FrameCntPlugin, FrameLimiterPlugin, KeyboardPlugin};
 use resources::DamageMap;
 use structopt::StructOpt;
 use systems::*;
@@ -22,8 +22,6 @@ use systems::*;
 mod consts {
     pub const MAX_WIDTH: i32 = 31;
     pub const MAX_HEIGHT: i32 = 16;
-    pub const FPS: f32 = 60.0;
-    pub const KEYFRAME_INTERVAL: usize = 8;
 }
 
 mod sounds {
@@ -52,6 +50,9 @@ pub struct Opts {
     #[structopt(short, long)]
     pub benchmark_mode: bool,
 
+    #[structopt(short, long)]
+    pub debug: bool,
+
     #[structopt(long)]
     pub no_render: bool,
 
@@ -61,6 +62,12 @@ pub struct Opts {
     #[structopt(short, long, default_value = "1")]
     pub level: usize,
 
+    #[structopt(short, long, default_value = "8")]
+    pub key_frame_interval: usize,
+
+    #[structopt(short, long, default_value = "60")]
+    pub fps: usize,
+
     #[structopt(long, default_value = "assets/original.txt")]
     pub levelset_path: std::path::PathBuf,
 }
@@ -68,16 +75,18 @@ pub struct Opts {
 fn main() {
     let opts = Opts::from_args();
 
+    let vsync = opts.fps == 60 && !opts.benchmark_mode;
+
     let mut builder = App::build();
     builder
         .add_resource(WindowDescriptor {
             title: "Robbo".to_string(),
             width: ((32 * MAX_WIDTH) as f32) as u32,
             height: ((32 * (MAX_HEIGHT + 2)) as f32) as u32,
-            vsync: !opts.benchmark_mode,
             resizable: true,
             // mode: window::WindowMode::Fullscreen {use_size: false},
             mode: window::WindowMode::Windowed,
+            vsync,
             ..Default::default()
         })
         .add_resource(bevy::render::pass::ClearColor(Color::rgb(0.1, 0.1, 0.1)))
@@ -91,9 +100,7 @@ fn main() {
         .add_default_plugins()
         .add_asset::<LevelSet>()
         .add_asset_loader::<LevelSet, LevelSetLoader>()
-        .add_plugin(bevy::diagnostic::FrameTimeDiagnosticsPlugin::default())
-        //.add_plugin(bevy::diagnostic::PrintDiagnosticsPlugin::default())
-        .add_plugin(FrameCntPlugin)
+        .add_plugin(FrameCntPlugin::new(opts.key_frame_interval))
         .add_plugin(KeyboardPlugin)
         .add_startup_system(render_setup.system())
         .add_plugin(RenderPlugin)
@@ -124,10 +131,19 @@ fn main() {
         .add_system_to_stage("tick", tick_system.system())
         .add_system_to_stage("tick", damage_system.system());
 
-    if !opts.benchmark_mode {
+    if opts.debug {
         builder
-            .add_system_to_stage("reload_level", reload_level.system())
-            .add_plugin(FrameLimiterPlugin { fps: FPS });
+            .add_plugin(bevy::diagnostic::FrameTimeDiagnosticsPlugin::default())
+            .add_plugin(bevy::diagnostic::PrintDiagnosticsPlugin::default());
+    }
+
+    if !opts.benchmark_mode {
+        builder.add_system_to_stage("reload_level", reload_level.system());
+        if !vsync {
+            builder.add_plugin(FrameLimiterPlugin {
+                fps: opts.fps as f32,
+            });
+        }
     } else {
         builder.add_system_to_stage("reload_level", benchmark_reload_level.system());
         if !opts.no_render {
