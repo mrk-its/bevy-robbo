@@ -29,6 +29,7 @@ pub struct Undestroyable;
 // Status bar
 
 pub struct Digit(pub u32);
+pub struct StatusOffset(pub u32);
 #[derive(Clone, Copy)]
 pub struct ScrewCounter;
 #[derive(Clone, Copy)]

@@ -25,8 +25,8 @@ use systems::*;
 mod consts {
     pub const MAX_WIDTH: i32 = 31;
     pub const MAX_HEIGHT: i32 = 16;
-    pub const FPS: f32 = 30.0;
-    pub const KEYFRAME_INTERVAL: usize = 4;
+    pub const FPS: f32 = 60.0;
+    pub const KEYFRAME_INTERVAL: usize = 8;
 }
 
 mod sounds {
@@ -77,10 +77,11 @@ fn main() {
     builder
         .add_resource(WindowDescriptor {
             title: "Robbo".to_string(),
-            width: ((32 * MAX_WIDTH) as f32 * opts.zoom) as u32,
-            height: ((32 * (MAX_HEIGHT + 2)) as f32 * opts.zoom) as u32,
+            width: ((32 * MAX_WIDTH) as f32) as u32,
+            height: ((32 * (MAX_HEIGHT + 2)) as f32) as u32,
             vsync: !opts.benchmark_mode,
-            resizable: false,
+            resizable: true,
+            // mode: window::WindowMode::Fullscreen {use_size: false},
             mode: window::WindowMode::Windowed,
             ..Default::default()
         })
@@ -96,10 +97,11 @@ fn main() {
         .add_asset::<LevelSet>()
         .add_asset_loader::<LevelSet, LevelSetLoader>()
         .add_plugin(bevy::diagnostic::FrameTimeDiagnosticsPlugin::default())
-        // .add_plugin(bevy::diagnostic::PrintDiagnosticsPlugin::default())
+        //.add_plugin(bevy::diagnostic::PrintDiagnosticsPlugin::default())
         .add_plugin(FrameCntPlugin)
         .add_plugin(KeyboardPlugin)
         .add_startup_system(render_setup.system())
+        .add_plugin(RenderPlugin)
         .add_startup_system(level_setup.system())
         .add_stage_before(stage::UPDATE, "move")
         .add_stage_before(stage::UPDATE, "move_robbo")
@@ -107,8 +109,6 @@ fn main() {
         .add_stage_before(stage::POST_UPDATE, "shots")
         .add_stage_before(stage::POST_UPDATE, "process_damage")
         .add_stage_before(stage::POST_UPDATE, "game_events")
-        .add_stage_before(stage::POST_UPDATE, "create_sprites")
-        .add_stage_before(stage::POST_UPDATE, "prepare_render")
         .add_stage_after("keyboard", "magnetic_field")
         .add_stage_after("frame_cnt", "tick")
         .add_system_to_stage("magnetic_field", magnetic_field_system.system())
@@ -132,9 +132,6 @@ fn main() {
     if !opts.benchmark_mode {
         builder
             .add_system_to_stage("reload_level", reload_level.system())
-            .add_system_to_stage("create_sprites", create_sprites.system())
-            .add_system_to_stage("prepare_render", prepare_render.system())
-            .add_system_to_stage("prepare_render", update_status_bar.system())
             .add_plugin(FrameLimiterPlugin { fps: FPS });
     } else {
         builder.add_system_to_stage("reload_level", benchmark_reload_level.system());

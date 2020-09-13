@@ -7,6 +7,7 @@ use bevy::asset::Handle;
 use bevy::prelude::*;
 use bevy::render::camera::{OrthographicProjection, WindowOrigin};
 use bevy::sprite::TextureAtlas;
+use bevy::window::WindowResized;
 use std::collections::HashSet;
 
 const TEXTURE_ATLAS_HANDLE: Handle<TextureAtlas> =
@@ -14,41 +15,59 @@ const TEXTURE_ATLAS_HANDLE: Handle<TextureAtlas> =
 const DIGITS_ATLAS_HANDLE: Handle<TextureAtlas> =
     Handle::from_u128(0xc5de37f40bcd4614bb544ac824d69f2a);
 
+#[derive(Default)]
+pub struct RenderState {
+    pub reader: EventReader<WindowResized>,
+}
+
+fn camera_scale(width: u32, height: u32) -> Scale {
+    let scale_x = (MAX_WIDTH as f32 * 32.0) / (width as f32);
+    let scale_y =  ((MAX_HEIGHT + 2) as f32 * 32.0) / (height as f32);
+    Scale(scale_x.max(scale_y))
+}
+
+fn camera_translation(width: u32, height: u32) -> Translation {
+    let scale = camera_scale(width, height).0;
+    let board_width = MAX_WIDTH as f32 * 32.0;
+    let board_height = (MAX_HEIGHT + 2) as f32 * 32.0;
+    Translation::new(
+        -16.0 - (width as f32 * scale - board_width) / 2.0,
+        -16.0 - (height as f32 * scale - board_height) / 2.0,
+        0.0,
+    )
+}
+
 fn spawn_counter<T>(
     commands: &mut Commands,
     component: T,
-    translation: Vec3,
     x_offset: u32,
     n_digits: u32,
     icon_index: u32,
-    zoom: f32,
 ) where
     T: Send + Sync + Copy + 'static,
 {
-    commands.spawn(SpriteSheetComponents {
-        texture_atlas: TEXTURE_ATLAS_HANDLE,
-        scale: Scale(zoom),
-        translation: Translation(translation + Vec3::new(zoom * (x_offset * 16) as f32, 0.0, 0.0)),
-        sprite: TextureAtlasSprite {
-            index: icon_index,
-            color: Color::rgb_u8(0x40, 0x40, 0x40),
+    commands
+        .spawn(SpriteSheetComponents {
+            texture_atlas: TEXTURE_ATLAS_HANDLE,
+            translation: Translation(Vec3::new(x_offset as f32 * 16.0, 16.0, 0.0)),
+            sprite: TextureAtlasSprite {
+                index: icon_index,
+                color: Color::rgb_u8(0x40, 0x40, 0x40),
+                ..Default::default()
+            },
             ..Default::default()
-        },
-        ..Default::default()
-    });
+        })
+        .with(StatusOffset(x_offset));
+
     for k in 0..n_digits {
         commands
             .spawn(SpriteSheetComponents {
                 texture_atlas: DIGITS_ATLAS_HANDLE,
-                scale: Scale(zoom),
-                translation: Translation(
-                    translation
-                        + Vec3::new(
-                            zoom * (((x_offset + n_digits - k - 1) * 16) + 32 - 8) as f32,
-                            0.0,
-                            0.0,
-                        ),
-                ),
+                translation: Translation(Vec3::new(
+                    (((x_offset + n_digits - k - 1) * 16) + 32 - 8) as f32,
+                    16.0,
+                    0.0,
+                )),
                 sprite: TextureAtlasSprite {
                     index: 8,
                     color: Color::rgb_u8(0x40, 0x40, 0x40),
@@ -56,7 +75,11 @@ fn spawn_counter<T>(
                 },
                 ..Default::default()
             })
-            .with_bundle((component, Digit(k)));
+            .with_bundle((
+                component,
+                Digit(k),
+                StatusOffset(x_offset + n_digits - k + 1),
+            ));
     }
 }
 
@@ -76,7 +99,6 @@ where
 pub fn render_setup(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
-    opts: Res<crate::Opts>,
     window: Res<WindowDescriptor>,
     mut clear_color: ResMut<ClearColor>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
@@ -91,49 +113,44 @@ pub fn render_setup(
     let digits_atlas = TextureAtlas::from_grid(digits_handle, Vec2::new(160.0, 32.0), 10, 1);
     texture_atlases.set(DIGITS_ATLAS_HANDLE, digits_atlas);
 
-    let box_size = opts.zoom * 32.0;
+    let box_size = 32.0;
 
     commands.spawn(Camera2dComponents {
-        translation: Translation::new(-box_size / 2.0, -box_size / 2.0, 0.0),
+        translation: camera_translation(window.width, window.height),
+        scale: camera_scale(window.width, window.height),
         orthographic_projection: OrthographicProjection {
             bottom: 0.0,
-            top: MAX_HEIGHT as f32 * box_size / 2.0,
+            top: MAX_HEIGHT as f32 * box_size,
             left: 0.0,
-            right: MAX_WIDTH as f32 * box_size / 2.0,
+            right: MAX_WIDTH as f32 * box_size,
             window_origin: WindowOrigin::BottomLeft,
             ..Default::default()
         },
         ..Default::default()
     });
 
-    let status_width = 23.0 * 16.0 * opts.zoom;
-    let translation = Vec3::new(
-        (window.width as f32 - status_width) / 2.0,
-        16.0 * opts.zoom,
-        0.0,
-    );
+    let offs = (62 - 23) / 2;
 
-    spawn_counter(&mut commands, LevelNumber, translation, 0, 3, 71, opts.zoom);
-    spawn_counter(
-        &mut commands,
-        ScrewCounter,
-        translation,
-        6,
-        3,
-        83,
-        opts.zoom,
-    );
-    spawn_counter(&mut commands, KeyCounter, translation, 12, 3, 95, opts.zoom);
-    spawn_counter(
-        &mut commands,
-        AmmoCounter,
-        translation,
-        18,
-        3,
-        91,
-        opts.zoom,
-    );
+    spawn_counter(&mut commands, LevelNumber, offs + 0, 3, 71);
+    spawn_counter(&mut commands, ScrewCounter, offs + 6, 3, 83);
+    spawn_counter(&mut commands, KeyCounter, offs + 12, 3, 95);
+    spawn_counter(&mut commands, AmmoCounter, offs + 18, 3, 91);
 }
+
+pub fn update_camera(
+    mut state: ResMut<RenderState>,
+    events: Res<Events<WindowResized>>,
+    mut items: Query<(&mut Scale, &mut Translation, &OrthographicProjection)>,
+) {
+    let event: Option<WindowResized> = state.reader.iter(&events).cloned().last();
+    if let Some(event) = event {
+        for (mut scale, mut translation, _) in &mut items.iter() {
+            *scale = camera_scale(event.width as u32, event.height as u32);
+            *translation = camera_translation(event.width as u32, event.height as u32);
+        }
+    }
+}
+
 pub fn update_status_bar(
     level_info: Res<LevelInfo>,
     inventory: Res<Inventory>,
@@ -151,7 +168,6 @@ pub fn update_status_bar(
 
 pub fn create_sprites(
     mut commands: Commands,
-    opts: Res<crate::Opts>,
     mut missing_sprites: Query<Without<Translation, With<Position, Entity>>>,
 ) {
     for entity in &mut missing_sprites.iter() {
@@ -159,7 +175,6 @@ pub fn create_sprites(
             entity,
             SpriteSheetComponents {
                 texture_atlas: TEXTURE_ATLAS_HANDLE,
-                scale: Scale(opts.zoom),
                 translation: Translation(Vec3::new(-1000.0, -1000.0, 0.0)),
                 ..Default::default()
             },
@@ -169,7 +184,6 @@ pub fn create_sprites(
 
 pub fn prepare_render(
     frame_cnt: Res<FrameCnt>,
-    opts: Res<crate::Opts>,
     mut items: Query<(
         Entity,
         &Position,
@@ -185,9 +199,10 @@ pub fn prepare_render(
         .into_iter()
         .chain(smooth_update_items2.iter().into_iter())
         .collect();
-    let trans = Vec3::new(0.0, 2.0 * 32.0 * opts.zoom, 0.0);
-    let box_size = opts.zoom * 32.0;
-    let min_step = box_size / (KEYFRAME_INTERVAL as f32);
+
+    let box_size = 32.0;
+    let min_step = box_size / (KEYFRAME_INTERVAL as f32) * 1.01;
+    let trans = Vec3::new(0.0, 2.0 * box_size, 0.0);
     for (entity, position, tiles, mut translation, mut sprite) in &mut items.iter() {
         let dest = trans + Vec3::new(position.x() as f32, position.y() as f32, 0.0) * box_size;
         if to_smooth_update.contains(&entity) {
@@ -205,5 +220,21 @@ pub fn prepare_render(
             translation.0 = dest;
         }
         sprite.index = tiles.tiles[tiles.current];
+    }
+}
+
+pub struct RenderPlugin;
+
+impl Plugin for RenderPlugin {
+    fn build(&self, app: &mut AppBuilder) {
+        app.add_resource(RenderState::default())
+            .add_startup_system(render_setup.system())
+            .add_stage_before(stage::POST_UPDATE, "create_sprites")
+            .add_stage_before(stage::POST_UPDATE, "update_camera")
+            .add_stage_before(stage::POST_UPDATE, "prepare_render")
+            .add_system_to_stage("create_sprites", create_sprites.system())
+            .add_system_to_stage("update_camera", update_camera.system())
+            .add_system_to_stage("prepare_render", prepare_render.system())
+            .add_system_to_stage("prepare_render", update_status_bar.system());
     }
 }
