@@ -3,7 +3,7 @@ use bevy::ecs::Entity;
 
 #[derive(Copy, Clone, Debug)]
 pub enum GameEvent {
-    Use(Entity, MovingDir),
+    Use(Entity, Position, MovingDir),
     ReloadLevel(i32),
     SpawnRobbo(Position),
     PreSpawnRobbo(Position),

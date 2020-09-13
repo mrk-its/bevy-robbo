@@ -65,7 +65,7 @@ pub fn move_robbo(
                             return;
                         }
                     } else if all.get::<Usable>(entity).is_ok() {
-                        events.send(GameEvent::Use(entity, *dir));
+                        events.send(GameEvent::Use(entity, new_pos, *dir));
                         return;
                     }
                 }

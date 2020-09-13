@@ -40,6 +40,7 @@ mod sounds {
     pub const SPAWN: &str = "assets/sounds/spawn.ogg";
     pub const DOOR: &str = "assets/sounds/door.ogg";
     pub const BURN: &str = "assets/sounds/burn.ogg";
+    pub const CAPSULE: &str = "assets/sounds/capsule.ogg";
 }
 
 use consts::*;

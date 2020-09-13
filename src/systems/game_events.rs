@@ -112,7 +112,7 @@ pub fn game_event_system(
                     damage_map.do_damage(&*pos, false);
                 }
             }
-            GameEvent::Use(entity, direction) => {
+            GameEvent::Use(entity, pos, direction) => {
                 let usable = items.get::<Usable>(entity).unwrap();
                 match *usable {
                     Usable::Door => {
@@ -123,7 +123,13 @@ pub fn game_event_system(
                             game_events.send(GameEvent::PlaySound(sounds::DOOR));
                         }
                     }
-                    Usable::Capsule => game_events.send(GameEvent::ReloadLevel(1)),
+                    Usable::Capsule => {
+                        for (robbo_entity, _) in &mut robbo.iter() {
+                            commands.despawn(robbo_entity);
+                            game_events.send(GameEvent::PlaySound(sounds::CAPSULE));
+                            fly_away(&mut commands, pos);
+                        }
+                    },
                     Usable::Teleport => {
                         let occupied: HashSet<_> =
                             all_positions.iter().iter().map(|(_, pos)| *pos).collect();
