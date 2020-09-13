@@ -72,7 +72,6 @@ pub fn game_event_system(
                 level_info.height = level.width;
                 create_level(&mut commands, &mut all_positions, level, &mut level_info);
                 *inventory = Inventory::default();
-                game_events.send(GameEvent::PlaySound(sounds::SPAWN));
                 return;
             }
         }
@@ -88,6 +87,10 @@ pub fn game_event_system(
             }
             GameEvent::SpawnRobbo(pos) => {
                 create_robbo(&mut commands).with(pos);
+            }
+            GameEvent::PreSpawnRobbo(pos) => {
+                game_events.send(GameEvent::PlaySound(sounds::SPAWN));
+                spawn_robbo(&mut commands, pos);
             }
             GameEvent::SpawnRandom(pos) => {
                 let create_item = [

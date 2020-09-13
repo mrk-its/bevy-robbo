@@ -156,6 +156,16 @@ pub fn spawn_robbo<'a>(commands: &'a mut Commands, pos: Position) -> &'a mut Com
         .with(pos)
 }
 
+pub fn pre_spawn_robbo<'a>(commands: &'a mut Commands, pos: Position) -> &'a mut Commands {
+    commands
+        .spawn((
+            Animation(Some(GameEvent::PreSpawnRobbo(pos))),
+            Undestroyable,
+            Tiles::new(&[17, 18, 17, 18, 17, 18]),
+        ))
+        .with(pos)
+}
+
 pub fn spawn_random<'a>(commands: &'a mut Commands, pos: Position) -> &'a mut Commands {
     commands
         .spawn((
