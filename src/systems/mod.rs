@@ -7,7 +7,6 @@ mod damage;
 mod eyes;
 mod force_field;
 mod game_events;
-pub mod keyboard;
 mod lasers;
 mod levels;
 mod magnetic_field;

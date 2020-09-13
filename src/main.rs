@@ -1,22 +1,19 @@
 mod components;
 mod entities;
-mod frame_cnt;
-mod frame_limiter;
 mod game_events;
 mod inventory;
-mod keyboard;
 mod levels;
 mod resources;
 mod systems;
+mod plugins;
 
 use bevy::prelude::*;
 use bevy::sprite::TextureAtlas;
 use bevy::window;
-use frame_cnt::FrameCntPlugin;
-use frame_limiter::FrameLimiterPlugin;
+use plugins::frame_cnt;
+use plugins::{FrameCntPlugin, FrameCnt, FrameLimiterPlugin, KeyboardPlugin};
 use game_events::GameEvent;
 use inventory::Inventory;
-use keyboard::KeyboardPlugin;
 use levels::{LevelInfo, LevelSet, LevelSetLoader};
 use resources::DamageMap;
 use structopt::StructOpt;
@@ -66,9 +63,6 @@ pub struct Opts {
 
     #[structopt(long, default_value = "assets/original.txt")]
     pub levelset_path: std::path::PathBuf,
-
-    #[structopt(long, default_value = "1.5")]
-    pub zoom: f32,
 }
 
 fn main() {
