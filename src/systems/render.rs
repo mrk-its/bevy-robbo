@@ -20,17 +20,17 @@ pub struct RenderState {
     pub reader: EventReader<WindowResized>,
 }
 
-fn camera_scale(width: u32, height: u32) -> Scale {
+fn camera_scale(width: u32, height: u32) -> f32 {
     let scale_x = (MAX_WIDTH as f32 * 32.0) / (width as f32);
     let scale_y = ((MAX_HEIGHT + 2) as f32 * 32.0) / (height as f32);
-    Scale(scale_x.max(scale_y))
+    scale_x.max(scale_y)
 }
 
-fn camera_translation(width: u32, height: u32) -> Translation {
-    let scale = camera_scale(width, height).0;
+fn camera_translation(width: u32, height: u32) -> Vec3 {
+    let scale = camera_scale(width, height);
     let board_width = MAX_WIDTH as f32 * 32.0;
     let board_height = (MAX_HEIGHT + 2) as f32 * 32.0;
-    Translation::new(
+    Vec3::new(
         -16.0 - (width as f32 * scale - board_width) / 2.0,
         -16.0 - (height as f32 * scale - board_height) / 2.0,
         0.0,
@@ -49,7 +49,7 @@ fn spawn_counter<T>(
     commands
         .spawn(SpriteSheetComponents {
             texture_atlas: TEXTURE_ATLAS_HANDLE,
-            translation: Translation(Vec3::new(x_offset as f32 * 16.0, 16.0, 0.0)),
+            transform: Transform::from_translation(Vec3::new(x_offset as f32 * 16.0, 16.0, 0.0)),
             sprite: TextureAtlasSprite {
                 index: icon_index,
                 color: Color::rgb_u8(0x40, 0x40, 0x40),
@@ -63,7 +63,7 @@ fn spawn_counter<T>(
         commands
             .spawn(SpriteSheetComponents {
                 texture_atlas: DIGITS_ATLAS_HANDLE,
-                translation: Translation(Vec3::new(
+                transform: Transform::from_translation(Vec3::new(
                     (((x_offset + n_digits - k - 1) * 16) + 32 - 8) as f32,
                     16.0,
                     0.0,
@@ -99,7 +99,6 @@ where
 pub fn render_setup(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
-    window: Res<WindowDescriptor>,
     mut clear_color: ResMut<ClearColor>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
 ) {
@@ -115,9 +114,8 @@ pub fn render_setup(
 
     let box_size = 32.0;
 
+
     commands.spawn(Camera2dComponents {
-        translation: camera_translation(window.width, window.height),
-        scale: camera_scale(window.width, window.height),
         orthographic_projection: OrthographicProjection {
             bottom: 0.0,
             top: MAX_HEIGHT as f32 * box_size,
@@ -140,13 +138,14 @@ pub fn render_setup(
 pub fn update_camera(
     mut state: ResMut<RenderState>,
     events: Res<Events<WindowResized>>,
-    mut items: Query<(&mut Scale, &mut Translation, &OrthographicProjection)>,
+    mut items: Query<(&mut Transform, &OrthographicProjection)>,
 ) {
     let event: Option<WindowResized> = state.reader.iter(&events).cloned().last();
     if let Some(event) = event {
-        for (mut scale, mut translation, _) in &mut items.iter() {
-            *scale = camera_scale(event.width as u32, event.height as u32);
-            *translation = camera_translation(event.width as u32, event.height as u32);
+        for (mut transform, _) in &mut items.iter() {
+            let scale = camera_scale(event.width as u32, event.height as u32);
+            let translation = camera_translation(event.width as u32, event.height as u32);
+            *transform = Transform::from_translation_rotation_scale(translation, Quat::default(), scale)
         }
     }
 }
@@ -168,14 +167,14 @@ pub fn update_status_bar(
 
 pub fn create_sprites(
     mut commands: Commands,
-    mut missing_sprites: Query<Without<Translation, With<Position, Entity>>>,
+    mut missing_sprites: Query<Without<Transform, With<Position, Entity>>>,
 ) {
     for entity in &mut missing_sprites.iter() {
         commands.insert(
             entity,
             SpriteSheetComponents {
                 texture_atlas: TEXTURE_ATLAS_HANDLE,
-                translation: Translation(Vec3::new(-1000.0, -1000.0, 0.0)),
+                transform: Transform::from_translation(Vec3::new(-1000.0, -1000.0, 0.0)),
                 ..Default::default()
             },
         );
@@ -189,7 +188,7 @@ pub fn prepare_render(
         Entity,
         &Position,
         &mut Tiles,
-        &mut Translation,
+        &mut Transform,
         &mut TextureAtlasSprite,
     )>,
     mut smooth_update_items: Query<Without<RoughUpdate, With<MovingDir, Entity>>>,
@@ -203,24 +202,25 @@ pub fn prepare_render(
     let box_size = 32.0;
     let min_step = box_size / (opts.key_frame_interval as f32) * 1.01;
     let trans = Vec3::new(0.0, 2.0 * box_size, 0.0);
-    for (entity, position, tiles, mut translation, mut sprite) in &mut items.iter() {
+    for (entity, position, tiles, mut transform, mut sprite) in &mut items.iter() {
         let dest = trans + Vec3::new(position.x() as f32, position.y() as f32, 0.0) * box_size;
-        if translation.0 != dest {
+        let cur = transform.translation();
+        if cur != dest {
             if to_smooth_update.contains(&entity) {
                 let steps_left = (opts.key_frame_interval
                     - ((frame_cnt.value()) % opts.key_frame_interval))
                     as f32;
-                let cur = translation.0;
                 let step = (dest - cur) / steps_left;
                 if step.x().abs() > 0.01 || step.y().abs() > 0.01 {
-                    translation.0 = if step.x().abs() <= min_step && step.y().abs() <= min_step {
+                    let dest = if step.x().abs() <= min_step && step.y().abs() <= min_step {
                         cur + step
                     } else {
                         dest
                     };
+                    *transform = Transform::from_translation(dest);
                 }
             } else {
-                translation.0 = dest;
+                *transform = Transform::from_translation(dest);
             }
         }
         let sprite_index = tiles.tiles[tiles.current];
