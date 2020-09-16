@@ -9,6 +9,7 @@ use bevy::render::camera::{OrthographicProjection, WindowOrigin};
 use bevy::sprite::TextureAtlas;
 use bevy::window::WindowResized;
 use std::collections::HashSet;
+use bevy::window;
 
 const TEXTURE_ATLAS_HANDLE: Handle<TextureAtlas> =
     Handle::from_u128(0xfa86671bbf3b4a72a6f36eb2e29432c3);
@@ -114,7 +115,6 @@ pub fn render_setup(
 
     let box_size = 32.0;
 
-
     commands.spawn(Camera2dComponents {
         orthographic_projection: OrthographicProjection {
             bottom: 0.0,
@@ -145,7 +145,8 @@ pub fn update_camera(
         for (mut transform, _) in &mut items.iter() {
             let scale = camera_scale(event.width as u32, event.height as u32);
             let translation = camera_translation(event.width as u32, event.height as u32);
-            *transform = Transform::from_translation_rotation_scale(translation, Quat::default(), scale)
+            *transform =
+                Transform::from_translation_rotation_scale(translation, Quat::default(), scale)
         }
     }
 }
@@ -230,18 +231,31 @@ pub fn prepare_render(
     }
 }
 
-pub struct RenderPlugin;
+pub struct RenderPlugin {
+    pub vsync: bool,
+}
 
 impl Plugin for RenderPlugin {
     fn build(&self, app: &mut AppBuilder) {
-        app.add_resource(RenderState::default())
-            .add_startup_system(render_setup.system())
-            .add_stage_before(stage::POST_UPDATE, "create_sprites")
-            .add_stage_before(stage::POST_UPDATE, "update_camera")
-            .add_stage_before(stage::POST_UPDATE, "prepare_render")
-            .add_system_to_stage("create_sprites", create_sprites.system())
-            .add_system_to_stage("update_camera", update_camera.system())
-            .add_system_to_stage("prepare_render", prepare_render.system())
-            .add_system_to_stage("prepare_render", update_status_bar.system());
+        app.add_resource(WindowDescriptor {
+            title: "Robbo".to_string(),
+            width: ((32 * MAX_WIDTH) as f32) as u32,
+            height: ((32 * (MAX_HEIGHT + 2)) as f32) as u32,
+            resizable: true,
+            // mode: window::WindowMode::Fullscreen {use_size: false},
+            mode: window::WindowMode::Windowed,
+            vsync: self.vsync,
+            ..Default::default()
+        })
+        .add_resource(bevy::render::pass::ClearColor(Color::rgb(0.1, 0.1, 0.1)))
+        .add_resource(RenderState::default())
+        .add_startup_system(render_setup.system())
+        .add_stage_before(stage::POST_UPDATE, "create_sprites")
+        .add_stage_before(stage::POST_UPDATE, "update_camera")
+        .add_stage_before(stage::POST_UPDATE, "prepare_render")
+        .add_system_to_stage("create_sprites", create_sprites.system())
+        .add_system_to_stage("update_camera", update_camera.system())
+        .add_system_to_stage("prepare_render", prepare_render.system())
+        .add_system_to_stage("prepare_render", update_status_bar.system());
     }
 }

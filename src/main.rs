@@ -9,7 +9,6 @@ mod systems;
 
 use bevy::prelude::*;
 use bevy::sprite::TextureAtlas;
-use bevy::window;
 use game_events::GameEvent;
 use inventory::Inventory;
 use levels::{LevelInfo, LevelSet, LevelSetLoader};
@@ -37,8 +36,6 @@ mod sounds {
     pub const BURN: &str = "assets/sounds/burn.ogg";
     pub const CAPSULE: &str = "assets/sounds/capsule.ogg";
 }
-
-use consts::*;
 
 use bevy::asset::AddAsset;
 
@@ -74,22 +71,9 @@ pub struct Opts {
 
 fn main() {
     let opts = Opts::from_args();
-
     let vsync = opts.fps == 60 && !opts.benchmark_mode;
-
     let mut builder = App::build();
     builder
-        .add_resource(WindowDescriptor {
-            title: "Robbo".to_string(),
-            width: ((32 * MAX_WIDTH) as f32) as u32,
-            height: ((32 * (MAX_HEIGHT + 2)) as f32) as u32,
-            resizable: true,
-            // mode: window::WindowMode::Fullscreen {use_size: false},
-            mode: window::WindowMode::Windowed,
-            vsync,
-            ..Default::default()
-        })
-        .add_resource(bevy::render::pass::ClearColor(Color::rgb(0.1, 0.1, 0.1)))
         .add_resource(TextureAtlasHandle(None))
         .add_resource(Inventory::default())
         .add_resource(LevelInfo::default())
@@ -102,8 +86,6 @@ fn main() {
         .add_asset_loader::<LevelSet, LevelSetLoader>()
         .add_plugin(FrameCntPlugin::new(opts.key_frame_interval))
         .add_plugin(KeyboardPlugin)
-        .add_startup_system(render_setup.system())
-        .add_plugin(RenderPlugin)
         .add_startup_system(level_setup.system())
         .add_stage_before(stage::UPDATE, "move")
         .add_stage_before(stage::UPDATE, "move_robbo")
@@ -138,6 +120,7 @@ fn main() {
     }
 
     if !opts.benchmark_mode {
+        builder.add_plugin(plugins::RenderPlugin {vsync});
         builder.add_system_to_stage("reload_level", reload_level.system());
         if !vsync {
             builder.add_plugin(FrameLimiterPlugin {
@@ -145,12 +128,10 @@ fn main() {
             });
         }
     } else {
-        builder.add_system_to_stage("reload_level", benchmark_reload_level.system());
         if !opts.no_render {
-            builder
-                .add_system_to_stage("create_sprites", create_sprites.system())
-                .add_system_to_stage("prepare_render", prepare_render.system());
+            builder.add_plugin(plugins::RenderPlugin {vsync});
         }
+        builder.add_system_to_stage("reload_level", benchmark_reload_level.system());
     }
     builder.run();
 }
