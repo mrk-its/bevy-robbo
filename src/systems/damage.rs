@@ -60,7 +60,6 @@ pub fn process_damage(
     let mut damaged_entities: HashSet<Position> = HashSet::new();
     for (entity, pos) in &mut items.iter() {
         if let Some(is_bomb_damage) = damage.get(pos) {
-            info!("damage at {:?}, is_bomb: {:?}", pos, is_bomb_damage);
             damaged_entities.insert(*pos);
             let mut do_damage =
                 |kx, ky| damage_map.do_damage(&pos.add(&MovingDir::new(kx, ky)), true);

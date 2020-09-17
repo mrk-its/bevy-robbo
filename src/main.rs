@@ -52,18 +52,43 @@ pub struct Opts {
     pub levelset_path: std::path::PathBuf,
 }
 
-fn regular_main() {
-    env_logger::init();
+fn main() {
     let opts = Opts::from_args();
+    info!("opts: {:?}", opts);
+
     let vsync = opts.fps == 60 && !opts.benchmark_mode;
+    #[cfg(not(feature = "wasm"))]
+    {
+        env_logger::init();
+    }
+    #[cfg(feature = "wasm")]
+    {
+        extern crate console_error_panic_hook;
+        std::panic::set_hook(Box::new(console_error_panic_hook::hook));
+        console_log::init_with_level(log::Level::Debug).expect("cannot initialize console_log");
+    }
     let mut builder = App::build();
     builder
         .add_resource(Inventory::default())
         .add_resource(LevelInfo::default())
         .add_resource(DamageMap::default())
         .add_resource(Events::<GameEvent>::default())
-        .add_resource(opts.clone())
-        .add_default_plugins()
+        .add_resource(opts.clone());
+
+    #[cfg(not(feature = "wasm"))]
+    builder.add_default_plugins();
+
+    #[cfg(feature = "wasm")]
+    {
+        builder
+            .add_plugin(crate::plugins::wasm_runner::WasmRunnerPlugin)
+            .add_plugin(bevy::type_registry::TypeRegistryPlugin::default())
+            //.add_plugin(bevy::core::CorePlugin::default())
+            .add_plugin(bevy::input::InputPlugin::default())
+            .add_plugin(bevy::window::WindowPlugin::default())
+            .add_plugin(bevy::asset::AssetPlugin::default());
+    }
+    builder
         .add_asset::<LevelSet>()
         .add_asset_loader::<LevelSet, LevelSetLoader>()
         .add_plugin(FrameCntPlugin::new(opts.key_frame_interval))
@@ -97,12 +122,19 @@ fn regular_main() {
         .add_system_to_stage("tick", tick_system.system())
         .add_system_to_stage("tick", damage_system.system());
 
+    #[cfg(feature = "wasm")]
+    builder
+        .add_system_to_stage("reload_level", reload_level.system())
+        .add_system_to_stage(stage::POST_UPDATE, js_render_system.system());
+
+    #[cfg(not(feature = "wasm"))]
     if opts.debug {
         builder
             .add_plugin(bevy::diagnostic::FrameTimeDiagnosticsPlugin::default())
             .add_plugin(bevy::diagnostic::PrintDiagnosticsPlugin::default());
     }
 
+    #[cfg(not(feature = "wasm"))]
     if !opts.benchmark_mode {
         #[cfg(feature = "render")]
         builder.add_plugin(plugins::RenderPlugin { vsync });
@@ -119,103 +151,64 @@ fn regular_main() {
         }
         builder.add_system_to_stage("reload_level", benchmark_reload_level.system());
     }
-    #[cfg(feature="wasm")]
-    builder.set_runner(|mut app| {
-        for _ in 0..10000 {
-            app.update();
-        }
-    });
     builder.run();
 }
 
-fn wasm_main() {
-    extern crate console_error_panic_hook;
-    std::panic::set_hook(Box::new(console_error_panic_hook::hook));
-    console_log::init_with_level(log::Level::Debug).expect("cannot initialize console_log");
-    let mut builder = App::build();
-    builder
-    .add_plugin(bevy::app::ScheduleRunnerPlugin::run_loop(std::time::Duration::from_secs_f64(
-        1.0 / 60.0,
-    )))
-    .add_startup_system(hello_world_system.system())
-//    .add_system(counter.system())
+use crate::components::{Int2Ops, Position, Tiles};
+use consts::*;
 
-    .add_plugin(bevy::type_registry::TypeRegistryPlugin::default())
-    //.add_plugin(bevy::core::CorePlugin::default())
-    .add_plugin(bevy::input::InputPlugin::default())
-    .add_plugin(bevy::window::WindowPlugin::default())
-    .add_plugin(bevy::asset::AssetPlugin::default())
-
-    .add_resource(Inventory::default())
-    .add_resource(LevelInfo::default())
-    .add_resource(DamageMap::default())
-    .add_resource(Events::<GameEvent>::default())
-    .add_asset::<LevelSet>()
-    .add_asset_loader::<LevelSet, LevelSetLoader>()
-    .add_plugin(FrameCntPlugin::new(8))
-    .add_plugin(KeyboardPlugin)
-    .add_plugin(AudioPlugin)
-    .add_stage_before(stage::UPDATE, "move")
-    .add_stage_before(stage::UPDATE, "move_robbo")
-    .add_stage_before(stage::POST_UPDATE, "reload_level")
-    .add_stage_before(stage::POST_UPDATE, "shots")
-    .add_stage_before(stage::POST_UPDATE, "process_damage")
-    .add_stage_before(stage::POST_UPDATE, "game_events")
-    .add_stage_after("keyboard", "magnetic_field")
-    .add_stage_after("frame_cnt", "tick")
-
-    .add_startup_system(level_setup.system())
-    .add_system_to_stage(stage::EVENT_UPDATE, update_game_events.system())
-    .add_system_to_stage("game_events", game_event_system.system())
-
-    .add_system_to_stage("magnetic_field", magnetic_field_system.system())
-    .add_system_to_stage("process_damage", process_damage.system())
-    .add_system_to_stage("move", move_laser_head.system())
-    .add_system_to_stage("move", move_bear.system())
-    .add_system_to_stage("move", move_bird.system())
-    .add_system_to_stage("move", move_pushbox.system())
-    .add_system_to_stage("move", move_bullet.system())
-    .add_system_to_stage("move", move_blaster_head.system())
-    .add_system_to_stage("move", eyes_system.system())
-    .add_system_to_stage("move", force_field_system.system())
-    .add_system_to_stage("move_robbo", move_robbo.system())
-    .add_system_to_stage("shots", shot_system.system())
-    .add_system_to_stage("tick", activate_capsule_system.system())
-    .add_system_to_stage("tick", tick_system.system())
-    .add_system_to_stage("tick", damage_system.system())
-
-    //.add_system_to_stage(stage::EVENT_UPDATE, update_game_events.system())
-
-    .run();
-}
-
-fn main() {
-    #[cfg(not(feature="wasm"))]
-    regular_main();
-    #[cfg(feature="wasm")]
-    wasm_main();
-}
-
-fn hello_world_system() {
-    log::info!("hello wasm: {}", unsafe {hello()});
-}
-
-fn counter(mut state: Local<CounterState>) {
-    if state.count % 60 == 0 {
-        log::info!("counter system: {}", state.count);
+fn js_render_system(
+    frame_cnt: Res<FrameCnt>,
+    current_level: Res<LevelInfo>,
+    inventory: Res<Inventory>,
+    mut items: Query<(&Position, &Tiles)>,
+) {
+    if !frame_cnt.is_keyframe() {
+        return;
     }
-    state.count += 1;
-}
+    let items: std::collections::HashMap<(i32, i32), u32> = items
+        .iter()
+        .iter()
+        .map(|(&pos, &tiles)| (pos.as_tuple(), tiles.tiles[tiles.current]))
+        .collect();
+    static TILE_CHARS: &[&[char]] = &[
+        &['M', 'M', '░', '▒', 'T', 'a', '#', 'k', 'ó', 'D', '#', ' '],
+        &['?', '@', '@', '^', '^', 'C', 'C', '▓', '#', '░', '▒', ' '],
+        &['~', ' ', ' ', ' ', ' ', '▒', '@', '@', '0', '%', '%', ' '],
+        &['~', '~', '|', '|', 'T', '|', ' ', ' ', ' ', ' ', ' ', ' '],
+        &['▣', '▣', ' ', ' ', ' ', 'G', 'G', 'G', 'G', ' ', ' ', ' '],
+        &['R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', '░', '▓', ' ', ' '],
+        &['M', 'M', ' ', ' ', ' ', '.', '#', 'ó', 'G', 'G', ' ', ' '],
+        &[',', ';', '%', ';', ',', '~', '|', 'ó', 'G', 'G', ' ', ' '],
+    ];
 
-#[derive(Default)]
-struct CounterState {
-    count: u32,
+    let mut board_str = String::with_capacity((MAX_WIDTH * MAX_HEIGHT) as usize);
+    for y in (0..MAX_HEIGHT).rev() {
+        for x in 0..MAX_WIDTH {
+            let tile = items.get(&(x, y));
+            if let Some(&tile) = tile {
+                let tile = tile as usize;
+                board_str.push(TILE_CHARS[tile / 12][tile % 12]);
+            } else {
+                board_str += " ";
+            }
+        }
+        board_str += "\n";
+    }
+    unsafe {
+        render(
+            current_level.screws - inventory.screws,
+            inventory.keys,
+            inventory.bullets,
+            current_level.current_level + 1,
+            board_str,
+        );
+    }
 }
 
 use wasm_bindgen::prelude::*;
 
-#[wasm_bindgen(module = "/hello.js")]
+#[wasm_bindgen(module = "/wasm/render.js")]
 extern "C" {
-    fn hello() -> String;
+    fn render(screws: usize, keys: usize, bullets: usize, level: usize, board: String);
 }
-

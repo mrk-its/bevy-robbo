@@ -47,10 +47,10 @@ pub fn level_setup(
     let level_data = include_str!("../../assets/original.txt");
     level_sets.set(handle, LevelSet::new(level_data));
     level_info.level_set_handle = handle;
-    level_info.current_level = 17;
+    level_info.current_level = 0;
     game_events.send(GameEvent::ReloadLevel(0));
 }
+
 #[cfg(feature = "wasm")]
 pub fn asset_events() {}
 
-use wasm_bindgen::prelude::*;

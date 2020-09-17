@@ -4,6 +4,8 @@ mod keyboard;
 #[cfg(feature="render")]
 mod render;
 pub mod audio;
+#[cfg(feature="wasm")]
+pub mod wasm_runner;
 
 pub use frame_cnt::{FrameCnt, FrameCntPlugin};
 pub use frame_limiter::FrameLimiterPlugin;
