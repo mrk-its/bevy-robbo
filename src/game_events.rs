@@ -9,5 +9,4 @@ pub enum GameEvent {
     PreSpawnRobbo(Position),
     SpawnRandom(Position),
     KillRobbo,
-    PlaySound(&'static str),
 }

@@ -165,15 +165,15 @@ impl Level {
             }
         }
     }
-    pub fn _get_color(&self) -> Color {
-        let rgb: Vec<f32> = (0..3)
-            .map(|i| i * 2)
-            .map(|i| &self.color[i..i + 2])
-            .map(|h| i32::from_str_radix(h, 16).unwrap() as f32 / 255.0)
-            .collect();
-        assert!(rgb.len() == 3);
-        Color::rgb(rgb[0], rgb[1], rgb[2])
-    }
+    // pub fn _get_color(&self) -> Color {
+    //     let rgb: Vec<f32> = (0..3)
+    //         .map(|i| i * 2)
+    //         .map(|i| &self.color[i..i + 2])
+    //         .map(|h| i32::from_str_radix(h, 16).unwrap() as f32 / 255.0)
+    //         .collect();
+    //     assert!(rgb.len() == 3);
+    //     Color::rgb(rgb[0], rgb[1], rgb[2])
+    // }
 }
 pub struct LevelSetIterator<'a> {
     pub lines: std::str::Split<'a, char>,

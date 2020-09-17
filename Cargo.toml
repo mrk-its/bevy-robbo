@@ -5,13 +5,25 @@ authors = ["Mariusz Kryński <mrk@sed.pl>"]
 edition = "2018"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[features]
+default = [
+    "audio",
+    "render",
+]
+wasm = []
+audio = ["bevy/bevy_audio", "bevy/vorbis"]
+render = ["bevy/bevy_wgpu", "bevy/bevy_winit", "bevy/render", "bevy/x11", "bevy/png"]
 
 [dependencies]
-bevy = {path="../bevy/", features=["vorbis"]}
+bevy = {path="../bevy/", default-features = false, features=[]}
 rand = "0.7"
 anyhow = "1.0"
 uuid = "0.8"
 structopt = "0.3"
-
+env_logger = "0.7"
+log = "0.4"
+console_error_panic_hook = "0.1.6"
+console_log = { version = "0.2", features = ["color"] }
+wasm-bindgen = "0.2.68"
 [profile.dev]
 opt-level = 1

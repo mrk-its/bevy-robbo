@@ -1,6 +1,5 @@
 use crate::components::Collectable;
-use crate::game_events::GameEvent;
-use crate::sounds;
+use crate::plugins::audio::Sound;
 use bevy::prelude::*;
 
 #[derive(Default, Debug)]
@@ -11,19 +10,19 @@ pub struct Inventory {
 }
 
 impl Inventory {
-    pub fn collect(&mut self, item: Collectable, events: &mut ResMut<Events<GameEvent>>) {
+    pub fn collect(&mut self, item: Collectable, events: &mut ResMut<Events<Sound>>) {
         match item {
             Collectable::Key => {
                 self.keys += 1;
-                events.send(GameEvent::PlaySound(sounds::KEY));
+                events.send(Sound::KEY);
             }
             Collectable::Screw => {
                 self.screws += 1;
-                events.send(GameEvent::PlaySound(sounds::SCREW));
+                events.send(Sound::SCREW);
             }
             Collectable::Ammo => {
                 self.bullets += 9;
-                events.send(GameEvent::PlaySound(sounds::AMMO));
+                events.send(Sound::AMMO);
             }
         }
     }

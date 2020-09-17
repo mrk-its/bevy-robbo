@@ -3,7 +3,7 @@ use bevy::prelude::*;
 use crate::components::prelude::*;
 use crate::game_events::GameEvent;
 use crate::inventory::Inventory;
-use crate::sounds;
+use crate::plugins::audio::Sound;
 use crate::FrameCnt;
 
 pub struct KeyboardPlugin;
@@ -22,7 +22,7 @@ impl Plugin for KeyboardPlugin {
 pub fn keyboard_system(
     mut commands: Commands,
     keyboard_input: Res<Input<KeyCode>>,
-    (mut events, mut inventory): (ResMut<Events<GameEvent>>, ResMut<Inventory>),
+    (mut events, mut inventory, mut sounds): (ResMut<Events<GameEvent>>, ResMut<Inventory>, ResMut<Events<Sound>>),
     mut robbo_dir: ResMut<RobboDir>,
     mut query: Query<With<Robbo, (Entity, &mut MovingDir, &mut Tiles)>>,
 ) {
@@ -62,7 +62,7 @@ pub fn keyboard_system(
                 inventory.bullets -= 1;
                 *moving_dir = MovingDir::zero();
                 commands.insert_one(entity, ShootingDir::new(kx, ky));
-                events.send(GameEvent::PlaySound(sounds::SHOT));
+                sounds.send(Sound::SHOT);
             }
         } else {
             let kx = (right | jp_right) - (left | jp_left);

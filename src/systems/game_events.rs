@@ -5,9 +5,8 @@ use crate::game_events::GameEvent;
 use crate::inventory::Inventory;
 use crate::levels::{create_level, LevelInfo, LevelSet};
 use crate::resources::DamageMap;
-use crate::sounds;
+use crate::plugins::audio::Sound;
 use crate::systems::utils::teleport_dest_position;
-use crate::Opts;
 use rand::random;
 
 use bevy::prelude::*;
@@ -29,24 +28,20 @@ pub fn game_event_system(
     mut state: Local<State>,
     (
         frame_cnt,
-        mut game_events,
+        game_events,
         mut inventory,
         mut level_info,
         mut damage_map,
-        opt,
         level_sets,
-        audio_output,
-        asset_server,
+        mut sounds,
     ): (
         Res<FrameCnt>,
         ResMut<Events<GameEvent>>,
         ResMut<Inventory>,
         ResMut<LevelInfo>,
         ResMut<DamageMap>,
-        Res<Opts>,
         Res<Assets<LevelSet>>,
-        Res<AudioOutput>,
-        Res<AssetServer>,
+        ResMut<Events<Sound>>,
     ),
     items: Query<Without<Undestroyable, (Entity, &Position)>>,
     mut teleports: Query<(&Teleport, &Position)>,
@@ -64,6 +59,7 @@ pub fn game_event_system(
     // to make sure no despawns are queued
     for event in &events {
         if let GameEvent::ReloadLevel(k) = *event {
+            info!("ReloadLevel({})", k);
             if let Some(level_set) = level_sets.get(&level_info.level_set_handle) {
                 let level = level_info.inc_current_level(k, level_set);
                 level_info.missing_robbo_ticks = 0;
@@ -77,19 +73,13 @@ pub fn game_event_system(
         }
     }
 
-    // deduplicate sounds
-    let mut sounds_to_play: HashSet<Handle<AudioSource>> = HashSet::new();
-
     for event in &events {
         match *event {
-            GameEvent::PlaySound(path) => {
-                sounds_to_play.insert(asset_server.get_handle(path).unwrap());
-            }
             GameEvent::SpawnRobbo(pos) => {
                 create_robbo(&mut commands).with(pos);
             }
             GameEvent::PreSpawnRobbo(pos) => {
-                game_events.send(GameEvent::PlaySound(sounds::SPAWN));
+                sounds.send(Sound::SPAWN);
                 spawn_robbo(&mut commands, pos);
             }
             GameEvent::SpawnRandom(pos) => {
@@ -120,13 +110,13 @@ pub fn game_event_system(
                             inventory.keys -= 1;
                             commands.despawn(entity);
                             despawned.insert(entity);
-                            game_events.send(GameEvent::PlaySound(sounds::DOOR));
+                            sounds.send(Sound::DOOR);
                         }
                     }
                     Usable::Capsule => {
                         for (robbo_entity, _) in &mut robbo.iter() {
                             commands.despawn(robbo_entity);
-                            game_events.send(GameEvent::PlaySound(sounds::CAPSULE));
+                            sounds.send(Sound::CAPSULE);
                             fly_away(&mut commands, pos);
                         }
                     }
@@ -145,7 +135,7 @@ pub fn game_event_system(
                                 commands.despawn(robbo_entity);
                                 create_small_explosion(&mut commands).with(*robbo_pos);
                                 spawn_robbo(&mut commands, dest_robbo_pos);
-                                game_events.send(GameEvent::PlaySound(sounds::TELEPORT));
+                                sounds.send(Sound::TELEPORT);
                                 return;
                             }
                         }
@@ -153,11 +143,6 @@ pub fn game_event_system(
                 }
             }
             _ => (),
-        }
-    }
-    for handle in &sounds_to_play {
-        if !opt.no_audio {
-            audio_output.play(*handle);
         }
     }
 }

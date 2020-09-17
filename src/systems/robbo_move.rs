@@ -3,15 +3,16 @@ use crate::frame_cnt::FrameCnt;
 use crate::game_events::GameEvent;
 use crate::inventory::Inventory;
 use crate::levels::LevelInfo;
-use crate::sounds;
+use crate::plugins::audio::Sound;
 use bevy::prelude::*;
 use std::collections::{HashMap, HashSet};
 
 pub fn move_robbo(
     mut commands: Commands,
-    (mut inventory, mut events, frame_cnt, level_info): (
+    (mut inventory, mut events, mut sounds, frame_cnt, level_info): (
         ResMut<Inventory>,
         ResMut<Events<GameEvent>>,
+        ResMut<Events<Sound>>,
         Res<FrameCnt>,
         Res<LevelInfo>,
     ),
@@ -39,15 +40,15 @@ pub fn move_robbo(
             let new_pos2 = new_pos.add(dir);
             if is_free(&new_pos) {
                 *position = new_pos;
-                events.send(GameEvent::PlaySound(sounds::WALK));
+                sounds.send(Sound::WALK);
                 return;
             } else {
                 if let Some(&entity) = entities.get(&new_pos) {
                     if let Ok(collectable) = all.get::<Collectable>(entity) {
-                        inventory.collect(*collectable, &mut events);
+                        inventory.collect(*collectable, &mut sounds);
                         commands.despawn(entity);
                         *position = new_pos;
-                        events.send(GameEvent::PlaySound(sounds::WALK));
+                        sounds.send(Sound::WALK);
                         return;
                     } else if all.get::<Moveable>(entity).is_ok() && is_free(&new_pos2) {
                         // investigate why I cannot do all.get_mut<MovingDir>
@@ -61,7 +62,7 @@ pub fn move_robbo(
                                     *mdir = *dir
                                 }
                             }
-                            events.send(GameEvent::PlaySound(sounds::WALK));
+                            sounds.send(Sound::WALK);
                             return;
                         }
                     } else if all.get::<Usable>(entity).is_ok() {

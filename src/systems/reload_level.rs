@@ -3,7 +3,7 @@ use crate::entities::create_small_explosion;
 use crate::frame_cnt::FrameCnt;
 use crate::game_events::GameEvent;
 use crate::levels::{LevelInfo, LevelSet};
-use crate::sounds;
+use crate::plugins::audio::Sound;
 use std::time::Instant;
 
 use bevy::app::AppExit;
@@ -14,6 +14,7 @@ pub fn reload_level(
     mut level_info: ResMut<LevelInfo>,
     frame_cnt: Res<FrameCnt>,
     mut game_events: ResMut<Events<GameEvent>>,
+    mut sounds: ResMut<Events<Sound>>,
     mut robbo_query: Query<With<Robbo, Entity>>,
     mut all: Query<Without<Wall, (Entity, &Position)>>,
 ) {
@@ -29,7 +30,7 @@ pub fn reload_level(
         for (entity, pos) in &mut all.iter() {
             commands.despawn(entity);
             create_small_explosion(&mut commands).with(*pos);
-            game_events.send(GameEvent::PlaySound(sounds::BOMB));
+            sounds.send(Sound::BOMB);
         }
     } else if level_info.missing_robbo_ticks == 20 {
         game_events.send(GameEvent::ReloadLevel(0));

@@ -1,3 +1,5 @@
+#[macro_use]
+extern crate log;
 mod components;
 mod entities;
 mod game_events;
@@ -8,12 +10,11 @@ mod resources;
 mod systems;
 
 use bevy::prelude::*;
-use bevy::sprite::TextureAtlas;
 use game_events::GameEvent;
 use inventory::Inventory;
 use levels::{LevelInfo, LevelSet, LevelSetLoader};
 use plugins::frame_cnt;
-use plugins::{FrameCnt, FrameCntPlugin, FrameLimiterPlugin, KeyboardPlugin};
+use plugins::{AudioPlugin, FrameCnt, FrameCntPlugin, FrameLimiterPlugin, KeyboardPlugin};
 use resources::DamageMap;
 use structopt::StructOpt;
 use systems::*;
@@ -22,24 +23,6 @@ mod consts {
     pub const MAX_WIDTH: i32 = 31;
     pub const MAX_HEIGHT: i32 = 16;
 }
-
-mod sounds {
-    pub const AMMO: &str = "assets/sounds/ammo.ogg";
-    pub const KEY: &str = "assets/sounds/key.ogg";
-    pub const SCREW: &str = "assets/sounds/screw.ogg";
-    pub const BOMB: &str = "assets/sounds/bomb.ogg";
-    pub const WALK: &str = "assets/sounds/walk.ogg";
-    pub const TELEPORT: &str = "assets/sounds/teleport.ogg";
-    pub const SHOT: &str = "assets/sounds/shot.ogg";
-    pub const SPAWN: &str = "assets/sounds/spawn.ogg";
-    pub const DOOR: &str = "assets/sounds/door.ogg";
-    pub const BURN: &str = "assets/sounds/burn.ogg";
-    pub const CAPSULE: &str = "assets/sounds/capsule.ogg";
-}
-
-use bevy::asset::AddAsset;
-
-pub struct TextureAtlasHandle(pub Option<Handle<TextureAtlas>>);
 
 #[derive(StructOpt, Debug, Default, Clone)]
 #[structopt(name = "basic")]
@@ -69,24 +52,23 @@ pub struct Opts {
     pub levelset_path: std::path::PathBuf,
 }
 
-fn main() {
+fn regular_main() {
+    env_logger::init();
     let opts = Opts::from_args();
     let vsync = opts.fps == 60 && !opts.benchmark_mode;
     let mut builder = App::build();
     builder
-        .add_resource(TextureAtlasHandle(None))
         .add_resource(Inventory::default())
         .add_resource(LevelInfo::default())
         .add_resource(DamageMap::default())
         .add_resource(Events::<GameEvent>::default())
         .add_resource(opts.clone())
-        .add_system_to_stage(stage::EVENT_UPDATE, update_game_events.system())
         .add_default_plugins()
         .add_asset::<LevelSet>()
         .add_asset_loader::<LevelSet, LevelSetLoader>()
         .add_plugin(FrameCntPlugin::new(opts.key_frame_interval))
         .add_plugin(KeyboardPlugin)
-        .add_startup_system(level_setup.system())
+        .add_plugin(AudioPlugin)
         .add_stage_before(stage::UPDATE, "move")
         .add_stage_before(stage::UPDATE, "move_robbo")
         .add_stage_before(stage::POST_UPDATE, "reload_level")
@@ -95,8 +77,10 @@ fn main() {
         .add_stage_before(stage::POST_UPDATE, "game_events")
         .add_stage_after("keyboard", "magnetic_field")
         .add_stage_after("frame_cnt", "tick")
-        .add_system_to_stage("magnetic_field", magnetic_field_system.system())
+        .add_startup_system(level_setup.system())
+        .add_system_to_stage(stage::EVENT_UPDATE, update_game_events.system())
         .add_system_to_stage(stage::EVENT_UPDATE, asset_events.system())
+        .add_system_to_stage("magnetic_field", magnetic_field_system.system())
         .add_system_to_stage("process_damage", process_damage.system())
         .add_system_to_stage("move", move_laser_head.system())
         .add_system_to_stage("move", move_bear.system())
@@ -120,7 +104,8 @@ fn main() {
     }
 
     if !opts.benchmark_mode {
-        builder.add_plugin(plugins::RenderPlugin {vsync});
+        #[cfg(feature = "render")]
+        builder.add_plugin(plugins::RenderPlugin { vsync });
         builder.add_system_to_stage("reload_level", reload_level.system());
         if !vsync {
             builder.add_plugin(FrameLimiterPlugin {
@@ -129,9 +114,108 @@ fn main() {
         }
     } else {
         if !opts.no_render {
-            builder.add_plugin(plugins::RenderPlugin {vsync});
+            #[cfg(feature = "render")]
+            builder.add_plugin(plugins::RenderPlugin { vsync });
         }
         builder.add_system_to_stage("reload_level", benchmark_reload_level.system());
     }
+    #[cfg(feature="wasm")]
+    builder.set_runner(|mut app| {
+        for _ in 0..10000 {
+            app.update();
+        }
+    });
     builder.run();
 }
+
+fn wasm_main() {
+    extern crate console_error_panic_hook;
+    std::panic::set_hook(Box::new(console_error_panic_hook::hook));
+    console_log::init_with_level(log::Level::Debug).expect("cannot initialize console_log");
+    let mut builder = App::build();
+    builder
+    .add_plugin(bevy::app::ScheduleRunnerPlugin::run_loop(std::time::Duration::from_secs_f64(
+        1.0 / 60.0,
+    )))
+    .add_startup_system(hello_world_system.system())
+//    .add_system(counter.system())
+
+    .add_plugin(bevy::type_registry::TypeRegistryPlugin::default())
+    //.add_plugin(bevy::core::CorePlugin::default())
+    .add_plugin(bevy::input::InputPlugin::default())
+    .add_plugin(bevy::window::WindowPlugin::default())
+    .add_plugin(bevy::asset::AssetPlugin::default())
+
+    .add_resource(Inventory::default())
+    .add_resource(LevelInfo::default())
+    .add_resource(DamageMap::default())
+    .add_resource(Events::<GameEvent>::default())
+    .add_asset::<LevelSet>()
+    .add_asset_loader::<LevelSet, LevelSetLoader>()
+    .add_plugin(FrameCntPlugin::new(8))
+    .add_plugin(KeyboardPlugin)
+    .add_plugin(AudioPlugin)
+    .add_stage_before(stage::UPDATE, "move")
+    .add_stage_before(stage::UPDATE, "move_robbo")
+    .add_stage_before(stage::POST_UPDATE, "reload_level")
+    .add_stage_before(stage::POST_UPDATE, "shots")
+    .add_stage_before(stage::POST_UPDATE, "process_damage")
+    .add_stage_before(stage::POST_UPDATE, "game_events")
+    .add_stage_after("keyboard", "magnetic_field")
+    .add_stage_after("frame_cnt", "tick")
+
+    .add_startup_system(level_setup.system())
+    .add_system_to_stage(stage::EVENT_UPDATE, update_game_events.system())
+    .add_system_to_stage("game_events", game_event_system.system())
+
+    .add_system_to_stage("magnetic_field", magnetic_field_system.system())
+    .add_system_to_stage("process_damage", process_damage.system())
+    .add_system_to_stage("move", move_laser_head.system())
+    .add_system_to_stage("move", move_bear.system())
+    .add_system_to_stage("move", move_bird.system())
+    .add_system_to_stage("move", move_pushbox.system())
+    .add_system_to_stage("move", move_bullet.system())
+    .add_system_to_stage("move", move_blaster_head.system())
+    .add_system_to_stage("move", eyes_system.system())
+    .add_system_to_stage("move", force_field_system.system())
+    .add_system_to_stage("move_robbo", move_robbo.system())
+    .add_system_to_stage("shots", shot_system.system())
+    .add_system_to_stage("tick", activate_capsule_system.system())
+    .add_system_to_stage("tick", tick_system.system())
+    .add_system_to_stage("tick", damage_system.system())
+
+    //.add_system_to_stage(stage::EVENT_UPDATE, update_game_events.system())
+
+    .run();
+}
+
+fn main() {
+    #[cfg(not(feature="wasm"))]
+    regular_main();
+    #[cfg(feature="wasm")]
+    wasm_main();
+}
+
+fn hello_world_system() {
+    log::info!("hello wasm: {}", unsafe {hello()});
+}
+
+fn counter(mut state: Local<CounterState>) {
+    if state.count % 60 == 0 {
+        log::info!("counter system: {}", state.count);
+    }
+    state.count += 1;
+}
+
+#[derive(Default)]
+struct CounterState {
+    count: u32,
+}
+
+use wasm_bindgen::prelude::*;
+
+#[wasm_bindgen(module = "/hello.js")]
+extern "C" {
+    fn hello() -> String;
+}
+
