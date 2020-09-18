@@ -31,9 +31,9 @@ pub fn js_render(
         &[',', ';', '%', ';', ',', '~', '|', 'Ó', 'G', 'G', ' ', ' '],
     ];
 
-    let mut board_str = String::with_capacity((MAX_WIDTH * MAX_HEIGHT) as usize);
-    for y in (0..MAX_HEIGHT).rev() {
-        for x in 0..MAX_WIDTH {
+    let mut board_str = String::with_capacity((MAX_BOARD_WIDTH * MAX_BOARD_HEIGHT) as usize);
+    for y in (0..MAX_BOARD_HEIGHT).rev() {
+        for x in 0..MAX_BOARD_WIDTH {
             let tile = items.get(&(x, y));
             if let Some(&tile) = tile {
                 let tile = tile as usize;

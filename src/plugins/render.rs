@@ -22,15 +22,15 @@ pub struct RenderState {
 }
 
 fn camera_scale(width: u32, height: u32) -> f32 {
-    let scale_x = (MAX_WIDTH as f32 * 32.0) / (width as f32);
-    let scale_y = ((MAX_HEIGHT + 2) as f32 * 32.0) / (height as f32);
+    let scale_x = (MAX_BOARD_WIDTH as f32 * 32.0) / (width as f32);
+    let scale_y = ((MAX_BOARD_HEIGHT + 2) as f32 * 32.0) / (height as f32);
     scale_x.max(scale_y)
 }
 
 fn camera_translation(width: u32, height: u32) -> Vec3 {
     let scale = camera_scale(width, height);
-    let board_width = MAX_WIDTH as f32 * 32.0;
-    let board_height = (MAX_HEIGHT + 2) as f32 * 32.0;
+    let board_width = MAX_BOARD_WIDTH as f32 * 32.0;
+    let board_height = (MAX_BOARD_HEIGHT + 2) as f32 * 32.0;
     Vec3::new(
         -16.0 - (width as f32 * scale - board_width) / 2.0,
         -16.0 - (height as f32 * scale - board_height) / 2.0,
@@ -118,9 +118,9 @@ pub fn render_setup(
     commands.spawn(Camera2dComponents {
         orthographic_projection: OrthographicProjection {
             bottom: 0.0,
-            top: MAX_HEIGHT as f32 * box_size,
+            top: MAX_BOARD_HEIGHT as f32 * box_size,
             left: 0.0,
-            right: MAX_WIDTH as f32 * box_size,
+            right: MAX_BOARD_WIDTH as f32 * box_size,
             window_origin: WindowOrigin::BottomLeft,
             ..Default::default()
         },
@@ -239,8 +239,8 @@ impl Plugin for RenderPlugin {
     fn build(&self, app: &mut AppBuilder) {
         app.add_resource(WindowDescriptor {
             title: "Robbo".to_string(),
-            width: ((32 * MAX_WIDTH) as f32) as u32,
-            height: ((32 * (MAX_HEIGHT + 2)) as f32) as u32,
+            width: ((32 * MAX_BOARD_WIDTH) as f32) as u32,
+            height: ((32 * (MAX_BOARD_HEIGHT + STATUS_HEIGHT)) as f32) as u32,
             resizable: true,
             // mode: window::WindowMode::Fullscreen {use_size: false},
             mode: window::WindowMode::Windowed,

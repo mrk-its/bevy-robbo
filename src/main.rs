@@ -20,8 +20,9 @@ use structopt::StructOpt;
 use systems::*;
 
 mod consts {
-    pub const MAX_WIDTH: i32 = 31;
-    pub const MAX_HEIGHT: i32 = 16;
+    pub const MAX_BOARD_WIDTH: i32 = 31;
+    pub const MAX_BOARD_HEIGHT: i32 = 16;
+    pub const STATUS_HEIGHT: i32 = 2;
 }
 
 #[derive(StructOpt, Debug, Default, Clone)]
@@ -32,9 +33,6 @@ pub struct Opts {
 
     #[structopt(short, long)]
     pub debug: bool,
-
-    #[structopt(long)]
-    pub no_render: bool,
 
     #[structopt(long)]
     pub no_audio: bool,
@@ -59,6 +57,9 @@ fn main() {
     let vsync = opts.fps == 60 && !opts.benchmark_mode;
     let mut builder = App::build();
 
+    #[cfg(feature = "render")]
+    builder.add_plugin(plugins::RenderPlugin { vsync });
+
     #[cfg(not(target_arch = "wasm32"))]
     {
         env_logger::init();
@@ -71,7 +72,7 @@ fn main() {
 
         builder
             .add_plugin(bevy::app::ScheduleRunnerPlugin::run_loop(
-                std::time::Duration::from_secs_f64(1.0 / 60.0),
+                std::time::Duration::from_secs_f64(1.0 / opts.fps as f64),
             ));
     }
     builder
@@ -127,8 +128,6 @@ fn main() {
 
     #[cfg(not(target_arch = "wasm32"))]
     if !opts.benchmark_mode {
-        #[cfg(feature = "render")]
-        builder.add_plugin(plugins::RenderPlugin { vsync });
         builder.add_system_to_stage("reload_level", reload_level.system());
         if !vsync {
             #[cfg(not(target_arch = "wasm32"))]
@@ -137,10 +136,6 @@ fn main() {
             });
         }
     } else {
-        if !opts.no_render {
-            #[cfg(feature = "render")]
-            builder.add_plugin(plugins::RenderPlugin { vsync });
-        }
         builder.add_system_to_stage("reload_level", benchmark_reload_level.system());
     }
     builder.run();
