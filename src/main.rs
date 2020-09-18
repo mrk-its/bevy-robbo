@@ -81,11 +81,14 @@ fn main() {
     #[cfg(feature = "wasm")]
     {
         builder
-            .add_plugin(crate::plugins::wasm_runner::WasmRunnerPlugin)
+            .add_plugin(bevy::app::ScheduleRunnerPlugin::run_loop(
+                std::time::Duration::from_secs_f64(1.0 / 60.0),
+            ))
             .add_plugin(bevy::type_registry::TypeRegistryPlugin::default())
             //.add_plugin(bevy::core::CorePlugin::default())
             .add_plugin(bevy::input::InputPlugin::default())
             .add_plugin(bevy::window::WindowPlugin::default())
+            .add_plugin(bevy::winit::WinitPlugin::default())
             .add_plugin(bevy::asset::AssetPlugin::default());
     }
     builder

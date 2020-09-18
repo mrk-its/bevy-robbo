@@ -5,9 +5,15 @@
   <script type="module">
     import init from './target/bevy-robbo.js'
     init()
+    setInterval(function(){
+      document.querySelector("canvas").focus()
+    }, 100);
   </script>
+  <style>
+    pre {margin: 0px;}
+  </style>
   <body>
-    <div style="font-size: 200%;">
+    <div style="font-size: 200%; position: absolute">
       <pre id="board">
         #############################
         #                           #
