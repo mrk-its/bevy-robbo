@@ -57,6 +57,8 @@ fn main() {
     info!("opts: {:?}", opts);
 
     let vsync = opts.fps == 60 && !opts.benchmark_mode;
+    let mut builder = App::build();
+
     #[cfg(not(feature = "wasm"))]
     {
         env_logger::init();
@@ -66,32 +68,19 @@ fn main() {
         extern crate console_error_panic_hook;
         std::panic::set_hook(Box::new(console_error_panic_hook::hook));
         console_log::init_with_level(log::Level::Debug).expect("cannot initialize console_log");
+
+        builder
+            .add_plugin(bevy::app::ScheduleRunnerPlugin::run_loop(
+                std::time::Duration::from_secs_f64(1.0 / 60.0),
+            ));
     }
-    let mut builder = App::build();
     builder
+        .add_default_plugins()
         .add_resource(Inventory::default())
         .add_resource(LevelInfo::default())
         .add_resource(DamageMap::default())
         .add_resource(Events::<GameEvent>::default())
-        .add_resource(opts.clone());
-
-    #[cfg(not(feature = "wasm"))]
-    builder.add_default_plugins();
-
-    #[cfg(feature = "wasm")]
-    {
-        builder
-            .add_plugin(bevy::app::ScheduleRunnerPlugin::run_loop(
-                std::time::Duration::from_secs_f64(1.0 / 60.0),
-            ))
-            .add_plugin(bevy::type_registry::TypeRegistryPlugin::default())
-            //.add_plugin(bevy::core::CorePlugin::default())
-            .add_plugin(bevy::input::InputPlugin::default())
-            .add_plugin(bevy::window::WindowPlugin::default())
-            .add_plugin(bevy::winit::WinitPlugin::default())
-            .add_plugin(bevy::asset::AssetPlugin::default());
-    }
-    builder
+        .add_resource(opts.clone())
         .add_asset::<LevelSet>()
         .add_asset_loader::<LevelSet, LevelSetLoader>()
         .add_plugin(FrameCntPlugin::new(opts.key_frame_interval))
