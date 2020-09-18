@@ -7,7 +7,7 @@ pub struct AssetEventsState {
     reader: EventReader<AssetEvent<LevelSet>>,
 }
 
-#[cfg(not(feature = "wasm"))]
+#[cfg(not(target_arch = "wasm32"))]
 pub fn asset_events(
     mut game_events: ResMut<Events<GameEvent>>,
     opts: Res<crate::Opts>,
@@ -27,7 +27,7 @@ pub fn asset_events(
     }
 }
 
-#[cfg(not(feature = "wasm"))]
+#[cfg(not(target_arch = "wasm32"))]
 pub fn level_setup(asset_server: Res<AssetServer>, opts: Res<crate::Opts>) {
     info!("loading levelset");
     asset_server.watch_for_changes().unwrap();
@@ -36,7 +36,7 @@ pub fn level_setup(asset_server: Res<AssetServer>, opts: Res<crate::Opts>) {
         .unwrap();
 }
 
-#[cfg(feature = "wasm")]
+#[cfg(target_arch = "wasm32")]
 pub fn level_setup(
     mut game_events: ResMut<Events<GameEvent>>,
     mut level_sets: ResMut<Assets<LevelSet>>,
@@ -51,6 +51,6 @@ pub fn level_setup(
     game_events.send(GameEvent::ReloadLevel(0));
 }
 
-#[cfg(feature = "wasm")]
+#[cfg(target_arch = "wasm32")]
 pub fn asset_events() {}
 

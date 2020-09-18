@@ -16,6 +16,8 @@ mod robbo_move;
 mod shots;
 mod ticks;
 mod utils;
+#[cfg(target_arch = "wasm32")]
+pub mod js_render;
 
 pub use activate_capsule::activate_capsule_system;
 pub use bears::move_bear;

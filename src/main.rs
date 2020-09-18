@@ -59,11 +59,11 @@ fn main() {
     let vsync = opts.fps == 60 && !opts.benchmark_mode;
     let mut builder = App::build();
 
-    #[cfg(not(feature = "wasm"))]
+    #[cfg(not(target_arch = "wasm32"))]
     {
         env_logger::init();
     }
-    #[cfg(feature = "wasm")]
+    #[cfg(target_arch = "wasm32")]
     {
         extern crate console_error_panic_hook;
         std::panic::set_hook(Box::new(console_error_panic_hook::hook));
@@ -114,24 +114,24 @@ fn main() {
         .add_system_to_stage("tick", tick_system.system())
         .add_system_to_stage("tick", damage_system.system());
 
-    #[cfg(feature = "wasm")]
+    #[cfg(target_arch = "wasm32")]
     builder
-        .add_system_to_stage("reload_level", reload_level.system())
-        .add_system_to_stage(stage::POST_UPDATE, js_render_system.system());
+        .add_system_to_stage(stage::POST_UPDATE, crate::systems::js_render::js_render.system());
 
-    #[cfg(not(feature = "wasm"))]
+    #[cfg(not(target_arch = "wasm32"))]
     if opts.debug {
         builder
             .add_plugin(bevy::diagnostic::FrameTimeDiagnosticsPlugin::default())
             .add_plugin(bevy::diagnostic::PrintDiagnosticsPlugin::default());
     }
 
-    #[cfg(not(feature = "wasm"))]
+    #[cfg(not(target_arch = "wasm32"))]
     if !opts.benchmark_mode {
         #[cfg(feature = "render")]
         builder.add_plugin(plugins::RenderPlugin { vsync });
         builder.add_system_to_stage("reload_level", reload_level.system());
         if !vsync {
+            #[cfg(not(target_arch = "wasm32"))]
             builder.add_plugin(FrameLimiterPlugin {
                 fps: opts.fps as f32,
             });
@@ -144,63 +144,4 @@ fn main() {
         builder.add_system_to_stage("reload_level", benchmark_reload_level.system());
     }
     builder.run();
-}
-
-use crate::components::{Int2Ops, Position, Tiles};
-use consts::*;
-
-fn js_render_system(
-    frame_cnt: Res<FrameCnt>,
-    current_level: Res<LevelInfo>,
-    inventory: Res<Inventory>,
-    mut items: Query<(&Position, &Tiles)>,
-) {
-    if !frame_cnt.is_keyframe() {
-        return;
-    }
-    let items: std::collections::HashMap<(i32, i32), u32> = items
-        .iter()
-        .iter()
-        .map(|(&pos, &tiles)| (pos.as_tuple(), tiles.tiles[tiles.current]))
-        .collect();
-    static TILE_CHARS: &[&[char]] = &[
-        &['M', 'M', '░', '▒', 'T', 'a', '#', 'k', 'Ó', 'D', '#', ' '],
-        &['?', '@', '@', '^', '^', 'C', 'c', '▓', '#', '░', '▒', ' '],
-        &['~', ' ', ' ', ' ', ' ', '▒', '@', '@', '0', '%', '%', ' '],
-        &['~', '~', '|', '|', 'T', '|', ' ', ' ', ' ', ' ', ' ', ' '],
-        &['▣', '▧', ' ', ' ', ' ', 'G', 'G', 'G', 'G', ' ', ' ', ' '],
-        &['R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', '░', '▓', ' ', ' '],
-        &['M', 'M', ' ', ' ', ' ', '.', '#', 'Ó', 'G', 'G', ' ', ' '],
-        &[',', ';', '%', ';', ',', '~', '|', 'Ó', 'G', 'G', ' ', ' '],
-    ];
-
-    let mut board_str = String::with_capacity((MAX_WIDTH * MAX_HEIGHT) as usize);
-    for y in (0..MAX_HEIGHT).rev() {
-        for x in 0..MAX_WIDTH {
-            let tile = items.get(&(x, y));
-            if let Some(&tile) = tile {
-                let tile = tile as usize;
-                board_str.push(TILE_CHARS[tile / 12][tile % 12]);
-            } else {
-                board_str += " ";
-            }
-        }
-        board_str += "\n";
-    }
-    unsafe {
-        render(
-            current_level.screws - inventory.screws,
-            inventory.keys,
-            inventory.bullets,
-            current_level.current_level + 1,
-            board_str,
-        );
-    }
-}
-
-use wasm_bindgen::prelude::*;
-
-#[wasm_bindgen(module = "/wasm/render.js")]
-extern "C" {
-    fn render(screws: usize, keys: usize, bullets: usize, level: usize, board: String);
 }

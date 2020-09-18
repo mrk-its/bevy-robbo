@@ -9,9 +9,7 @@ edition = "2018"
 default = [
     "audio",
     "render",
-    "wasm",
 ]
-wasm = []
 audio = ["bevy/bevy_audio", "bevy/vorbis"]
 render = ["bevy/bevy_wgpu", "bevy/render", "bevy/x11", "bevy/png"]
 
