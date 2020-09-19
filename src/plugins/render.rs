@@ -9,7 +9,6 @@ use bevy::render::camera::{OrthographicProjection, WindowOrigin};
 use bevy::sprite::TextureAtlas;
 use bevy::window::WindowResized;
 use std::collections::HashSet;
-use bevy::window;
 
 const TEXTURE_ATLAS_HANDLE: Handle<TextureAtlas> =
     Handle::from_u128(0xfa86671bbf3b4a72a6f36eb2e29432c3);
@@ -237,17 +236,7 @@ pub struct RenderPlugin {
 
 impl Plugin for RenderPlugin {
     fn build(&self, app: &mut AppBuilder) {
-        app.add_resource(WindowDescriptor {
-            title: "Robbo".to_string(),
-            width: ((32 * MAX_BOARD_WIDTH) as f32) as u32,
-            height: ((32 * (MAX_BOARD_HEIGHT + STATUS_HEIGHT)) as f32) as u32,
-            resizable: true,
-            // mode: window::WindowMode::Fullscreen {use_size: false},
-            mode: window::WindowMode::Windowed,
-            vsync: self.vsync,
-            ..Default::default()
-        })
-        .add_resource(bevy::render::pass::ClearColor(Color::rgb(0.1, 0.1, 0.1)))
+        app.add_resource(bevy::render::pass::ClearColor(Color::rgb(0.1, 0.1, 0.1)))
         .add_resource(RenderState::default())
         .add_startup_system(render_setup.system())
         .add_stage_before(stage::POST_UPDATE, "create_sprites")

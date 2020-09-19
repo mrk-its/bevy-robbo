@@ -4,11 +4,8 @@
   <meta charset="UTF-8" />
   <link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@600&display=swap" rel="stylesheet">
   <script type="module">
-    import init from './target/bevy-robbo-v3.js'
+    import init from './wasm/target/bevy-robbo.js'
     init()
-    setInterval(function () {
-      document.querySelector("canvas").focus()
-    }, 100);
   </script>
   <style>
     * {
@@ -23,22 +20,10 @@
       font-size: 1.5em;
       margin: 1em;
     }
-
-    :focus {
-      outline: none;
-    }
   </style>
   <body>
-    <div style="position: absolute">
-      <pre id="board">
-          #############################
-          #                           #
-          #                           #
-          #        Loading...         #
-          #                           #
-          #                           #
-          #############################
-          </pre>
+    <div>
+      <canvas id="bevy-canvas" tabIndex="0" autofocus height="576" width="992"></canvas>
       <div id="inventory"></div>
       <p>
         Arrows: move<br />

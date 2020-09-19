@@ -20,29 +20,13 @@ pub fn js_render(
         .iter()
         .map(|(&pos, &tiles)| (pos.as_tuple(), tiles.tiles[tiles.current]))
         .collect();
-    static TILE_CHARS: &[&[char]] = &[
-        &['M', 'M', '█', '▒', 'T', '∙', '#', 'k', 'ó', '⚅', '#', ' '],
-        &['?', '@', '@', '^', '^', 'C', 'c', '▓', '#', '█', '▒', ' '],
-        &['┅', ' ', ' ', ' ', ' ', '▒', '@', '@', '∞', '∞', ' ', ' '],
-        &['┅', '┅', '┋', '┋', 'T', '┋', ' ', ' ', ' ', ' ', ' ', ' '],
-        &['▣', '▧', ' ', ' ', ' ', 'G', 'G', 'G', 'G', ' ', ' ', ' '],
-        &['R', 'R', 'R', 'R', 'R', 'R', 'R', 'R', '█', '▓', ' ', ' '],
-        &['M', 'M', ' ', ' ', ' ', '░', '#', 'Ó', 'G', 'G', ' ', ' '],
-        &[',', ';', '%', ';', ',', '~', '┋', 'Ó', 'G', 'G', ' ', ' '],
-    ];
 
-    let mut board_str = String::with_capacity((MAX_BOARD_WIDTH * MAX_BOARD_HEIGHT) as usize);
+    let mut board: Vec<u8> = Vec::with_capacity((MAX_BOARD_WIDTH * MAX_BOARD_HEIGHT) as usize);
     for y in (0..MAX_BOARD_HEIGHT).rev() {
         for x in 0..MAX_BOARD_WIDTH {
             let tile = items.get(&(x, y));
-            if let Some(&tile) = tile {
-                let tile = tile as usize;
-                board_str.push(TILE_CHARS[tile / 12][tile % 12]);
-            } else {
-                board_str += " ";
-            }
+            board.push(*tile.unwrap_or(&255) as u8);
         }
-        board_str += "\n";
     }
     unsafe {
         render(
@@ -50,14 +34,14 @@ pub fn js_render(
             inventory.keys,
             inventory.bullets,
             current_level.current_level + 1,
-            board_str,
+            board,
         );
     }
 }
 
 use wasm_bindgen::prelude::*;
 
-#[wasm_bindgen(module = "/wasm/render.js")]
+#[wasm_bindgen(module = "/assets/render.js")]
 extern "C" {
-    fn render(screws: usize, keys: usize, bullets: usize, level: usize, board: String);
+    fn render(screws: usize, keys: usize, bullets: usize, level: usize, board: Vec<u8>);
 }

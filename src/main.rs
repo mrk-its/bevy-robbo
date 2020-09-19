@@ -69,13 +69,20 @@ fn main() {
         extern crate console_error_panic_hook;
         std::panic::set_hook(Box::new(console_error_panic_hook::hook));
         console_log::init_with_level(log::Level::Debug).expect("cannot initialize console_log");
-
-        builder
-            .add_plugin(bevy::app::ScheduleRunnerPlugin::run_loop(
-                std::time::Duration::from_secs_f64(1.0 / opts.fps as f64),
-            ));
     }
     builder
+        .add_resource(WindowDescriptor {
+            title: "Robbo".to_string(),
+            width: ((32 * consts::MAX_BOARD_WIDTH) as f32) as u32,
+            height: ((32 * (consts::MAX_BOARD_HEIGHT + consts::STATUS_HEIGHT)) as f32) as u32,
+            resizable: true,
+            // mode: window::WindowMode::Fullscreen {use_size: false},
+            mode: bevy::window::WindowMode::Windowed,
+            #[cfg(target_arch = "wasm32")]
+            canvas: Some("#bevy-canvas".to_string()),
+            vsync: vsync,
+            ..Default::default()
+        })
         .add_default_plugins()
         .add_resource(Inventory::default())
         .add_resource(LevelInfo::default())
