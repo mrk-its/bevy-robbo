@@ -15,6 +15,12 @@ const TEXTURE_ATLAS_HANDLE: Handle<TextureAtlas> =
 const DIGITS_ATLAS_HANDLE: Handle<TextureAtlas> =
     Handle::from_u128(0xc5de37f40bcd4614bb544ac824d69f2a);
 
+const TEXTURE_HANDLE: Handle<Texture> =
+    Handle::from_u128(0xfa86671bbf3b4a72a6f36eb2e29432c4);
+const DIGITS_HANDLE: Handle<Texture> =
+    Handle::from_u128(0xc5de37f40bcd4614bb544ac824d69f2b);
+
+
 #[derive(Default)]
 pub struct RenderState {
     pub reader: EventReader<WindowResized>,
@@ -98,14 +104,20 @@ where
 
 pub fn render_setup(
     mut commands: Commands,
+    #[cfg(not(target_arch = "wasm32"))]
     asset_server: Res<AssetServer>,
     mut clear_color: ResMut<ClearColor>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
 ) {
     *clear_color = ClearColor(Color::rgb_u8(16, 16, 16));
 
-    let texture_handle = asset_server.load("assets/icons32.png").unwrap();
-    let digits_handle = asset_server.load("assets/digits2.png").unwrap();
+    #[cfg(not(target_arch = "wasm32"))]
+    let (texture_handle, digits_handle) = {
+        (asset_server.load("assets/icons32.png").unwrap(), asset_server.load("assets/digits2.png").unwrap())
+    };
+    #[cfg(target_arch = "wasm32")]
+    let (texture_handle, digits_handle) = (TEXTURE_HANDLE, DIGITS_HANDLE);
+
     let texture_atlas = TextureAtlas::from_grid(texture_handle, Vec2::new(384.0, 256.0), 12, 8);
     texture_atlases.set(TEXTURE_ATLAS_HANDLE, texture_atlas);
 

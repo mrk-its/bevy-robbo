@@ -18,6 +18,8 @@ use plugins::{AudioPlugin, FrameCnt, FrameCntPlugin, FrameLimiterPlugin, Keyboar
 use resources::DamageMap;
 use structopt::StructOpt;
 use systems::*;
+use bevy::render::renderer::{HeadlessRenderResourceContext, RenderResourceContext};
+use bevy::render::render_graph::RenderGraph;
 
 mod consts {
     pub const MAX_BOARD_WIDTH: i32 = 31;
@@ -50,6 +52,12 @@ pub struct Opts {
     pub levelset_path: std::path::PathBuf,
 }
 
+pub fn headless_render_system(render_ctx: Res<Box<dyn RenderResourceContext>>, render_graph: Res<RenderGraph>) {
+    let x = render_ctx.as_any().downcast_ref::<HeadlessRenderResourceContext>();
+    info!("headless_render_ctx: {:?}", x);
+    info!("render graph: {:?}", *render_graph);
+}
+
 fn main() {
     let opts = Opts::from_args();
     info!("opts: {:?}", opts);
@@ -57,7 +65,6 @@ fn main() {
     let vsync = opts.fps == 60 && !opts.benchmark_mode;
     let mut builder = App::build();
 
-    #[cfg(feature = "render")]
     builder.add_plugin(plugins::RenderPlugin { vsync });
 
     #[cfg(not(target_arch = "wasm32"))]
@@ -123,17 +130,24 @@ fn main() {
         .add_system_to_stage("tick", damage_system.system());
 
     #[cfg(target_arch = "wasm32")]
-    builder
-        .add_system_to_stage(stage::POST_UPDATE, crate::systems::js_render::js_render.system());
+    {
+        use bevy::render::renderer::{HeadlessRenderResourceContext, RenderResourceContext, SharedBuffers};
+        let resource_context = HeadlessRenderResourceContext::default();
+        builder.add_resource::<Box<dyn RenderResourceContext>>(Box::new(resource_context));
+        builder.add_resource(SharedBuffers::new(Box::new(HeadlessRenderResourceContext::default())));
+        builder.add_plugin(plugins::webgl2_render::WebGL2RenderPlugin);
+
+        // builder.add_system_to_stage(stage::POST_UPDATE, headless_render_system.system());
+    }
 
     #[cfg(not(target_arch = "wasm32"))]
     if opts.debug {
         builder
             .add_plugin(bevy::diagnostic::FrameTimeDiagnosticsPlugin::default())
-            .add_plugin(bevy::diagnostic::PrintDiagnosticsPlugin::default());
+            .add_plugin(bevy::diagnostic::PrintDiagnosticsPlugin::default())
+            .add_plugin(bevy::wgpu::diagnostic::WgpuResourceDiagnosticsPlugin::default());
     }
 
-    #[cfg(not(target_arch = "wasm32"))]
     if !opts.benchmark_mode {
         builder.add_system_to_stage("reload_level", reload_level.system());
         if !vsync {
