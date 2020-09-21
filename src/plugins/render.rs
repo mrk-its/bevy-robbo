@@ -104,17 +104,19 @@ where
 
 pub fn render_setup(
     mut commands: Commands,
-    // asset_server: Res<AssetServer>,
+    #[cfg(not(target_arch = "wasm32"))]
+    asset_server: Res<AssetServer>,
     mut clear_color: ResMut<ClearColor>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
 ) {
     *clear_color = ClearColor(Color::rgb_u8(16, 16, 16));
 
-    // let texture_handle = asset_server.load("assets/icons32.png").unwrap();
-    // let digits_handle = asset_server.load("assets/digits2.png").unwrap();
-
-    let texture_handle = TEXTURE_HANDLE;
-    let digits_handle = DIGITS_HANDLE;
+    #[cfg(not(target_arch = "wasm32"))]
+    let (texture_handle, digits_handle) = {
+        (asset_server.load("assets/icons32.png").unwrap(), asset_server.load("assets/digits2.png").unwrap())
+    };
+    #[cfg(target_arch = "wasm32")]
+    let (texture_handle, digits_handle) = (TEXTURE_HANDLE, DIGITS_HANDLE);
 
     let texture_atlas = TextureAtlas::from_grid(texture_handle, Vec2::new(384.0, 256.0), 12, 8);
     texture_atlases.set(TEXTURE_ATLAS_HANDLE, texture_atlas);

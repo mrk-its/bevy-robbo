@@ -18,7 +18,7 @@ use plugins::{AudioPlugin, FrameCnt, FrameCntPlugin, FrameLimiterPlugin, Keyboar
 use resources::DamageMap;
 use structopt::StructOpt;
 use systems::*;
-use bevy::render::renderer::{HeadlessRenderResourceContext, RenderResourceContext, SharedBuffers};
+use bevy::render::renderer::{HeadlessRenderResourceContext, RenderResourceContext};
 use bevy::render::render_graph::RenderGraph;
 
 mod consts {
@@ -65,7 +65,6 @@ fn main() {
     let vsync = opts.fps == 60 && !opts.benchmark_mode;
     let mut builder = App::build();
 
-    #[cfg(feature = "render")]
     builder.add_plugin(plugins::RenderPlugin { vsync });
 
     #[cfg(not(target_arch = "wasm32"))]
@@ -77,7 +76,6 @@ fn main() {
         extern crate console_error_panic_hook;
         std::panic::set_hook(Box::new(console_error_panic_hook::hook));
         console_log::init_with_level(log::Level::Debug).expect("cannot initialize console_log");
-        builder.add_plugin(plugins::RenderPlugin { vsync });
     }
     builder
         .add_resource(WindowDescriptor {
@@ -137,11 +135,9 @@ fn main() {
         let resource_context = HeadlessRenderResourceContext::default();
         builder.add_resource::<Box<dyn RenderResourceContext>>(Box::new(resource_context));
         builder.add_resource(SharedBuffers::new(Box::new(HeadlessRenderResourceContext::default())));
-        builder.add_system_to_stage(
-            stage::POST_UPDATE,
-            crate::systems::js_render::js_render.system(),
-        );
-        builder.add_system_to_stage(stage::POST_UPDATE, headless_render_system.system());
+        builder.add_plugin(plugins::webgl2_render::WebGL2RenderPlugin);
+
+        // builder.add_system_to_stage(stage::POST_UPDATE, headless_render_system.system());
     }
 
     #[cfg(not(target_arch = "wasm32"))]
@@ -152,7 +148,6 @@ fn main() {
             .add_plugin(bevy::wgpu::diagnostic::WgpuResourceDiagnosticsPlugin::default());
     }
 
-    #[cfg(not(target_arch = "wasm32"))]
     if !opts.benchmark_mode {
         builder.add_system_to_stage("reload_level", reload_level.system());
         if !vsync {
