@@ -14,9 +14,10 @@ audio = ["bevy/bevy_audio", "bevy/vorbis"]
 render = ["bevy/bevy_wgpu", "bevy/render", "bevy/x11", "bevy/png"]
 
 [dependencies]
+bevy_asset = {path="../bevy/crates/bevy_asset", default-features = false}
 bevy = {path="../bevy/", default-features = false, features=["bevy_winit"]}
-rand = "0.7"
 anyhow = "1.0"
+rand = "0.7"
 uuid = "0.8"
 structopt = "0.3"
 env_logger = "0.7"

@@ -119,7 +119,7 @@ function createShader(gl, type, source) {
     new Uint8Array([0, 0, 255, 255, 0, 255, 255, 255]));
 
   var image = new Image();
-  image.src = "icons32.png";
+  image.src = "assets/icons32.png";
   image.addEventListener('load', function () {
     // Now that the image has loaded make copy it to the texture.
     gl.bindTexture(gl.TEXTURE_2D, texture);
