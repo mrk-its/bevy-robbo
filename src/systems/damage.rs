@@ -47,7 +47,7 @@ pub fn process_damage(
     mut sounds: ResMut<Events<Sound>>,
     mut damage_map: ResMut<DamageMap>,
     mut items: Query<Without<Undestroyable, (Entity, &Position)>>,
-    bombs: Query<&mut Bomb>,
+    mut bombs: Query<&mut Bomb>,
     destroyable: Query<&Destroyable>,
 ) {
     if !frame_cnt.is_keyframe() {

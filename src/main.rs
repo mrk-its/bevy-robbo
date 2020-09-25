@@ -126,7 +126,6 @@ fn main() {
             .add_plugin(bevy::diagnostic::PrintDiagnosticsPlugin::default());
     }
 
-    #[cfg(not(target_arch = "wasm32"))]
     if !opts.benchmark_mode {
         builder.add_system_to_stage("reload_level", reload_level.system());
         if !vsync {
