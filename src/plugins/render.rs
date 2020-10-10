@@ -15,12 +15,6 @@ const TEXTURE_ATLAS_HANDLE: Handle<TextureAtlas> =
 const DIGITS_ATLAS_HANDLE: Handle<TextureAtlas> =
     Handle::from_u128(0xc5de37f40bcd4614bb544ac824d69f2a);
 
-const TEXTURE_HANDLE: Handle<Texture> =
-    Handle::from_u128(0xfa86671bbf3b4a72a6f36eb2e29432c4);
-const DIGITS_HANDLE: Handle<Texture> =
-    Handle::from_u128(0xc5de37f40bcd4614bb544ac824d69f2b);
-
-
 #[derive(Default)]
 pub struct RenderState {
     pub reader: EventReader<WindowResized>,
@@ -52,13 +46,14 @@ fn spawn_counter<T>(
 ) where
     T: Send + Sync + Copy + 'static,
 {
+    let color = Color::rgb_u8(0xa0, 0xa0, 0xa0);
     commands
         .spawn(SpriteSheetComponents {
             texture_atlas: TEXTURE_ATLAS_HANDLE,
             transform: Transform::from_translation(Vec3::new(x_offset as f32 * 16.0, 16.0, 0.0)),
             sprite: TextureAtlasSprite {
                 index: icon_index,
-                color: Color::rgb_u8(0x40, 0x40, 0x40),
+                color: color,
                 ..Default::default()
             },
             ..Default::default()
@@ -76,7 +71,7 @@ fn spawn_counter<T>(
                 )),
                 sprite: TextureAtlasSprite {
                     index: 8,
-                    color: Color::rgb_u8(0x40, 0x40, 0x40),
+                    color: color,
                     ..Default::default()
                 },
                 ..Default::default()
@@ -104,28 +99,22 @@ where
 
 pub fn render_setup(
     mut commands: Commands,
-    #[cfg(not(target_arch = "wasm32"))]
     asset_server: Res<AssetServer>,
-    mut clear_color: ResMut<ClearColor>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
 ) {
-    *clear_color = ClearColor(Color::rgb_u8(16, 16, 16));
+    let texture_handle = asset_server
+        .load::<Texture, _>("assets/icons32.png")
+        .unwrap();
+    let mut texture_atlas = TextureAtlas::from_grid(texture_handle, Vec2::new(384.0, 256.0), 12, 8);
+    texture_atlas.size = Vec2::new(384.0, 256.0);
 
-    #[cfg(not(target_arch = "wasm32"))]
-    let (texture_handle, digits_handle) = {
-        (asset_server.load("assets/icons32.png").unwrap(), asset_server.load("assets/digits2.png").unwrap())
-    };
-    #[cfg(target_arch = "wasm32")]
-    let (texture_handle, digits_handle) = (TEXTURE_HANDLE, DIGITS_HANDLE);
-
-    let texture_atlas = TextureAtlas::from_grid(texture_handle, Vec2::new(384.0, 256.0), 12, 8);
     texture_atlases.set(TEXTURE_ATLAS_HANDLE, texture_atlas);
 
-    let digits_atlas = TextureAtlas::from_grid(digits_handle, Vec2::new(160.0, 32.0), 10, 1);
-    texture_atlases.set(DIGITS_ATLAS_HANDLE, digits_atlas);
-
     let box_size = 32.0;
-
+    let width = MAX_BOARD_WIDTH as f32 * box_size;
+    let height = (MAX_BOARD_HEIGHT + 2) as f32 * box_size;
+    let scale = camera_scale(width as u32, height as u32);
+    let translation = camera_translation(width as u32, height as u32);
     commands.spawn(Camera2dComponents {
         orthographic_projection: OrthographicProjection {
             bottom: 0.0,
@@ -135,15 +124,24 @@ pub fn render_setup(
             window_origin: WindowOrigin::BottomLeft,
             ..Default::default()
         },
+        transform: Transform::from_translation_rotation_scale(translation, Quat::default(), scale),
         ..Default::default()
     });
 
-    let offs = (62 - 22) / 2;
+    // #[cfg(feature = "webgl-plugin")]
+    {
+        let digits_handle = asset_server
+            .load::<Texture, _>("assets/digits2.png")
+            .unwrap();
+        let digits_atlas = TextureAtlas::from_grid(digits_handle, Vec2::new(160.0, 32.0), 10, 1);
+        texture_atlases.set(DIGITS_ATLAS_HANDLE, digits_atlas);
 
-    spawn_counter(&mut commands, ScrewCounter, offs + 0, 2, 83);
-    spawn_counter(&mut commands, KeyCounter, offs + 6, 2, 95);
-    spawn_counter(&mut commands, AmmoCounter, offs + 12, 2, 91);
-    spawn_counter(&mut commands, LevelNumber, offs + 18, 2, 71);
+        let offs = (62 - 22) / 2;
+        spawn_counter(&mut commands, ScrewCounter, offs + 0, 2, 83);
+        spawn_counter(&mut commands, KeyCounter, offs + 6, 2, 95);
+        spawn_counter(&mut commands, AmmoCounter, offs + 12, 2, 91);
+        spawn_counter(&mut commands, LevelNumber, offs + 18, 2, 71);
+    }
 }
 
 pub fn update_camera(
@@ -248,15 +246,17 @@ pub struct RenderPlugin {
 
 impl Plugin for RenderPlugin {
     fn build(&self, app: &mut AppBuilder) {
-        app.add_resource(bevy::render::pass::ClearColor(Color::rgb(0.1, 0.1, 0.1)))
-        .add_resource(RenderState::default())
-        .add_startup_system(render_setup.system())
-        .add_stage_before(stage::POST_UPDATE, "create_sprites")
-        .add_stage_before(stage::POST_UPDATE, "update_camera")
-        .add_stage_before(stage::POST_UPDATE, "prepare_render")
-        .add_system_to_stage("create_sprites", create_sprites.system())
-        .add_system_to_stage("update_camera", update_camera.system())
-        .add_system_to_stage("prepare_render", prepare_render.system())
-        .add_system_to_stage("prepare_render", update_status_bar.system());
+        let builder = app
+            .add_resource(bevy::render::pass::ClearColor(Color::rgb(0.3, 0.3, 0.5)))
+            .add_resource(RenderState::default())
+            .add_startup_system(render_setup.system())
+            .add_stage_before(stage::POST_UPDATE, "create_sprites")
+            .add_stage_before(stage::POST_UPDATE, "update_camera")
+            .add_stage_before(stage::POST_UPDATE, "prepare_render")
+            .add_system_to_stage("create_sprites", create_sprites.system())
+            .add_system_to_stage("update_camera", update_camera.system())
+            .add_system_to_stage("prepare_render", prepare_render.system());
+
+        builder.add_system_to_stage("prepare_render", update_status_bar.system());
     }
 }

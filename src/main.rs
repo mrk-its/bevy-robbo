@@ -21,6 +21,12 @@ use systems::*;
 use bevy::render::renderer::{HeadlessRenderResourceContext, RenderResourceContext};
 use bevy::render::render_graph::RenderGraph;
 
+// use std::alloc::System;
+// use wasm_tracing_allocator::WasmTracingAllocator;
+
+// #[global_allocator]
+// static GLOBAL_ALLOCATOR: WasmTracingAllocator<System> = WasmTracingAllocator(System);
+
 mod consts {
     pub const MAX_BOARD_WIDTH: i32 = 31;
     pub const MAX_BOARD_HEIGHT: i32 = 16;
@@ -52,10 +58,14 @@ pub struct Opts {
     pub levelset_path: std::path::PathBuf,
 }
 
-pub fn headless_render_system(render_ctx: Res<Box<dyn RenderResourceContext>>, render_graph: Res<RenderGraph>) {
-    let x = render_ctx.as_any().downcast_ref::<HeadlessRenderResourceContext>();
-    info!("headless_render_ctx: {:?}", x);
+pub fn render_graph_debug_system(render_ctx: Res<Box<dyn RenderResourceContext>>, render_graph: Res<RenderGraph>) {
+    let _ = render_ctx.as_any().downcast_ref::<HeadlessRenderResourceContext>();
     info!("render graph: {:?}", *render_graph);
+}
+
+pub fn debug_system(shaders: Res<Assets<Shader>>, render_graph: Res<RenderGraph>) {
+    log::info!("num shaders: {}", &shaders.iter().count());
+    log::info!("render_graph: {:#?}", *render_graph);
 }
 
 fn main() {
@@ -90,7 +100,9 @@ fn main() {
             vsync: vsync,
             ..Default::default()
         })
-        .add_default_plugins()
+        .add_default_plugins();
+
+    builder
         .add_resource(Inventory::default())
         .add_resource(LevelInfo::default())
         .add_resource(DamageMap::default())
@@ -129,7 +141,7 @@ fn main() {
         .add_system_to_stage("tick", tick_system.system())
         .add_system_to_stage("tick", damage_system.system());
 
-    #[cfg(target_arch = "wasm32")]
+    #[cfg(all(target_arch = "wasm32", feature = "webgl-plugin"))]
     {
         use bevy::render::renderer::{HeadlessRenderResourceContext, RenderResourceContext, SharedBuffers};
         let resource_context = HeadlessRenderResourceContext::default();
