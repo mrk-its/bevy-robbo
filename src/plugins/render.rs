@@ -46,7 +46,7 @@ fn spawn_counter<T>(
 ) where
     T: Send + Sync + Copy + 'static,
 {
-    let color = Color::rgb_u8(0xa0, 0xa0, 0xa0);
+    let color = Color::rgb_linear(0.75, 0.75, 0.75);
     commands
         .spawn(SpriteSheetComponents {
             texture_atlas: TEXTURE_ATLAS_HANDLE,
@@ -247,7 +247,7 @@ pub struct RenderPlugin {
 impl Plugin for RenderPlugin {
     fn build(&self, app: &mut AppBuilder) {
         let builder = app
-            .add_resource(bevy::render::pass::ClearColor(Color::rgb(0.3, 0.3, 0.5)))
+            .add_resource(bevy::render::pass::ClearColor(Color::rgb_linear(0.3, 0.3, 0.5)))
             .add_resource(RenderState::default())
             .add_startup_system(render_setup.system())
             .add_stage_before(stage::POST_UPDATE, "create_sprites")
