@@ -141,23 +141,10 @@ fn main() {
         .add_system_to_stage("tick", tick_system.system())
         .add_system_to_stage("tick", damage_system.system());
 
-    #[cfg(all(target_arch = "wasm32", feature = "webgl-plugin"))]
-    {
-        use bevy::render::renderer::{HeadlessRenderResourceContext, RenderResourceContext, SharedBuffers};
-        let resource_context = HeadlessRenderResourceContext::default();
-        builder.add_resource::<Box<dyn RenderResourceContext>>(Box::new(resource_context));
-        builder.add_resource(SharedBuffers::new(Box::new(HeadlessRenderResourceContext::default())));
-        builder.add_plugin(plugins::webgl2_render::WebGL2RenderPlugin);
-
-        // builder.add_system_to_stage(stage::POST_UPDATE, headless_render_system.system());
-    }
-
-    #[cfg(not(target_arch = "wasm32"))]
     if opts.debug {
         builder
             .add_plugin(bevy::diagnostic::FrameTimeDiagnosticsPlugin::default())
-            .add_plugin(bevy::diagnostic::PrintDiagnosticsPlugin::default())
-            .add_plugin(bevy::wgpu::diagnostic::WgpuResourceDiagnosticsPlugin::default());
+            .add_plugin(bevy::diagnostic::PrintDiagnosticsPlugin::default());
     }
 
     if !opts.benchmark_mode {

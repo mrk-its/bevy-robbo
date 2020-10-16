@@ -3,8 +3,6 @@ mod frame_limiter;
 mod keyboard;
 mod render;
 pub mod audio;
-#[cfg(target_arch = "wasm32")]
-pub mod webgl2_render;
 
 pub use frame_cnt::{FrameCnt, FrameCntPlugin};
 pub use frame_limiter::FrameLimiterPlugin;
