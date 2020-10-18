@@ -105,8 +105,7 @@ pub fn render_setup(
     let texture_handle = asset_server
         .load::<Texture, _>("assets/icons32.png")
         .unwrap();
-    let mut texture_atlas = TextureAtlas::from_grid(texture_handle, Vec2::new(384.0, 256.0), 12, 8);
-    texture_atlas.size = Vec2::new(384.0, 256.0);
+    let texture_atlas = TextureAtlas::from_grid(texture_handle, Vec2::new(32.0, 32.0), 12, 8);
 
     texture_atlases.set(TEXTURE_ATLAS_HANDLE, texture_atlas);
 
@@ -128,12 +127,11 @@ pub fn render_setup(
         ..Default::default()
     });
 
-    // #[cfg(feature = "webgl-plugin")]
     {
         let digits_handle = asset_server
             .load::<Texture, _>("assets/digits2.png")
             .unwrap();
-        let digits_atlas = TextureAtlas::from_grid(digits_handle, Vec2::new(160.0, 32.0), 10, 1);
+        let digits_atlas = TextureAtlas::from_grid(digits_handle, Vec2::new(16.0, 32.0), 10, 1);
         texture_atlases.set(DIGITS_ATLAS_HANDLE, digits_atlas);
 
         let offs = (62 - 22) / 2;
