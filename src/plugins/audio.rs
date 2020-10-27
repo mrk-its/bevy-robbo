@@ -19,7 +19,7 @@ pub struct AudioPlugin;
 impl Plugin for AudioPlugin {
     fn build(&self, app: &mut AppBuilder) {
         app.add_resource(Events::<Sound>::default());
-        app.add_system_to_stage(stage::EVENT_UPDATE, Events::<Sound>::update_system.system());
+        app.add_system_to_stage(stage::EVENT, Events::<Sound>::update_system.system());
         #[cfg(feature="audio")]
         {
             app.add_startup_system(audio_setup.system());
@@ -64,7 +64,7 @@ pub fn play_sounds_system(
             continue;
         }
         if let Some(&filename) = SOUND_FILES.get(*sound as usize) {
-            let path = format!("assets/sounds/{}", filename);
+            let path = format!("sounds/{}", filename);
             let handle = asset_server.get_handle(path).unwrap();
             audio_output.play(handle);
         }
@@ -75,6 +75,6 @@ pub fn play_sounds_system(
 #[cfg(feature="audio")]
 pub fn audio_setup(asset_server: Res<AssetServer>, opts: Res<crate::Opts>) {
     if !opts.no_audio {
-        asset_server.load_asset_folder("assets/sounds/").unwrap();
+        asset_server.load_asset_folder("sounds/").unwrap();
     }
 }

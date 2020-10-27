@@ -9,11 +9,12 @@ use bevy::render::camera::{OrthographicProjection, WindowOrigin};
 use bevy::sprite::TextureAtlas;
 use bevy::window::WindowResized;
 use std::collections::HashSet;
+use uuid;
 
 const TEXTURE_ATLAS_HANDLE: Handle<TextureAtlas> =
-    Handle::from_u128(0xfa86671bbf3b4a72a6f36eb2e29432c3);
+    Handle::weak_from_u64(uuid::Uuid::from_u128(0xfa86671bbf3b4a72a6f36eb2e29432c3), 0);
 const DIGITS_ATLAS_HANDLE: Handle<TextureAtlas> =
-    Handle::from_u128(0xc5de37f40bcd4614bb544ac824d69f2a);
+    Handle::weak_from_u64(uuid::Uuid::from_u128(0xc5de37f40bcd4614bb544ac824d69f2a), 0);
 
 #[derive(Default)]
 pub struct RenderState {
@@ -102,9 +103,7 @@ pub fn render_setup(
     asset_server: Res<AssetServer>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
 ) {
-    let texture_handle = asset_server
-        .load::<Texture, _>("assets/icons32.png")
-        .unwrap();
+    let texture_handle = asset_server.load("icons32.png");
     let texture_atlas = TextureAtlas::from_grid(texture_handle, Vec2::new(32.0, 32.0), 12, 8);
 
     texture_atlases.set(TEXTURE_ATLAS_HANDLE, texture_atlas);
@@ -123,14 +122,13 @@ pub fn render_setup(
             window_origin: WindowOrigin::BottomLeft,
             ..Default::default()
         },
-        transform: Transform::from_translation_rotation_scale(translation, Quat::default(), scale),
+        transform: Transform::from_translation(translation)
+            .mul_transform(Transform::from_scale(Vec3::new(scale, scale, scale))),
         ..Default::default()
     });
 
     {
-        let digits_handle = asset_server
-            .load::<Texture, _>("assets/digits2.png")
-            .unwrap();
+        let digits_handle = asset_server.load::<Texture, _>("digits2.png");
         let digits_atlas = TextureAtlas::from_grid(digits_handle, Vec2::new(16.0, 32.0), 10, 1);
         texture_atlases.set(DIGITS_ATLAS_HANDLE, digits_atlas);
 
@@ -152,8 +150,8 @@ pub fn update_camera(
         for (mut transform, _) in &mut items.iter() {
             let scale = camera_scale(event.width as u32, event.height as u32);
             let translation = camera_translation(event.width as u32, event.height as u32);
-            *transform =
-                Transform::from_translation_rotation_scale(translation, Quat::default(), scale)
+            *transform = Transform::from_translation(translation)
+                .mul_transform(Transform::from_scale(Vec3::new(scale, scale, scale)));
         }
     }
 }
@@ -212,7 +210,7 @@ pub fn prepare_render(
     let trans = Vec3::new(0.0, 2.0 * box_size, 0.0);
     for (entity, position, tiles, mut transform, mut sprite) in &mut items.iter() {
         let dest = trans + Vec3::new(position.x() as f32, position.y() as f32, 0.0) * box_size;
-        let cur = transform.translation();
+        let cur = transform.translation;
         if cur != dest {
             if to_smooth_update.contains(&entity) {
                 let steps_left = (opts.key_frame_interval

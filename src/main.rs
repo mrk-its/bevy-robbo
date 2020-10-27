@@ -54,7 +54,7 @@ pub struct Opts {
     #[structopt(short, long, default_value = "60")]
     pub fps: usize,
 
-    #[structopt(long, default_value = "assets/original.txt")]
+    #[structopt(long, default_value = "original.txt")]
     pub levelset_path: std::path::PathBuf,
 }
 
@@ -109,7 +109,7 @@ fn main() {
         .add_resource(Events::<GameEvent>::default())
         .add_resource(opts.clone())
         .add_asset::<LevelSet>()
-        .add_asset_loader::<LevelSet, LevelSetLoader>()
+        .init_asset_loader::<LevelSetLoader>()
         .add_plugin(FrameCntPlugin::new(opts.key_frame_interval))
         .add_plugin(KeyboardPlugin)
         .add_plugin(AudioPlugin)
@@ -122,8 +122,8 @@ fn main() {
         .add_stage_after("keyboard", "magnetic_field")
         .add_stage_after("frame_cnt", "tick")
         .add_startup_system(level_setup.system())
-        .add_system_to_stage(stage::EVENT_UPDATE, update_game_events.system())
-        .add_system_to_stage(stage::EVENT_UPDATE, asset_events.system())
+        .add_system_to_stage(stage::EVENT, update_game_events.system())
+        .add_system_to_stage(stage::EVENT, asset_events.system())
         .add_system_to_stage("magnetic_field", magnetic_field_system.system())
         .add_system_to_stage("process_damage", process_damage.system())
         .add_system_to_stage("move", move_laser_head.system())

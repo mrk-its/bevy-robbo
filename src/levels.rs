@@ -4,7 +4,9 @@ use anyhow;
 use bevy::asset::AssetLoader;
 use bevy::prelude::*;
 use std::collections::{HashMap, HashSet};
-
+use bevy::utils::BoxedFuture;
+use bevy::asset::{LoadedAsset, LoadContext};
+use bevy::type_registry::TypeUuid;
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Level {
     pub number: usize,
@@ -187,6 +189,8 @@ impl<'a> Iterator for LevelSetIterator<'a> {
     }
 }
 
+#[derive(Debug, TypeUuid)]
+#[uuid = "bc6b887f-3a1e-49f2-b101-8e14ab5ceae7"]
 pub struct LevelSet {
     pub levels: Vec<Level>,
 }
@@ -207,17 +211,20 @@ impl LevelSet {
 
 #[derive(Default)]
 pub struct LevelSetLoader;
-impl AssetLoader<LevelSet> for LevelSetLoader {
-    fn from_bytes(
-        &self,
-        _asset_path: &std::path::Path,
-        bytes: Vec<u8>,
-    ) -> Result<LevelSet, anyhow::Error> {
-        let data = String::from_utf8(bytes)?;
-        let level_set = LevelSet::new(&data);
-        Ok(level_set)
-    }
 
+impl AssetLoader for LevelSetLoader {
+    fn load<'a>(
+        &'a self,
+        bytes: &'a [u8],
+        load_context: &'a mut LoadContext,
+    ) -> BoxedFuture<'a, Result<(), anyhow::Error>> {
+        Box::pin(async move {
+            let data = std::str::from_utf8(bytes)?;
+            let level_set = LevelSet::new(data);
+            load_context.set_default_asset(LoadedAsset::new(level_set));
+            Ok(())
+        })
+    }
     fn extensions(&self) -> &[&str] {
         static EXT: &[&str] = &["txt"];
         EXT
