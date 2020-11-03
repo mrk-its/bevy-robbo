@@ -93,7 +93,7 @@ fn set_digits<T>(digits_query: &mut Query<With<T, (&Digit, &mut TextureAtlasSpri
 where
     T: Send + Sync + 'static,
 {
-    for (digit, mut sprite) in &mut digits_query.iter() {
+    for (digit, mut sprite) in digits_query.iter_mut() {
         set_sprite_digit(&mut *sprite, value, digit.0);
     }
 }
@@ -147,7 +147,7 @@ pub fn update_camera(
 ) {
     let event: Option<WindowResized> = state.reader.iter(&events).cloned().last();
     if let Some(event) = event {
-        for (mut transform, _) in &mut items.iter() {
+        for (mut transform, _) in items.iter_mut() {
             let scale = camera_scale(event.width as u32, event.height as u32);
             let translation = camera_translation(event.width as u32, event.height as u32);
             *transform = Transform::from_translation(translation)
@@ -173,9 +173,9 @@ pub fn update_status_bar(
 
 pub fn create_sprites(
     mut commands: Commands,
-    mut missing_sprites: Query<Without<Transform, With<Position, Entity>>>,
+    missing_sprites: Query<Without<Transform, With<Position, Entity>>>,
 ) {
-    for entity in &mut missing_sprites.iter() {
+    for entity in missing_sprites.iter() {
         commands.insert(
             entity,
             SpriteSheetComponents {
@@ -197,18 +197,17 @@ pub fn prepare_render(
         &mut Transform,
         &mut TextureAtlasSprite,
     )>,
-    mut smooth_update_items: Query<Without<RoughUpdate, With<MovingDir, Entity>>>,
-    mut smooth_update_items2: Query<Without<RoughUpdate, With<Moveable, Entity>>>,
+    smooth_update_items: Query<Without<RoughUpdate, With<MovingDir, Entity>>>,
+    smooth_update_items2: Query<Without<RoughUpdate, With<Moveable, Entity>>>,
 ) {
     let to_smooth_update: HashSet<Entity> = smooth_update_items
         .iter()
-        .into_iter()
         .chain(smooth_update_items2.iter().into_iter())
         .collect();
     let box_size = 32.0;
     let min_step = box_size / (opts.key_frame_interval as f32) * 1.01;
     let trans = Vec3::new(0.0, 2.0 * box_size, 0.0);
-    for (entity, position, tiles, mut transform, mut sprite) in &mut items.iter() {
+    for (entity, position, tiles, mut transform, mut sprite) in items.iter_mut() {
         let dest = trans + Vec3::new(position.x() as f32, position.y() as f32, 0.0) * box_size;
         let cur = transform.translation;
         if cur != dest {

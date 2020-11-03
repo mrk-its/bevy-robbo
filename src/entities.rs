@@ -65,9 +65,9 @@ pub fn create_bullet<'a>(commands: &'a mut Commands, kx: i32, ky: i32) -> &'a mu
     ))
 }
 
-pub fn create_laser_head<'a>(commands: &'a mut Commands, kx: i32, ky: i32) -> &'a mut Commands {
+pub fn create_laser_head<'a>(commands: &'a mut Commands, pos: Position, kx: i32, ky: i32) -> &'a mut Commands {
     commands.spawn((
-        LaserHead::default(),
+        LaserHead {gun_pos: pos, is_moving_back: false},
         RoughUpdate,
         Undestroyable,
         MovingDir::new(kx, ky),

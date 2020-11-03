@@ -10,22 +10,24 @@ pub fn move_bullet(
     frame_cnt: Res<FrameCnt>,
     level_info: ResMut<LevelInfo>,
     mut damage_map: ResMut<DamageMap>,
-    mut bullets: Query<With<Bullet, (Entity, &mut Position, &mut MovingDir)>>,
-    mut all_query: Query<Without<Wall, (&Position, Entity)>>,
+    mut queries: QuerySet<(
+        Query<With<Bullet, (Entity, &mut Position, &mut MovingDir)>>,
+        Query<Without<Wall, (&Position, Entity)>>,
+    )>,
 ) {
     if !frame_cnt.is_keyframe() {
         return;
     }
-    let mut occupancy = level_info.get_occupancy(&mut all_query);
-    for (entity, mut position, mut dir) in &mut bullets.iter() {
+    let mut occupied = level_info.get_occupied( queries.q1());
+    for (entity, mut position, mut dir) in queries.q0_mut().iter_mut() {
         let new_pos = position.add(&*dir);
-        if occupancy.is_occupied(&new_pos) {
+        if occupied.is_occupied(&new_pos) {
             *dir = MovingDir::zero();
             commands.despawn(entity);
             create_small_explosion(&mut commands).with(*position);
             damage_map.do_damage(&new_pos, false);
         } else {
-            occupancy.mv(&*position, &new_pos);
+            occupied.mv(&*position, &new_pos);
             *position = new_pos;
         }
     }

@@ -13,22 +13,24 @@ pub fn move_bird(
     frame_cnt: Res<FrameCnt>,
     level_info: Res<LevelInfo>,
     damage_map: Res<DamageMap>,
-    mut all_query: Query<Without<Wall, (&Position, Entity)>>,
-    mut birds: Query<With<MovingBetweenWalls, (&mut Position, &mut MovingDir)>>,
+    mut queries: QuerySet<(
+        Query<Without<Wall, (&Position, Entity)>>,
+        Query<With<MovingBetweenWalls, (&mut Position, &mut MovingDir)>>,
+    )>,
 ) {
     if !frame_cnt.is_keyframe() {
         return;
     }
-    let mut occupancy = level_info.get_occupancy(&mut all_query);
-    for (mut position, mut dir) in &mut birds.iter() {
+    let mut occupied = level_info.get_occupied(queries.q0());
+    for (mut position, mut dir) in queries.q1_mut().iter_mut() {
         if damage_map.is_damaged(&*position) {
             continue;
         }
         let new_pos = position.add(&*dir);
-        if occupancy.is_occupied(&new_pos) {
+        if occupied.is_occupied(&new_pos) {
             *dir = dir.neg()
         } else {
-            occupancy.mv(&*position, &new_pos);
+            occupied.mv(&*position, &new_pos);
             *position = new_pos;
         }
     }

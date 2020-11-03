@@ -10,17 +10,18 @@ const RANDOM_MOVE_PROP: f32 = 0.5;
 pub fn eyes_system(
     frame_cnt: Res<FrameCnt>,
     level_info: Res<LevelInfo>,
-    mut eyes_query: Query<With<Eyes, &mut Position>>,
-    mut all_query: Query<Without<Wall, &Position>>,
-    mut robbo_query: Query<With<Robbo, &Position>>,
+    mut queries: QuerySet<(
+       Query<Without<Wall, &Position>>,
+       Query<With<Robbo, &Position>>,
+       Query<With<Eyes, &mut Position>>,
+    )>
 ) {
     if !frame_cnt.is_keyframe() {
         return;
     }
-    let occupied: HashSet<Position> = all_query.iter().into_iter().cloned().collect();
-
-    for mut eyes_pos in &mut eyes_query.iter() {
-        for robbo_pos in &mut robbo_query.iter() {
+    let occupied: HashSet<Position> = queries.q0().iter().cloned().collect();
+    if let Some(robbo_pos) = queries.q1().iter().cloned().next() {
+        for mut eyes_pos in queries.q2_mut().iter_mut() {
             let (dx, dy) = if random::<f32>() < RANDOM_MOVE_PROP {
                 MovingDir::by_index(random::<usize>() % 4).as_tuple()
             } else {

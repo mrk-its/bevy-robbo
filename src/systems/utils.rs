@@ -12,11 +12,11 @@ pub fn teleport_dest_position(
     direction: MovingDir,
     teleports: &mut Query<(&Teleport, &Position)>,
 ) -> Option<Position> {
-    let teleport = *teleports.get::<Teleport>(teleport_entity).unwrap();
+    let teleport = *teleports.get_component::<Teleport>(teleport_entity).unwrap();
     let Teleport(group, position_in_group) = teleport;
-    let mut t_query = teleports.iter();
+    let t_query = teleports.iter();
     let mut teleports_group: Vec<_> =
-        t_query.iter().filter(|t| t.0.0 == group).collect();
+        t_query.filter(|t| t.0.0 == group).collect();
     teleports_group.sort_by_key(|t| t.0.1);
     let len = teleports_group.len();
     let index = teleports_group

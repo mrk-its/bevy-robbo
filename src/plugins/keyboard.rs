@@ -54,7 +54,7 @@ pub fn keyboard_system(
     let up = (keyboard_input.pressed(KeyCode::Up) || keyboard_input.pressed(KeyCode::W)) as i32;
     let down = (keyboard_input.pressed(KeyCode::Down) || keyboard_input.pressed(KeyCode::S)) as i32;
 
-    for (entity, mut moving_dir, mut tiles) in &mut query.iter() {
+    for (entity, mut moving_dir, mut tiles) in query.iter_mut() {
         if is_shift {
             let kx = jp_right - jp_left;
             let ky = jp_up - jp_down;

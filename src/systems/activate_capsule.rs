@@ -13,7 +13,7 @@ pub fn activate_capsule_system(
     mut sounds: ResMut<Events<Sound>>,
     mut query: Query<With<Capsule, Without<Usable, Entity>>>,
 ) {
-    for capsule in &mut query.iter() {
+    for capsule in query.iter_mut() {
         if inventory.screws >= level_info.screws {
             repair_capsule(&mut commands, capsule);
             sounds.send(Sound::BOMB);

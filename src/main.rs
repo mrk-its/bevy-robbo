@@ -100,7 +100,7 @@ fn main() {
             vsync: vsync,
             ..Default::default()
         })
-        .add_default_plugins();
+        .add_plugins(DefaultPlugins);
 
     builder
         .add_resource(Inventory::default())
@@ -137,6 +137,9 @@ fn main() {
         .add_system_to_stage("move_robbo", move_robbo.system())
         .add_system_to_stage("shots", shot_system.system())
         .add_system_to_stage("game_events", game_event_system.system())
+        .add_system_to_stage("game_events", reload_level_system.system())
+        .add_system_to_stage("game_events", game_event_use_item.system())
+        .add_system_to_stage("game_events", game_event_use_teleport.system())
         .add_system_to_stage("tick", activate_capsule_system.system())
         .add_system_to_stage("tick", tick_system.system())
         .add_system_to_stage("tick", damage_system.system());

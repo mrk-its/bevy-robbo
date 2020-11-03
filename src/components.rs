@@ -39,8 +39,8 @@ pub struct AmmoCounter;
 #[derive(Clone, Copy)]
 pub struct KeyCounter;
 
-#[derive(Default)]
 pub struct LaserHead {
+    pub gun_pos: Position,
     pub is_moving_back: bool,
 }
 pub struct BlasterHead;
@@ -189,7 +189,7 @@ impl Int2Ops for ShootingDir {
     }
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Debug, Clone)]
 pub struct Tiles {
     pub tiles: &'static [u32],
     pub current: usize,

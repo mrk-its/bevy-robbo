@@ -18,12 +18,12 @@ pub struct Level {
     pub additional: AdditionalMap,
 }
 
-pub struct HashMapOccupancyCheck<'a> {
+pub struct OccupiedPositions<'a> {
     pub hash_map: HashMap<Position, Entity>,
     pub level_info: &'a LevelInfo,
 }
 
-impl<'a> HashMapOccupancyCheck<'a> {
+impl<'a> OccupiedPositions<'a> {
     pub fn is_free(&self, pos: &Position) -> bool {
         !self.is_occupied(pos)
     }
@@ -70,14 +70,13 @@ impl LevelInfo {
             || self.wall_positions.contains(pos)
     }
 
-    pub fn get_occupancy<'a>(
+    pub fn get_occupied<'a>(
         &'a self,
-        query: &mut Query<Without<Wall, (&Position, Entity)>>,
-    ) -> HashMapOccupancyCheck<'a> {
-        HashMapOccupancyCheck {
+        query: &Query<Without<Wall, (&Position, Entity)>>,
+    ) -> OccupiedPositions<'a> {
+        OccupiedPositions {
             hash_map: query
                 .iter()
-                .into_iter()
                 .map(|(pos, entity)| (*pos, entity))
                 .collect(),
             level_info: &self,

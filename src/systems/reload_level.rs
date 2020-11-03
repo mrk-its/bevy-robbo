@@ -15,8 +15,8 @@ pub fn reload_level(
     frame_cnt: Res<FrameCnt>,
     mut game_events: ResMut<Events<GameEvent>>,
     mut sounds: ResMut<Events<Sound>>,
-    mut robbo_query: Query<With<Robbo, Entity>>,
-    mut all: Query<Without<Wall, (Entity, &Position)>>,
+    robbo_query: Query<With<Robbo, Entity>>,
+    all: Query<Without<Wall, (Entity, &Position)>>,
 ) {
     if !frame_cnt.is_keyframe() {
         return;

@@ -9,25 +9,27 @@ pub fn tick_system(
     frame_cnt: Res<FrameCnt>,
     mut game_events: ResMut<Events<GameEvent>>,
     mut items: Query<Without<Wall, (Entity, &Position, &mut Tiles)>>,
-    all: Query<(Entity, &Position)>,
+    animations: Query<&Animation>,
     shooting_dirs: Query<(&Rotatable, &mut ShootingDir)>,
+    rotatables: Query<&Rotatable>,
 ) {
     if !frame_cnt.is_keyframe() {
         return;
     }
-    for (entity, _position, mut tiles) in &mut items.iter() {
+    for (entity, _position, mut tiles) in items.iter_mut() {
         tiles.current = (tiles.current + 1) % tiles.tiles.len();
         if let (true, Ok(animation)) = (
             tiles.current == 0 && tiles.tiles.len() > 0,
-            all.get::<Animation>(entity),
+            animations.get_component::<Animation>(entity),
         ) {
+            log::info!("animation end");
             commands.despawn(entity);
             if let Some(event) = animation.0.as_ref() {
                 game_events.send(*event);
             }
-        } else if let Ok(rotatable) = all.get::<Rotatable>(entity) {
+        } else if let Ok(rotatable) = rotatables.get_component::<Rotatable>(entity) {
             if rand::random::<f32>() < 0.25 {
-                let shooting_dir = shooting_dirs.get::<ShootingDir>(entity).unwrap();
+                let shooting_dir = shooting_dirs.get_component::<ShootingDir>(entity).unwrap();
                 match *rotatable {
                     Rotatable::Regular => {
                         gun_set_shooting_dir(

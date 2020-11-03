@@ -25,7 +25,7 @@ pub use bullets::move_bullet;
 pub use damage::{damage_system, process_damage};
 pub use eyes::eyes_system;
 pub use force_field::force_field_system;
-pub use game_events::{game_event_system, update_game_events};
+pub use game_events::{game_event_system, update_game_events, reload_level_system, game_event_use_item, game_event_use_teleport};
 pub use lasers::move_laser_head;
 pub use levels::{asset_events, level_setup};
 pub use magnetic_field::magnetic_field_system;
