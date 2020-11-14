@@ -7,15 +7,15 @@ use crate::plugins::audio::Sound;
 use bevy::prelude::*;
 
 pub fn activate_capsule_system(
-    mut commands: Commands,
+    commands: &mut Commands,
     inventory: Res<Inventory>,
     level_info: Res<LevelInfo>,
     mut sounds: ResMut<Events<Sound>>,
-    mut query: Query<With<Capsule, Without<Usable, Entity>>>,
+    mut query: Query<Entity, (With<Capsule>, Without<Usable>)>,
 ) {
     for capsule in query.iter_mut() {
         if inventory.screws >= level_info.screws {
-            repair_capsule(&mut commands, capsule);
+            repair_capsule(commands, capsule);
             sounds.send(Sound::BOMB);
         }
     }

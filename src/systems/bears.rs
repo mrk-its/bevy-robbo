@@ -10,7 +10,7 @@ pub fn move_bear(
     damage_map: Res<DamageMap>,
     mut queries: QuerySet<(
         Query<(&Bear, &mut Position, &mut MovingDir)>,
-        Query<Without<Wall, (&Position, Entity)>>,
+        Query<(&Position, Entity), Without<Wall>>,
     )>,
 ) {
     if !frame_cnt.is_keyframe() {

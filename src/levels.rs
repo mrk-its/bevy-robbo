@@ -72,7 +72,7 @@ impl LevelInfo {
 
     pub fn get_occupied<'a>(
         &'a self,
-        query: &Query<Without<Wall, (&Position, Entity)>>,
+        query: &Query<(&Position, Entity), Without<Wall>>,
     ) -> OccupiedPositions<'a> {
         OccupiedPositions {
             hash_map: query

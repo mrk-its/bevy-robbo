@@ -1,5 +1,3 @@
-#[macro_use]
-extern crate log;
 mod components;
 mod entities;
 mod game_events;
@@ -14,7 +12,7 @@ use game_events::GameEvent;
 use inventory::Inventory;
 use levels::{LevelInfo, LevelSet, LevelSetLoader};
 use plugins::frame_cnt;
-use plugins::{AudioPlugin, FrameCnt, FrameCntPlugin, FrameLimiterPlugin, KeyboardPlugin};
+use plugins::{AudioPlugin, FrameCnt, FrameCntPlugin, KeyboardPlugin};
 use resources::DamageMap;
 use structopt::StructOpt;
 use systems::*;
@@ -64,8 +62,8 @@ pub fn render_graph_debug_system(render_ctx: Res<Box<dyn RenderResourceContext>>
 }
 
 pub fn debug_system(shaders: Res<Assets<Shader>>, render_graph: Res<RenderGraph>) {
-    log::info!("num shaders: {}", &shaders.iter().count());
-    log::info!("render_graph: {:#?}", *render_graph);
+    info!("num shaders: {}", &shaders.iter().count());
+    info!("render_graph: {:#?}", *render_graph);
 }
 
 fn main() {
@@ -76,17 +74,6 @@ fn main() {
     let mut builder = App::build();
 
     builder.add_plugin(plugins::RenderPlugin { vsync });
-
-    #[cfg(not(target_arch = "wasm32"))]
-    {
-        env_logger::init();
-    }
-    #[cfg(target_arch = "wasm32")]
-    if false {
-        extern crate console_error_panic_hook;
-        std::panic::set_hook(Box::new(console_error_panic_hook::hook));
-        console_log::init_with_level(log::Level::Debug).expect("cannot initialize console_log");
-    }
     builder
         .add_resource(WindowDescriptor {
             title: "Robbo".to_string(),
@@ -101,6 +88,9 @@ fn main() {
             ..Default::default()
         })
         .add_plugins(DefaultPlugins);
+
+    #[cfg(target_arch="wasm32")]
+    builder.add_plugin(bevy_webgl2::WebGL2Plugin::default());
 
     builder
         .add_resource(Inventory::default())
@@ -154,7 +144,7 @@ fn main() {
         builder.add_system_to_stage("reload_level", reload_level.system());
         if !vsync {
             #[cfg(not(target_arch = "wasm32"))]
-            builder.add_plugin(FrameLimiterPlugin {
+            builder.add_plugin(plugins::FrameLimiterPlugin {
                 fps: opts.fps as f32,
             });
         }

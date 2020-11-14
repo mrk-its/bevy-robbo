@@ -8,7 +8,7 @@ use bevy::prelude::*;
 use std::collections::{HashMap, HashSet};
 
 pub fn move_robbo(
-    mut commands: Commands,
+    commands: &mut Commands,
     (mut inventory, mut events, mut sounds, frame_cnt, level_info): (
         ResMut<Inventory>,
         ResMut<Events<GameEvent>>,
@@ -17,7 +17,7 @@ pub fn move_robbo(
         Res<LevelInfo>,
     ),
     mut robbo: Query<(&Robbo, &mut Position, &MovingDir)>,
-    mut all: Query<Without<Wall, Without<Robbo, (&mut Position, Entity)>>>,
+    mut all: Query<(&mut Position, Entity), (Without<Wall>, Without<Robbo>)>,
     collectables: Query<&Collectable>,
     moveable: Query<&Moveable>,
     usable: Query<&Usable>,

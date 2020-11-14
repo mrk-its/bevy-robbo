@@ -5,10 +5,10 @@ use crate::game_events::GameEvent;
 use bevy::prelude::*;
 
 pub fn tick_system(
-    mut commands: Commands,
+    commands: &mut Commands,
     frame_cnt: Res<FrameCnt>,
     mut game_events: ResMut<Events<GameEvent>>,
-    mut items: Query<Without<Wall, (Entity, &Position, &mut Tiles)>>,
+    mut items: Query<(Entity, &Position, &mut Tiles), Without<Wall>>,
     animations: Query<&Animation>,
     shooting_dirs: Query<(&Rotatable, &mut ShootingDir)>,
     rotatables: Query<&Rotatable>,
@@ -22,7 +22,7 @@ pub fn tick_system(
             tiles.current == 0 && tiles.tiles.len() > 0,
             animations.get_component::<Animation>(entity),
         ) {
-            log::info!("animation end");
+            info!("animation end");
             commands.despawn(entity);
             if let Some(event) = animation.0.as_ref() {
                 game_events.send(*event);
@@ -33,14 +33,14 @@ pub fn tick_system(
                 match *rotatable {
                     Rotatable::Regular => {
                         gun_set_shooting_dir(
-                            &mut commands,
+                            commands,
                             entity,
                             shooting_dir.rotate_clockwise(),
                         );
                     }
                     Rotatable::Random => {
                         gun_set_shooting_dir(
-                            &mut commands,
+                            commands,
                             entity,
                             ShootingDir::by_index(rand::random::<usize>() % 4),
                         );

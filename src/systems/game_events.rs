@@ -29,7 +29,7 @@ pub struct ReloadLevelState {
 }
 
 pub fn reload_level_system(
-    mut commands: Commands,
+    commands: &mut Commands,
     mut state: Local<ReloadLevelState>,
     game_events: ResMut<Events<GameEvent>>,
     frame_cnt: Res<FrameCnt>,
@@ -50,7 +50,7 @@ pub fn reload_level_system(
                 level_info.screws = level.screw_count;
                 level_info.width = level.height;
                 level_info.height = level.width;
-                create_level(&mut commands, &mut all_positions, level, &mut level_info);
+                create_level(commands, &mut all_positions, level, &mut level_info);
                 *inventory = Inventory::default();
                 return;
             }
@@ -59,7 +59,7 @@ pub fn reload_level_system(
 }
 
 pub fn game_event_system(
-    mut commands: Commands,
+    commands: &mut Commands,
     mut state: Local<State>,
     (
         frame_cnt,
@@ -72,7 +72,7 @@ pub fn game_event_system(
         ResMut<DamageMap>,
         ResMut<Events<Sound>>,
     ),
-    mut robbo: Query<With<Robbo, (Entity, &mut Position)>>,
+    mut robbo: Query<(Entity, &mut Position), With<Robbo>>,
 ) {
     if !frame_cnt.is_keyframe() {
         return;
@@ -80,15 +80,15 @@ pub fn game_event_system(
     // let mut despawned = HashSet::new();
 
     for event in state.events.iter(&game_events) {
-        log::info!("game_event: {:?}", event);
+        info!("game_event: {:?}", event);
         match *event {
             GameEvent::SpawnRobbo(pos) => {
-                create_robbo(&mut commands).with(pos);
+                create_robbo(commands).with(pos);
                 return;
             }
             GameEvent::PreSpawnRobbo(pos) => {
                 sounds.send(Sound::SPAWN);
-                spawn_robbo(&mut commands, pos);
+                spawn_robbo(commands, pos);
             }
             GameEvent::SpawnRandom(pos) => {
                 let create_item = [
@@ -103,7 +103,7 @@ pub fn game_event_system(
                     create_questionmark_gun,
                     create_questionmark,
                 ];
-                create_item[random::<usize>() % create_item.len()](&mut commands).with(pos);
+                create_item[random::<usize>() % create_item.len()](commands).with(pos);
             }
             GameEvent::KillRobbo => {
                 for (_, pos) in robbo.iter_mut() {
@@ -120,7 +120,7 @@ pub struct UseItemState {
 }
 
 pub fn game_event_use_item(
-    mut commands: Commands,
+    commands: &mut Commands,
     mut state: Local<UseItemState>,
     (
         frame_cnt,
@@ -134,7 +134,7 @@ pub fn game_event_use_item(
         ResMut<Events<Sound>>,
     ),
     usable: Query<&Usable>,
-    mut robbo: Query<With<Robbo, (Entity, &mut Position)>>,
+    mut robbo: Query<(Entity, &mut Position), With<Robbo>>,
 ) {
     if !frame_cnt.is_keyframe() {
         return;
@@ -157,7 +157,7 @@ pub fn game_event_use_item(
                         for (robbo_entity, _) in robbo.iter_mut() {
                             commands.despawn(robbo_entity);
                             sounds.send(Sound::CAPSULE);
-                            fly_away(&mut commands, pos);
+                            fly_away(commands, pos);
                         }
                     }
                     _ => ()
@@ -173,7 +173,7 @@ pub struct UseTeleportState {
 }
 
 pub fn game_event_use_teleport(
-    mut commands: Commands,
+    commands: &mut Commands,
     mut state: Local<UseTeleportState>,
     (
         frame_cnt,
@@ -189,7 +189,7 @@ pub fn game_event_use_teleport(
     usable: Query<&Usable>,
     mut queries: QuerySet<(
         Query<(&Teleport, &Position)>,
-        Query<With<Robbo, (Entity, &mut Position)>>,
+        Query<(Entity, &mut Position), With<Robbo>>,
         Query<(Entity, &Position)>,
     )>
 ) {
@@ -214,8 +214,8 @@ pub fn game_event_use_teleport(
                         if let Some(dest_robbo_pos) = dest_robbo_pos {
                             for (robbo_entity, robbo_pos) in queries.q1_mut().iter_mut() {
                                 commands.despawn(robbo_entity);
-                                create_small_explosion(&mut commands).with(*robbo_pos);
-                                spawn_robbo(&mut commands, dest_robbo_pos);
+                                create_small_explosion(commands).with(*robbo_pos);
+                                spawn_robbo(commands, dest_robbo_pos);
                                 sounds.send(Sound::TELEPORT);
                                 return;
                             }

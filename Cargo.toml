@@ -12,25 +12,22 @@ default = [
   # "bevy/bevy_webgl2",
 ]
 audio = ["bevy/bevy_audio", "bevy/vorbis"]
-native = ["bevy/bevy_wgpu", "bevy/render", "bevy/x11", "bevy/bevy_audio", "bevy/vorbis"]
+native = ["bevy/bevy_wgpu", "bevy/render", "bevy/x11"]
 webgl-plugin = []
 
 [dependencies]
 anyhow = "1.0"
-log = "0.4"
 rand = "0.7"
 structopt = "0.3"
 uuid = "0.8"
 # wasm-tracing-allocator = {version = "0.1.1"}
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-bevy = {path = "../bevy/", default-features = false, features = ["bevy_winit", "bevy_render", "bevy_sprite", "png"]}
-env_logger = "0.8.1"
+bevy = {path = "../bevy/", default-features = false, features = ["bevy_winit", "render", "png"]}
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-bevy = {path = "../bevy/", default-features = false, features = ["bevy_winit", "bevy_render", "bevy_sprite", "png", "bevy_text", "bevy_ui"]}
-console_log = {version = "0.2", features = ["color"]}
-console_error_panic_hook = "0.1.6"
+bevy = {path = "../bevy/", default-features = false, features = ["bevy_winit", "render", "png"]}
+bevy_webgl2 = {path = "../bevy_webgl2"}
 wasm-bindgen = "0.2.68"
 wasm-timer = "0.2.5"
 js-sys = "0.3.45"

@@ -5,13 +5,13 @@ use crate::levels::LevelInfo;
 use bevy::prelude::*;
 
 pub fn move_blaster_head(
-    mut commands: Commands,
+    commands: &mut Commands,
     frame_cnt: Res<FrameCnt>,
     level_info: Res<LevelInfo>,
     destroyable: Query<&Destroyable>,
     mut queries: QuerySet<(
-        Query<Without<Wall, (&Position, Entity)>>,
-        Query<With<BlasterHead, (Entity, &mut Position, &MovingDir)>>,
+        Query<(&Position, Entity), Without<Wall>>,
+        Query<(Entity, &mut Position, &MovingDir), With<BlasterHead>>,
     )>
 ) {
     if !frame_cnt.is_keyframe() {
@@ -40,6 +40,6 @@ pub fn move_blaster_head(
             occupied.mv(&*position, &new_pos);
             *position = new_pos;
         }
-        create_blaster_tail(&mut commands).with(old_pos);
+        create_blaster_tail(commands).with(old_pos);
     }
 }

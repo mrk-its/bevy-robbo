@@ -20,11 +20,11 @@ impl Plugin for KeyboardPlugin {
 }
 
 pub fn keyboard_system(
-    mut commands: Commands,
+    commands: &mut Commands,
     keyboard_input: Res<Input<KeyCode>>,
     (mut events, mut inventory, mut sounds): (ResMut<Events<GameEvent>>, ResMut<Inventory>, ResMut<Events<Sound>>),
     mut robbo_dir: ResMut<RobboDir>,
-    mut query: Query<With<Robbo, (Entity, &mut MovingDir, &mut Tiles)>>,
+    mut query: Query<(Entity, &mut MovingDir, &mut Tiles), With<Robbo>>,
 ) {
     if keyboard_input.just_pressed(KeyCode::Escape) {
         events.send(GameEvent::KillRobbo);

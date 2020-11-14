@@ -89,7 +89,7 @@ fn set_sprite_digit(sprite: &mut TextureAtlasSprite, value: u32, nth: u32) {
     sprite.index = ((value as u32) / (10 as u32).pow(nth)) % 10;
 }
 
-fn set_digits<T>(digits_query: &mut Query<With<T, (&Digit, &mut TextureAtlasSprite)>>, value: u32)
+fn set_digits<T>(digits_query: &mut Query<(&Digit, &mut TextureAtlasSprite), With<T>>, value: u32)
 where
     T: Send + Sync + 'static,
 {
@@ -99,7 +99,7 @@ where
 }
 
 pub fn render_setup(
-    mut commands: Commands,
+    commands: &mut Commands,
     asset_server: Res<AssetServer>,
     mut texture_atlases: ResMut<Assets<TextureAtlas>>,
 ) {
@@ -133,10 +133,10 @@ pub fn render_setup(
         texture_atlases.set(DIGITS_ATLAS_HANDLE, digits_atlas);
 
         let offs = (62 - 22) / 2;
-        spawn_counter(&mut commands, ScrewCounter, offs + 0, 2, 83);
-        spawn_counter(&mut commands, KeyCounter, offs + 6, 2, 95);
-        spawn_counter(&mut commands, AmmoCounter, offs + 12, 2, 91);
-        spawn_counter(&mut commands, LevelNumber, offs + 18, 2, 71);
+        spawn_counter(commands, ScrewCounter, offs + 0, 2, 83);
+        spawn_counter(commands, KeyCounter, offs + 6, 2, 95);
+        spawn_counter(commands, AmmoCounter, offs + 12, 2, 91);
+        spawn_counter(commands, LevelNumber, offs + 18, 2, 71);
     }
 }
 
@@ -159,10 +159,10 @@ pub fn update_camera(
 pub fn update_status_bar(
     level_info: Res<LevelInfo>,
     inventory: Res<Inventory>,
-    mut level_digits: Query<With<LevelNumber, (&Digit, &mut TextureAtlasSprite)>>,
-    mut screw_digits: Query<With<ScrewCounter, (&Digit, &mut TextureAtlasSprite)>>,
-    mut key_digits: Query<With<KeyCounter, (&Digit, &mut TextureAtlasSprite)>>,
-    mut ammo_digits: Query<With<AmmoCounter, (&Digit, &mut TextureAtlasSprite)>>,
+    mut level_digits: Query<(&Digit, &mut TextureAtlasSprite), With<LevelNumber>>,
+    mut screw_digits: Query<(&Digit, &mut TextureAtlasSprite), With<ScrewCounter>>,
+    mut key_digits: Query<(&Digit, &mut TextureAtlasSprite), With<KeyCounter>>,
+    mut ammo_digits: Query<(&Digit, &mut TextureAtlasSprite), With<AmmoCounter>>,
 ) {
     let screws_left = (level_info.screws - inventory.screws).max(0);
     set_digits(&mut level_digits, (level_info.current_level + 1) as u32);
@@ -172,8 +172,8 @@ pub fn update_status_bar(
 }
 
 pub fn create_sprites(
-    mut commands: Commands,
-    missing_sprites: Query<Without<Transform, With<Position, Entity>>>,
+    commands: &mut Commands,
+    missing_sprites: Query<Entity, (Without<Transform>, With<Position>)>,
 ) {
     for entity in missing_sprites.iter() {
         commands.insert(
@@ -197,8 +197,8 @@ pub fn prepare_render(
         &mut Transform,
         &mut TextureAtlasSprite,
     )>,
-    smooth_update_items: Query<Without<RoughUpdate, With<MovingDir, Entity>>>,
-    smooth_update_items2: Query<Without<RoughUpdate, With<Moveable, Entity>>>,
+    smooth_update_items: Query<Entity, (Without<RoughUpdate>, With<MovingDir>)>,
+    smooth_update_items2: Query<Entity, (Without<RoughUpdate>, With<Moveable>)>,
 ) {
     let to_smooth_update: HashSet<Entity> = smooth_update_items
         .iter()

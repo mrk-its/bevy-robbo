@@ -9,11 +9,11 @@ use bevy::prelude::*;
 use std::collections::HashSet;
 
 pub fn damage_system(
-    mut commands: Commands,
+    commands: &mut Commands,
     frame_cnt: Res<FrameCnt>,
     mut sounds: ResMut<Events<Sound>>,
-    robbo: Query<With<Robbo, (Entity, &Position)>>,
-    deadly: Query<With<Deadly, (Entity, &Position)>>,
+    robbo: Query<(Entity, &Position), With<Robbo>>,
+    deadly: Query<(Entity, &Position), With<Deadly>>,
     all: Query<&Position>,
 ) {
     if !frame_cnt.is_keyframe() {
@@ -32,7 +32,7 @@ pub fn damage_system(
                     }
                 }
                 commands.despawn(robbo_entity);
-                create_explosion(&mut commands).with(*robbo_pos);
+                create_explosion(commands).with(*robbo_pos);
                 sounds.send(Sound::BURN);
                 return;
             }
@@ -41,12 +41,12 @@ pub fn damage_system(
 }
 
 pub fn process_damage(
-    mut commands: Commands,
+    commands: &mut Commands,
     frame_cnt: Res<FrameCnt>,
     level_info: Res<LevelInfo>,
     mut sounds: ResMut<Events<Sound>>,
     mut damage_map: ResMut<DamageMap>,
-    items: Query<Without<Undestroyable, (Entity, &Position)>>,
+    items: Query<(Entity, &Position), Without<Undestroyable>>,
     mut bombs: Query<&mut Bomb>,
     destroyable: Query<&Destroyable>,
 ) {
@@ -87,9 +87,9 @@ pub fn process_damage(
                 commands.despawn(entity);
 
                 if destroyable.get_component::<QuestionMark>(entity).is_ok() {
-                    spawn_random(&mut commands, *pos).with(*pos);
+                    spawn_random(commands, *pos).with(*pos);
                 } else {
-                    create_explosion(&mut commands).with(*pos);
+                    create_explosion(commands).with(*pos);
                 }
                 if !is_bomb_entity && !is_bomb_damage {
                     sounds.send(Sound::BURN);
@@ -99,7 +99,7 @@ pub fn process_damage(
     }
     for (&pos, &is_bomb_damage) in damage.iter() {
         if is_bomb_damage && !damaged_entities.contains(&pos) && !level_info.is_occupied(&pos) {
-            create_explosion(&mut commands).with(pos);
+            create_explosion(commands).with(pos);
         }
     }
 }

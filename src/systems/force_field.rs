@@ -5,11 +5,11 @@ use bevy::prelude::*;
 use std::collections::HashMap;
 
 pub fn force_field_system(
-    mut commands: Commands,
+    commands: &mut Commands,
     frame_cnt: Res<FrameCnt>,
     mut damage_map: ResMut<DamageMap>,
     mut force_field: Query<(&ForceField, &ForceFieldBounds, &mut Position)>,
-    all: Query<Without<ForceField, Without<Wall, (&Position, Entity)>>>,
+    all: Query<(&Position, Entity), (Without<ForceField>, Without<Wall>)>,
 ) {
     if !frame_cnt.is_keyframe() {
         return;

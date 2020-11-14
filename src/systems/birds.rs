@@ -14,8 +14,8 @@ pub fn move_bird(
     level_info: Res<LevelInfo>,
     damage_map: Res<DamageMap>,
     mut queries: QuerySet<(
-        Query<Without<Wall, (&Position, Entity)>>,
-        Query<With<MovingBetweenWalls, (&mut Position, &mut MovingDir)>>,
+        Query<(&Position, Entity), Without<Wall>>,
+        Query<(&mut Position, &mut MovingDir), With<MovingBetweenWalls>>,
     )>,
 ) {
     if !frame_cnt.is_keyframe() {

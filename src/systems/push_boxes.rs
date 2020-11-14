@@ -9,8 +9,8 @@ pub fn move_pushbox(
     level_info: Res<LevelInfo>,
     mut damage_map: ResMut<DamageMap>,
     mut queries: QuerySet<(
-        Query<Without<Wall, (&Position, Entity)>>,
-        Query<With<PushBox, (&mut Position, &mut MovingDir)>>,
+        Query<(&Position, Entity), Without<Wall>>,
+        Query<(&mut Position, &mut MovingDir), With<PushBox>>,
     )>
 ) {
     if !frame_cnt.is_keyframe() {

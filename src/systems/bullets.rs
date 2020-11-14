@@ -6,13 +6,13 @@ use crate::resources::DamageMap;
 use bevy::prelude::*;
 
 pub fn move_bullet(
-    mut commands: Commands,
+    commands: &mut Commands,
     frame_cnt: Res<FrameCnt>,
     level_info: ResMut<LevelInfo>,
     mut damage_map: ResMut<DamageMap>,
     mut queries: QuerySet<(
-        Query<With<Bullet, (Entity, &mut Position, &mut MovingDir)>>,
-        Query<Without<Wall, (&Position, Entity)>>,
+        Query<(Entity, &mut Position, &mut MovingDir), With<Bullet>>,
+        Query<(&Position, Entity), Without<Wall>>,
     )>,
 ) {
     if !frame_cnt.is_keyframe() {
@@ -24,7 +24,7 @@ pub fn move_bullet(
         if occupied.is_occupied(&new_pos) {
             *dir = MovingDir::zero();
             commands.despawn(entity);
-            create_small_explosion(&mut commands).with(*position);
+            create_small_explosion(commands).with(*position);
             damage_map.do_damage(&new_pos, false);
         } else {
             occupied.mv(&*position, &new_pos);

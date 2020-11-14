@@ -53,7 +53,7 @@ pub fn play_sounds_system(
         "burn.ogg",
         "capsule.ogg",
     ];
-
+    info!("sound system");
     if opts.no_audio {
         return;
     }

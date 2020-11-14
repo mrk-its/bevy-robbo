@@ -11,9 +11,9 @@ pub fn eyes_system(
     frame_cnt: Res<FrameCnt>,
     level_info: Res<LevelInfo>,
     mut queries: QuerySet<(
-       Query<Without<Wall, &Position>>,
-       Query<With<Robbo, &Position>>,
-       Query<With<Eyes, &mut Position>>,
+       Query<&Position, Without<Wall>>,
+       Query<&Position, With<Robbo>>,
+       Query<&mut Position, With<Eyes>>,
     )>
 ) {
     if !frame_cnt.is_keyframe() {

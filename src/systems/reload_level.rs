@@ -10,13 +10,13 @@ use bevy::app::AppExit;
 use bevy::prelude::*;
 
 pub fn reload_level(
-    mut commands: Commands,
+    commands: &mut Commands,
     mut level_info: ResMut<LevelInfo>,
     frame_cnt: Res<FrameCnt>,
     mut game_events: ResMut<Events<GameEvent>>,
     mut sounds: ResMut<Events<Sound>>,
-    robbo_query: Query<With<Robbo, Entity>>,
-    all: Query<Without<Wall, (Entity, &Position)>>,
+    robbo_query: Query<Entity, With<Robbo>>,
+    all: Query<(Entity, &Position), Without<Wall>>,
 ) {
     if !frame_cnt.is_keyframe() {
         return;
@@ -29,7 +29,7 @@ pub fn reload_level(
     if level_info.missing_robbo_ticks == 10 {
         for (entity, pos) in &mut all.iter() {
             commands.despawn(entity);
-            create_small_explosion(&mut commands).with(*pos);
+            create_small_explosion(commands).with(*pos);
             sounds.send(Sound::BOMB);
         }
     } else if level_info.missing_robbo_ticks == 20 {

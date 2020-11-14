@@ -5,9 +5,9 @@ use bevy::prelude::*;
 pub fn magnetic_field_system(
     level_info: Res<LevelInfo>,
     mut queries: QuerySet<(
-        Query<Without<Wall, (&Position, Entity)>>,
+        Query<(&Position, Entity), Without<Wall>>,
         Query<(&Magnet, &Position)>,
-        Query<With<Robbo, (&mut Position, &mut MovingDir)>>,
+        Query<(&mut Position, &mut MovingDir), With<Robbo>>,
     )>,
 ) {
     let occupied = level_info.get_occupied(queries.q0());

@@ -6,13 +6,13 @@ use crate::resources::DamageMap;
 use bevy::prelude::*;
 
 pub fn move_laser_head(
-    mut commands: Commands,
+    commands: &mut Commands,
     frame_cnt: Res<FrameCnt>,
     level_info: ResMut<LevelInfo>,
     mut damage_map: ResMut<DamageMap>,
     mut queries: QuerySet<(
         Query<(&mut LaserHead, &mut Position, &mut MovingDir)>,
-        Query<Without<Wall, (&Position, Entity)>>,
+        Query<(&Position, Entity), Without<Wall>>,
     )>
 ) {
     if !frame_cnt.is_keyframe() {
@@ -25,7 +25,7 @@ pub fn move_laser_head(
             let old_pos = *position;
             occupied.mv(&*position, &new_pos);
             *position = new_pos;
-            create_laser_tail(&mut commands, &*dir).with(old_pos);
+            create_laser_tail(commands, &*dir).with(old_pos);
             occupied.put_entity(&old_pos, commands.current_entity().unwrap());
         } else if laser_head.is_moving_back && laser_head.gun_pos != new_pos {
             let entity = occupied.remove(&new_pos).unwrap();
@@ -40,7 +40,7 @@ pub fn move_laser_head(
             *dir = MovingDir::zero();
             let entity = occupied.remove(&position).unwrap();
             commands.despawn(entity);
-            create_small_explosion(&mut commands).with(*position);
+            create_small_explosion(commands).with(*position);
         }
     }
 }
