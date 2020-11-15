@@ -15,6 +15,15 @@
   <script type="module">
     import init from './assets/wasm/target/bevy-robbo.js'
     init()
+    function auto_focus() {
+      let canvas = document.getElementsByTagName("canvas");
+      if (!canvas.length) {
+        setTimeout(auto_focus, 100);
+      } else {
+        canvas[0].focus();
+      }
+    }
+  auto_focus();
   </script>
   <style>
     * {
