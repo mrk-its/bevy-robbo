@@ -8,42 +8,29 @@ version = "0.1.0"
 [features]
 default = [
   "native",
-  # "webgl-plugin",
-  # "bevy/bevy_webgl2",
 ]
 audio = ["bevy/bevy_audio", "bevy/vorbis"]
 native = ["bevy/bevy_wgpu", "bevy/render", "bevy/x11"]
 webgl-plugin = []
 
 [dependencies]
+bevy = {git = "https://github.com/bevyengine/bevy", branch="master", default-features=false, features=["bevy_winit", "render", "bevy_gltf", "png"]}
 anyhow = "1.0"
 rand = "0.7"
 structopt = "0.3"
 uuid = "0.8"
 # wasm-tracing-allocator = {version = "0.1.1"}
 
-[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-bevy = {path = "../bevy/", default-features = false, features = ["bevy_winit", "render", "png"]}
-
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-bevy = {path = "../bevy/", default-features = false, features = ["bevy_winit", "render", "png"]}
-bevy_webgl2 = {path = "../bevy_webgl2"}
-wasm-bindgen = "0.2.68"
-wasm-timer = "0.2.5"
-js-sys = "0.3.45"
-web-sys = {version = "0.3.45", features = [
-  'Document',
-  'Element',
-  'HtmlCanvasElement',
-  'WebGlBuffer',
-  'WebGlRenderingContext',
-  'WebGl2RenderingContext',
-  'WebGlProgram',
-  'WebGlShader',
-  'Window',
-  'WebGlTexture',
-  'WebGlUniformLocation',
-]}
+bevy_webgl2 = {git = "https://github.com/mrk-its/bevy_webgl2"}
+
+
+[patch.'https://github.com/bevyengine/bevy']
+bevy = {git = "https://github.com/bevyengine/bevy.git//", branch="master", default-features=false, features=["bevy_winit", "render", "bevy_gltf", "png"]}
 
 [profile.dev]
 opt-level = 1
+
+[profile.release]
+lto = true
+opt-level = 's'

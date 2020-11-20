@@ -49,7 +49,7 @@ fn spawn_counter<T>(
 {
     let color = Color::rgb(0.8, 0.8, 0.8);
     commands
-        .spawn(SpriteSheetComponents {
+        .spawn(SpriteSheetBundle {
             texture_atlas: TEXTURE_ATLAS_HANDLE,
             transform: Transform::from_translation(Vec3::new(x_offset as f32 * 16.0, 16.0, 0.0)),
             sprite: TextureAtlasSprite {
@@ -63,7 +63,7 @@ fn spawn_counter<T>(
 
     for k in 0..n_digits {
         commands
-            .spawn(SpriteSheetComponents {
+            .spawn(SpriteSheetBundle {
                 texture_atlas: DIGITS_ATLAS_HANDLE,
                 transform: Transform::from_translation(Vec3::new(
                     (((x_offset + n_digits - k - 1) * 16) + 32 - 8) as f32,
@@ -113,7 +113,7 @@ pub fn render_setup(
     let height = (MAX_BOARD_HEIGHT + 2) as f32 * box_size;
     let scale = camera_scale(width as u32, height as u32);
     let translation = camera_translation(width as u32, height as u32);
-    commands.spawn(Camera2dComponents {
+    commands.spawn(Camera2dBundle {
         orthographic_projection: OrthographicProjection {
             bottom: 0.0,
             top: MAX_BOARD_HEIGHT as f32 * box_size,
@@ -178,7 +178,7 @@ pub fn create_sprites(
     for entity in missing_sprites.iter() {
         commands.insert(
             entity,
-            SpriteSheetComponents {
+            SpriteSheetBundle {
                 texture_atlas: TEXTURE_ATLAS_HANDLE,
                 transform: Transform::from_translation(Vec3::new(-1000.0, -1000.0, 0.0)),
                 ..Default::default()
@@ -216,8 +216,8 @@ pub fn prepare_render(
                     - ((frame_cnt.value()) % opts.key_frame_interval))
                     as f32;
                 let step = (dest - cur) / steps_left;
-                if step.x().abs() > 0.01 || step.y().abs() > 0.01 {
-                    let dest = if step.x().abs() <= min_step && step.y().abs() <= min_step {
+                if step.x.abs() > 0.01 || step.y.abs() > 0.01 {
+                    let dest = if step.x.abs() <= min_step && step.y.abs() <= min_step {
                         cur + step
                     } else {
                         dest

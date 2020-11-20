@@ -141,7 +141,7 @@ fn main() {
     }
 
     if !opts.benchmark_mode {
-        builder.add_system_to_stage("reload_level", reload_level.system());
+        builder.add_system_to_stage("reload_level", reload_level);
         if !vsync {
             #[cfg(not(target_arch = "wasm32"))]
             builder.add_plugin(plugins::FrameLimiterPlugin {
@@ -149,7 +149,7 @@ fn main() {
             });
         }
     } else {
-        builder.add_system_to_stage("reload_level", benchmark_reload_level.system());
+        builder.add_system_to_stage("reload_level", benchmark_reload_level);
     }
     builder.run();
 }
