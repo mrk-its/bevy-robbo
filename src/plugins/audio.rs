@@ -19,11 +19,11 @@ pub struct AudioPlugin;
 impl Plugin for AudioPlugin {
     fn build(&self, app: &mut AppBuilder) {
         app.add_resource(Events::<Sound>::default());
-        app.add_system_to_stage(stage::EVENT, Events::<Sound>::update_system.system());
+        app.add_system_to_stage(stage::EVENT, Events::<Sound>::update_system);
         #[cfg(feature="audio")]
         {
-            app.add_startup_system(audio_setup.system());
-            app.add_system_to_stage(stage::POST_UPDATE, play_sounds_system.system());
+            app.add_startup_system(audio_setup);
+            app.add_system_to_stage(stage::POST_UPDATE, play_sounds_system);
         }
     }
 }

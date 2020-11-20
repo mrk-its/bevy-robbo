@@ -42,7 +42,7 @@ impl Plugin for FrameCntPlugin {
             cnt: 0,
         })
         .add_stage_before(stage::LAST, "frame_cnt")
-        .add_system_to_stage("frame_cnt", frame_cnt_system.system());
+        .add_system_to_stage("frame_cnt", frame_cnt_system);
     }
 }
 fn frame_cnt_system(mut frame_cnt: ResMut<FrameCnt>) {

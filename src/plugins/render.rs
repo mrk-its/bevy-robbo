@@ -244,14 +244,14 @@ impl Plugin for RenderPlugin {
         let builder = app
             .add_resource(bevy::render::pass::ClearColor(Color::rgb(0.3, 0.3, 0.5)))
             .add_resource(RenderState::default())
-            .add_startup_system(render_setup.system())
+            .add_startup_system(render_setup)
             .add_stage_before(stage::POST_UPDATE, "create_sprites")
             .add_stage_before(stage::POST_UPDATE, "update_camera")
             .add_stage_before(stage::POST_UPDATE, "prepare_render")
-            .add_system_to_stage("create_sprites", create_sprites.system())
-            .add_system_to_stage("update_camera", update_camera.system())
-            .add_system_to_stage("prepare_render", prepare_render.system());
+            .add_system_to_stage("create_sprites", create_sprites)
+            .add_system_to_stage("update_camera", update_camera)
+            .add_system_to_stage("prepare_render", prepare_render);
 
-        builder.add_system_to_stage("prepare_render", update_status_bar.system());
+        builder.add_system_to_stage("prepare_render", update_status_bar);
     }
 }

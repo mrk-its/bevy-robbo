@@ -15,7 +15,7 @@ impl Plugin for FrameLimiterPlugin {
             last_time: None,
             fps: self.fps,
         })
-        .add_system_to_stage("post_render", frame_limiter_system.system());
+        .add_system_to_stage("post_render", frame_limiter_system);
     }
 }
 fn frame_limiter_system(mut frame_limiter: ResMut<FrameLimiterResource>) {
