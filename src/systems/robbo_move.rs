@@ -18,9 +18,11 @@ pub fn move_robbo(
     ),
     mut robbo: Query<(&Robbo, &mut Position, &MovingDir)>,
     mut all: Query<(&mut Position, Entity), (Without<Wall>, Without<Robbo>)>,
+    push_boxes: Query<&PushBox>,
     collectables: Query<&Collectable>,
     moveable: Query<&Moveable>,
     usable: Query<&Usable>,
+    mut moving_dirs: Query<&mut MovingDir, Without<Robbo>>,
 ) {
     if !frame_cnt.is_keyframe() {
         return;
@@ -60,8 +62,8 @@ pub fn move_robbo(
                         if let Ok(mut pos) = x {
                             *pos = new_pos2;
                             *position = new_pos;
-                            let is_pushbox = all.get_component::<PushBox>(entity).is_ok();
-                            if let Ok(mut mdir) = all.get_component_mut::<MovingDir>(entity) {
+                            let is_pushbox = push_boxes.get_component::<PushBox>(entity).is_ok();
+                            if let Ok(mut mdir) = moving_dirs.get_component_mut::<MovingDir>(entity) {
                                 if is_pushbox {
                                     *mdir = *dir
                                 }

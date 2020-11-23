@@ -10,6 +10,7 @@ pub fn force_field_system(
     mut damage_map: ResMut<DamageMap>,
     mut force_field: Query<(&ForceField, &ForceFieldBounds, &mut Position)>,
     all: Query<(&Position, Entity), (Without<ForceField>, Without<Wall>)>,
+    bullets: Query<&Bullet>,
 ) {
     if !frame_cnt.is_keyframe() {
         return;
@@ -32,7 +33,7 @@ pub fn force_field_system(
             **pos = Position::new(pos.x(), bounds.0);
         }
         if let Some(&entity) = entity_by_pos.get(&**pos) {
-            if all.get_component::<Bullet>(entity).is_ok() {
+            if bullets.get_component::<Bullet>(entity).is_ok() {
                 damage_map.do_damage(pos, false);
             }
             commands.despawn(entity);

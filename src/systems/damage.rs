@@ -14,7 +14,7 @@ pub fn damage_system(
     mut sounds: ResMut<Events<Sound>>,
     robbo: Query<(Entity, &Position), With<Robbo>>,
     deadly: Query<(Entity, &Position), With<Deadly>>,
-    all: Query<&Position>,
+    magnets: Query<&Magnet>,
 ) {
     if !frame_cnt.is_keyframe() {
         return;
@@ -25,7 +25,7 @@ pub fn damage_system(
             let dy = robbo_pos.y() - deadly_pos.y();
 
             if (dx.abs(), dy.abs()) == (0, 1) || (dx.abs(), dy.abs()) == (1, 0) {
-                if let Ok(magnet) = all.get_component::<Magnet>(entity) {
+                if let Ok(magnet) = magnets.get_component::<Magnet>(entity) {
                     if (dx, dy) != magnet.as_tuple() {
                         // magnet is deadly on the front only
                         continue;
