@@ -11,7 +11,8 @@
     gtag('config', 'UA-179077851-1');
   </script>
   <meta charset="UTF-8" />
-  <link href="https://fonts.googleapis.com/css2?family=Source+Code+Pro:wght@600&display=swap" rel="stylesheet">
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
   <script type="module">
     import init from './target/bevy-robbo-v3.js'
     init()
@@ -21,24 +22,35 @@
   </script>
   <style>
     * {
-      font-family: 'Source Code Pro', monospace;
+      font-family: 'VT323', monospace;
     }
     #board {
-      font-size: 2em;
+      width: 1024px;
+      font-size: 32px;
       margin: 0px;
-      line-height: 120%;
+      margin-left: 512px;
+      line-height: 100%;
+      transform: scaleX(2.0);
     }
     #inventory {
-      font-size: 1.5em;
-      margin: 1em;
+      font-size: 48px;
+      margin-left: 48px;
     }
-
+    #info {
+      font-size: 32px;
+    }
+    canvas {
+      position: absolute;
+      top: 0px;
+      left: 0px;
+    }
     :focus {
       outline: none;
     }
   </style>
   <body>
-    <div style="position: absolute">
+    <div>
+      <div>
       <pre id="board">
           #############################
           #                           #
@@ -48,13 +60,13 @@
           #                           #
           #############################
           </pre>
+        </div>
       <div id="inventory"></div>
-      <p>
+      <p id="info">
         Arrows: move<br />
         Shift + Arrow: shot<br />
         PageUp / PageDown: change level<br />
         Esc: kill Robbo</p>
-      <p><a href="..">Latest bevy-robbo (WebGL2)</a></p>
     </div>
   </body>
 </html>
