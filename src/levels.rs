@@ -6,7 +6,8 @@ use bevy::prelude::*;
 use std::collections::{HashMap, HashSet};
 use bevy::utils::BoxedFuture;
 use bevy::asset::{LoadedAsset, LoadContext};
-use bevy::type_registry::TypeUuid;
+use bevy::reflect::TypeUuid;
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Level {
     pub number: usize,

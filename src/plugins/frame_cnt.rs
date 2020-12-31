@@ -41,8 +41,8 @@ impl Plugin for FrameCntPlugin {
             key_frame_interval: self.key_frame_interval,
             cnt: 0,
         })
-        .add_stage_before(stage::LAST, "frame_cnt")
-        .add_system_to_stage("frame_cnt", frame_cnt_system);
+        .add_stage_before(stage::LAST, "frame_cnt", SystemStage::parallel())
+        .add_system_to_stage("frame_cnt", frame_cnt_system.system());
     }
 }
 fn frame_cnt_system(mut frame_cnt: ResMut<FrameCnt>) {
