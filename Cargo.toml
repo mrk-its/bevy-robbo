@@ -33,10 +33,6 @@ structopt = "0.3"
 uuid = "0.8"
 # wasm-tracing-allocator = {version = "0.1.1"}
 
-
-[patch.'https://github.com/bevyengine/bevy']
-bevy = { git = "https://github.com/TheRawMeatball/bevy", branch = "discovered-system", default-features=false }
-
 [profile.dev]
 opt-level = 1
 
