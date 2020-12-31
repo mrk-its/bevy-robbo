@@ -6,7 +6,7 @@ use crate::levels::LevelInfo;
 use bevy::render::camera::{OrthographicProjection, WindowOrigin};
 use bevy::sprite::TextureAtlas;
 use bevy::window::WindowResized;
-use bevy::{asset::LoadState, prelude::*, reflect::TypeUuid};
+use bevy::{prelude::*, reflect::TypeUuid};
 use std::collections::HashSet;
 
 const TEXTURE_ATLAS_HANDLE: HandleUntyped =
