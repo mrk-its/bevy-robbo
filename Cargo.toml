@@ -14,23 +14,23 @@ default = [
 ]
 
 native = [
+  "bevy/x11",
   "bevy/bevy_wgpu",
 ]
 
-# web = [
-#   "bevy_webgl2"
-# ]
+web = [
+  "bevy_webgl2"
+]
 
 audio = ["bevy/bevy_audio", "bevy/vorbis"]
 
 [dependencies]
-bevy = {git = "https://github.com/bevyengine/bevy", default-features=false}
-# bevy_webgl2 = {path = "../bevy_webgl2", default-features = false, optional=true}
-winit = {version = "0.23.0", features = ["web-sys", "x11"], default-features = false}
+bevy = {version = "0.4.0", default-features=false}
+bevy_webgl2 = {version = "0.4.2", default-features = false, optional=true}
 anyhow = "1.0"
 rand = "0.7"
 structopt = "0.3"
-uuid = "0.8"
+uuid = "=0.8.1"
 # wasm-tracing-allocator = {version = "0.1.1"}
 
 [profile.dev]
