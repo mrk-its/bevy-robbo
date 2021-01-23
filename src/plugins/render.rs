@@ -3,18 +3,17 @@ use crate::consts::*;
 use crate::frame_cnt::FrameCnt;
 use crate::inventory::Inventory;
 use crate::levels::LevelInfo;
-use bevy::asset::Handle;
-use bevy::prelude::*;
 use bevy::render::camera::{OrthographicProjection, WindowOrigin};
 use bevy::sprite::TextureAtlas;
 use bevy::window::WindowResized;
+use bevy::{prelude::*, reflect::TypeUuid};
 use std::collections::HashSet;
-use uuid;
 
-const TEXTURE_ATLAS_HANDLE: Handle<TextureAtlas> =
-    Handle::weak_from_u64(uuid::Uuid::from_u128(0xfa86671bbf3b4a72a6f36eb2e29432c3), 0);
-const DIGITS_ATLAS_HANDLE: Handle<TextureAtlas> =
-    Handle::weak_from_u64(uuid::Uuid::from_u128(0xc5de37f40bcd4614bb544ac824d69f2a), 0);
+const TEXTURE_ATLAS_HANDLE: HandleUntyped =
+    HandleUntyped::weak_from_u64(TextureAtlas::TYPE_UUID, 0);
+    
+const DIGITS_ATLAS_HANDLE: HandleUntyped = 
+    HandleUntyped::weak_from_u64(TextureAtlas::TYPE_UUID, 1);
 
 #[derive(Default)]
 pub struct RenderState {
@@ -50,7 +49,7 @@ fn spawn_counter<T>(
     let color = Color::rgb(0.8, 0.8, 0.8);
     commands
         .spawn(SpriteSheetBundle {
-            texture_atlas: TEXTURE_ATLAS_HANDLE,
+            texture_atlas: TEXTURE_ATLAS_HANDLE.typed(),
             transform: Transform::from_translation(Vec3::new(x_offset as f32 * 16.0, 16.0, 0.0)),
             sprite: TextureAtlasSprite {
                 index: icon_index,
@@ -64,7 +63,7 @@ fn spawn_counter<T>(
     for k in 0..n_digits {
         commands
             .spawn(SpriteSheetBundle {
-                texture_atlas: DIGITS_ATLAS_HANDLE,
+                texture_atlas: DIGITS_ATLAS_HANDLE.typed(),
                 transform: Transform::from_translation(Vec3::new(
                     (((x_offset + n_digits - k - 1) * 16) + 32 - 8) as f32,
                     16.0,
@@ -105,8 +104,7 @@ pub fn render_setup(
 ) {
     let texture_handle = asset_server.load("icons32.png");
     let texture_atlas = TextureAtlas::from_grid(texture_handle, Vec2::new(32.0, 32.0), 12, 8);
-
-    texture_atlases.set(TEXTURE_ATLAS_HANDLE, texture_atlas);
+    texture_atlases.set_untracked(TEXTURE_ATLAS_HANDLE, texture_atlas);
 
     let box_size = 32.0;
     let width = MAX_BOARD_WIDTH as f32 * box_size;
@@ -130,7 +128,7 @@ pub fn render_setup(
     {
         let digits_handle = asset_server.load::<Texture, _>("digits2.png");
         let digits_atlas = TextureAtlas::from_grid(digits_handle, Vec2::new(16.0, 32.0), 10, 1);
-        texture_atlases.set(DIGITS_ATLAS_HANDLE, digits_atlas);
+        texture_atlases.set_untracked(DIGITS_ATLAS_HANDLE, digits_atlas);
 
         let offs = (62 - 22) / 2;
         spawn_counter(commands, ScrewCounter, offs + 0, 2, 83);
@@ -179,7 +177,7 @@ pub fn create_sprites(
         commands.insert(
             entity,
             SpriteSheetBundle {
-                texture_atlas: TEXTURE_ATLAS_HANDLE,
+                texture_atlas: TEXTURE_ATLAS_HANDLE.typed(),
                 transform: Transform::from_translation(Vec3::new(-1000.0, -1000.0, 0.0)),
                 ..Default::default()
             },
@@ -244,14 +242,22 @@ impl Plugin for RenderPlugin {
         let builder = app
             .add_resource(bevy::render::pass::ClearColor(Color::rgb(0.3, 0.3, 0.5)))
             .add_resource(RenderState::default())
-            .add_startup_system(render_setup)
-            .add_stage_before(stage::POST_UPDATE, "create_sprites")
-            .add_stage_before(stage::POST_UPDATE, "update_camera")
-            .add_stage_before(stage::POST_UPDATE, "prepare_render")
-            .add_system_to_stage("create_sprites", create_sprites)
-            .add_system_to_stage("update_camera", update_camera)
-            .add_system_to_stage("prepare_render", prepare_render);
+            .add_startup_system(render_setup.system())
+            .add_stage_before(
+                stage::POST_UPDATE,
+                "create_sprites",
+                SystemStage::parallel(),
+            )
+            .add_stage_before(stage::POST_UPDATE, "update_camera", SystemStage::parallel())
+            .add_stage_before(
+                stage::POST_UPDATE,
+                "prepare_render",
+                SystemStage::parallel(),
+            )
+            .add_system_to_stage("create_sprites", create_sprites.system())
+            .add_system_to_stage("update_camera", update_camera.system())
+            .add_system_to_stage("prepare_render", prepare_render.system());
 
-        builder.add_system_to_stage("prepare_render", update_status_bar);
+        builder.add_system_to_stage("prepare_render", update_status_bar.system());
     }
 }

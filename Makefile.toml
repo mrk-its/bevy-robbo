@@ -23,7 +23,7 @@ command = "wasm-bindgen"
 dependencies = ["cargo-build-web"]
 
 [tasks.build-native]
-args = ["build", "--features", "native", "@@split(CARGO_RELEASE_ARGS, )"]
+args = ["build", "--features", "native", "x11", "@@split(CARGO_RELEASE_ARGS, )"]
 command = "cargo"
 
 [tasks.run]

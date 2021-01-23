@@ -8,6 +8,8 @@ mod resources;
 mod systems;
 
 use bevy::prelude::*;
+use bevy::render::render_graph::RenderGraph;
+use bevy::render::renderer::{HeadlessRenderResourceContext, RenderResourceContext};
 use game_events::GameEvent;
 use inventory::Inventory;
 use levels::{LevelInfo, LevelSet, LevelSetLoader};
@@ -16,8 +18,6 @@ use plugins::{AudioPlugin, FrameCnt, FrameCntPlugin, KeyboardPlugin};
 use resources::DamageMap;
 use structopt::StructOpt;
 use systems::*;
-use bevy::render::renderer::{HeadlessRenderResourceContext, RenderResourceContext};
-use bevy::render::render_graph::RenderGraph;
 
 // use std::alloc::System;
 // use wasm_tracing_allocator::WasmTracingAllocator;
@@ -56,8 +56,13 @@ pub struct Opts {
     pub levelset_path: std::path::PathBuf,
 }
 
-pub fn render_graph_debug_system(render_ctx: Res<Box<dyn RenderResourceContext>>, render_graph: Res<RenderGraph>) {
-    let _ = render_ctx.as_any().downcast_ref::<HeadlessRenderResourceContext>();
+pub fn render_graph_debug_system(
+    render_ctx: Res<Box<dyn RenderResourceContext>>,
+    render_graph: Res<RenderGraph>,
+) {
+    let _ = render_ctx
+        .as_any()
+        .downcast_ref::<HeadlessRenderResourceContext>();
     info!("render graph: {:?}", *render_graph);
 }
 
@@ -77,8 +82,8 @@ fn main() {
     builder
         .add_resource(WindowDescriptor {
             title: "Robbo".to_string(),
-            width: ((32 * consts::MAX_BOARD_WIDTH) as f32) as u32,
-            height: ((32 * (consts::MAX_BOARD_HEIGHT + consts::STATUS_HEIGHT)) as f32) as u32,
+            width: (32 * consts::MAX_BOARD_WIDTH) as f32,
+            height: (32 * (consts::MAX_BOARD_HEIGHT + consts::STATUS_HEIGHT)) as f32,
             resizable: true,
             // mode: window::WindowMode::Fullscreen {use_size: false},
             mode: bevy::window::WindowMode::Windowed,
@@ -89,7 +94,7 @@ fn main() {
         })
         .add_plugins(DefaultPlugins);
 
-    #[cfg(target_arch="wasm32")]
+    #[cfg(target_arch = "wasm32")]
     builder.add_plugin(bevy_webgl2::WebGL2Plugin::default());
 
     builder
@@ -103,45 +108,48 @@ fn main() {
         .add_plugin(FrameCntPlugin::new(opts.key_frame_interval))
         .add_plugin(KeyboardPlugin)
         .add_plugin(AudioPlugin)
-        .add_stage_before(stage::UPDATE, "move")
-        .add_stage_before(stage::UPDATE, "move_robbo")
-        .add_stage_before(stage::POST_UPDATE, "reload_level")
-        .add_stage_before(stage::POST_UPDATE, "shots")
-        .add_stage_before(stage::POST_UPDATE, "process_damage")
-        .add_stage_before(stage::POST_UPDATE, "game_events")
-        .add_stage_after("keyboard", "magnetic_field")
-        .add_stage_after("frame_cnt", "tick")
-        .add_startup_system(level_setup)
-        .add_system_to_stage(stage::EVENT, update_game_events)
-        .add_system_to_stage(stage::EVENT, asset_events)
-        .add_system_to_stage("magnetic_field", magnetic_field_system)
-        .add_system_to_stage("process_damage", process_damage)
-        .add_system_to_stage("move", move_laser_head)
-        .add_system_to_stage("move", move_bear)
-        .add_system_to_stage("move", move_bird)
-        .add_system_to_stage("move", move_pushbox)
-        .add_system_to_stage("move", move_bullet)
-        .add_system_to_stage("move", move_blaster_head)
-        .add_system_to_stage("move", eyes_system)
-        .add_system_to_stage("move", force_field_system)
-        .add_system_to_stage("move_robbo", move_robbo)
-        .add_system_to_stage("shots", shot_system)
-        .add_system_to_stage("game_events", game_event_system)
-        .add_system_to_stage("game_events", reload_level_system)
-        .add_system_to_stage("game_events", game_event_use_item)
-        .add_system_to_stage("game_events", game_event_use_teleport)
-        .add_system_to_stage("tick", activate_capsule_system)
-        .add_system_to_stage("tick", tick_system)
-        .add_system_to_stage("tick", damage_system);
+        .add_stage_before(stage::UPDATE, "move", SystemStage::parallel())
+        .add_stage_before(stage::UPDATE, "move_robbo", SystemStage::parallel())
+        .add_stage_before(stage::POST_UPDATE, "reload_level", SystemStage::parallel())
+        .add_stage_before(stage::POST_UPDATE, "shots", SystemStage::parallel())
+        .add_stage_before(
+            stage::POST_UPDATE,
+            "process_damage",
+            SystemStage::parallel(),
+        )
+        .add_stage_before(stage::POST_UPDATE, "game_events", SystemStage::parallel())
+        .add_stage_after("keyboard", "magnetic_field", SystemStage::parallel())
+        .add_stage_after("frame_cnt", "tick", SystemStage::parallel())
+        .add_startup_system(level_setup.system())
+        .add_system_to_stage(stage::EVENT, update_game_events.system())
+        .add_system_to_stage(stage::EVENT, asset_events.system())
+        .add_system_to_stage("magnetic_field", magnetic_field_system.system())
+        .add_system_to_stage("process_damage", process_damage.system())
+        .add_system_to_stage("move", move_laser_head.system())
+        .add_system_to_stage("move", move_bear.system())
+        .add_system_to_stage("move", move_bird.system())
+        .add_system_to_stage("move", move_pushbox.system())
+        .add_system_to_stage("move", move_bullet.system())
+        .add_system_to_stage("move", move_blaster_head.system())
+        .add_system_to_stage("move", eyes_system.system())
+        .add_system_to_stage("move", force_field_system.system())
+        .add_system_to_stage("move_robbo", move_robbo.system())
+        .add_system_to_stage("shots", shot_system.system())
+        .add_system_to_stage("game_events", game_event_system.system())
+        .add_system_to_stage("game_events", reload_level_system.system())
+        .add_system_to_stage("game_events", game_event_use_item.system())
+        .add_system_to_stage("game_events", game_event_use_teleport.system())
+        .add_system_to_stage("tick", activate_capsule_system.system())
+        .add_system_to_stage("tick", tick_system.system())
+        .add_system_to_stage("tick", damage_system.system());
 
     if opts.debug {
-        builder
-            .add_plugin(bevy::diagnostic::FrameTimeDiagnosticsPlugin::default())
-            .add_plugin(bevy::diagnostic::PrintDiagnosticsPlugin::default());
+        builder.add_plugin(bevy::diagnostic::FrameTimeDiagnosticsPlugin::default());
+        //.add_plugin(bevy::diagnostic::PrintDiagnosticsPlugin::default());
     }
 
     if !opts.benchmark_mode {
-        builder.add_system_to_stage("reload_level", reload_level);
+        builder.add_system_to_stage("reload_level", reload_level.system());
         if !vsync {
             #[cfg(not(target_arch = "wasm32"))]
             builder.add_plugin(plugins::FrameLimiterPlugin {
@@ -149,7 +157,7 @@ fn main() {
             });
         }
     } else {
-        builder.add_system_to_stage("reload_level", benchmark_reload_level);
+        builder.add_system_to_stage("reload_level", benchmark_reload_level.system());
     }
     builder.run();
 }
